@@ -339,6 +339,7 @@ public:
         if (sources.length > 1) {
             float count = 1;
             foreach(ref source; sources[1..$]) {
+                if(!source) continue;
                 if (name in source.getBones) {
                     count += 1;
 
