@@ -14,17 +14,20 @@ import std.format;
 import std.algorithm;
 import session.scene;
 import inmath;
+import std.typecons;
+import std.container.dlist;
 
 enum TriggerType {
-    None,
+    None = 0,
     Tracking,
     Event
 }
 
 enum TriggerEvent {
-    None,
-    TrackingOff,
-    TrackingOn,
+    None = 0,
+    Load = 1 << 0,
+    Idle = 1 << 1,
+    Sleep = 1 << 2,
 }
 
 enum ThresholdDir {
@@ -92,6 +95,18 @@ private:
                     false);
     }
 
+    bool playEventTest(TriggerEvent event){
+        return cast(bool) (event & playEvent);
+    }
+
+    bool stopEventTest(TriggerEvent event){
+        return cast(bool) (event & stopEvent);
+    }
+
+    bool fullStopEventTest(TriggerEvent event){
+        return cast(bool) (event & fullStopEvent);
+    }
+
 public:
     string name;
     bool loop = true;
@@ -114,13 +129,16 @@ public:
     ThresholdDir fullStopThresholdDir = ThresholdDir.Down;
 
     // EventBidning
-    TriggerEvent leadInEvent;
-    TriggerEvent leadOutEvent;
-    TriggerEvent fullStopEvent;
+    BitFlags!TriggerEvent playEvent = TriggerEvent.None;
+    BitFlags!TriggerEvent stopEvent = TriggerEvent.None;
+    BitFlags!TriggerEvent fullStopEvent = TriggerEvent.None;
 
     // Util
     AnimationPlaybackRef anim;
     float inVal;
+    TriggerEvent event = TriggerEvent.None;
+    auto eventQueue = DList!TriggerEvent();
+    long load_wait = 0;
 
     float inValToBindingValue() {
         float max_v = defaultThresholds ? 1 : max(playThresholdValue, stopThresholdValue, fullStopThresholdValue);
@@ -162,12 +180,12 @@ public:
                     serializer.serializeValue(fullStopThresholdDir);
                     break;
                 case TriggerType.Event:
-                    serializer.putKey("leadInEvent");
-                    serializer.serializeValue(leadInEvent);
-                    serializer.putKey("leadOutEvent");
-                    serializer.serializeValue(leadOutEvent);
+                    serializer.putKey("playEvent");
+                    serializer.serializeValue(cast(int) playEvent);
+                    serializer.putKey("stopEvent");
+                    serializer.serializeValue(cast(int) stopEvent);
                     serializer.putKey("fullStopEvent");
-                    serializer.serializeValue(fullStopEvent);
+                    serializer.serializeValue(cast(int) fullStopEvent);
                     break;
                 default: break;
             }
@@ -197,9 +215,15 @@ public:
                 this.createSourceDisplayName();
                 break;
             case TriggerType.Event:
-                data["leadInEvent"].deserializeValue(leadInEvent);
-                data["leadOutEvent"].deserializeValue(leadOutEvent);
-                data["fullStopEvent"].deserializeValue(fullStopEvent);
+            {
+                int play, stop, fullstop;
+                data["playEvent"].deserializeValue(play);
+                data["stopEvent"].deserializeValue(stop);
+                data["fullStopEvent"].deserializeValue(fullstop);
+                playEvent = cast(TriggerEvent) play;
+                stopEvent = cast(TriggerEvent) stop;
+                fullStopEvent = cast(TriggerEvent) fullstop;
+            }
                 break;
             default: break;
         }
@@ -209,12 +233,71 @@ public:
 
     bool finalize(ref AnimationPlayer player) {
         anim = player.createOrGet(name);
-        return anim !is null;
+        if( anim !is null){
+            eventQueue.insert(TriggerEvent.Load);
+            return true;
+        }
+        return false;
+    }
 
+    void sleep() {
+        eventQueue.insert(TriggerEvent.Sleep);
+    }
+
+    void awake() {
+        eventQueue.insert(TriggerEvent.Idle);
+    }
+
+    void triggerEvent() {
+        eventQueue.insert(event);
     }
 
     void update() {
+        bool eventChaged = false;
+
+        //FIXME: Maybe a queue is too overkill...
+        if(!eventQueue.empty()){
+            event = eventQueue.front();
+            if (event == TriggerEvent.Load){
+                //HACK: First 2 frames of a newly loaded puppet last
+                //      for a long time and can skip the whole animation
+                //      if not looped
+                if(load_wait < 3){
+                    load_wait +=1;
+                    event = TriggerEvent.None;
+                }
+                else {
+                    eventQueue.removeFront();
+                    eventQueue.insertFront(TriggerEvent.Idle);
+                }
+            }
+            else {
+                eventQueue.removeFront();
+            }
+            eventChaged = true;
+        }
+
         switch(type) {
+            case TriggerType.Event:
+                // State control
+                // Check if need to trigger change
+                if(eventChaged){
+                    if (!anim.playing || anim.paused) {
+                        // Test for play
+                        if(playEventTest(event)){
+                            anim.play(loop);
+                        } 
+                    } else {
+                        // Test for Stop
+                        if(fullStopEventTest(event)){
+                            anim.stop(true);
+                        } 
+                        else if(stopEventTest(event)){
+                            anim.stop(false);
+                        } 
+                    }
+                }
+            break;
             case TriggerType.Tracking:
                 if (sourceName.length == 0) {
                     break;
@@ -255,8 +338,15 @@ public:
                     }
                 }
 
-                // Ignore if tracking is lost.
-                if (!insScene.space.hasAnyFocus()) {
+                // Stop if sleep (aka Tracking lost)
+                if (eventChaged){
+                    if (event == TriggerEvent.Sleep) {
+                        anim.stop(true);
+                    }
+                }
+
+                // Ignore if not idle.
+                if (event != TriggerEvent.Idle) {
                     break;
                 }
 

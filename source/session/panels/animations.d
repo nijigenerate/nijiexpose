@@ -274,7 +274,97 @@ private:
 
     void eventOptions(AnimationControl ac){
         uiImIndent();
-            uiImLabel(_("TODO: Not yet implemented."));
+            igBeginTable(__("Event"), 3, ImGuiTableFlags.SizingStretchProp);
+
+            igTableNextColumn();
+            uiImLabel(_("Play on"));
+            igTableNextColumn();
+            uiImLabel(_("Stop on"));
+            igTableNextColumn();
+            uiImLabel(_("Full stop on"));
+            igTableNextColumn();
+
+            uiImIndent();
+            uiImPush(0);
+            {
+                bool load = ac.playEvent.Load;
+                bool idle = ac.playEvent.Idle;
+                bool sleep = ac.playEvent.Sleep;
+                if(uiImCheckbox(__("Load"), load)){
+                    ac.playEvent.Load = load;
+                    ac.stopEvent.Load = false;
+                    ac.fullStopEvent.Load = false;
+                    ac.triggerEvent();
+                }
+                if(uiImCheckbox(__("Idle"), idle)){
+                    ac.playEvent.Idle = idle;
+                    if(ac.playEvent.Idle){
+                        ac.stopEvent.Idle = false;
+                        ac.fullStopEvent.Idle = false;
+                    }
+                    ac.triggerEvent();
+                }
+                if(uiImCheckbox(__("Sleep"), sleep)){
+                    ac.playEvent.Sleep = sleep;
+                    if(ac.playEvent.Sleep){
+                        ac.stopEvent.Sleep = false;
+                        ac.fullStopEvent.Sleep = false;
+                    }
+                    ac.triggerEvent();
+                }
+            }
+            uiImPop();
+            uiImUnindent();
+
+            igTableNextColumn();
+
+            uiImIndent();
+            uiImPush(1);
+            {
+                bool idle = ac.stopEvent.Idle;
+                bool sleep = ac.stopEvent.Sleep;
+                uiImDummy(vec2(0, 20));
+                if(ac.playEvent.Idle) igBeginDisabled();
+                if(uiImCheckbox(__("Idle"), idle)){
+                    ac.stopEvent.Idle = idle;
+                    ac.triggerEvent();
+                }
+                if(ac.playEvent.Idle) igEndDisabled();
+                if(ac.playEvent.Sleep) igBeginDisabled();
+                if(uiImCheckbox(__("Sleep"), sleep)){
+                    ac.stopEvent.Sleep = sleep;
+                    ac.triggerEvent();
+                } 
+                if(ac.playEvent.Sleep) igEndDisabled();
+            }
+            uiImPop();
+            uiImUnindent();
+
+            igTableNextColumn();
+
+            uiImIndent();
+            uiImPush(2);
+            {
+                bool idle = ac.fullStopEvent.Idle;
+                bool sleep = ac.fullStopEvent.Sleep;
+                uiImDummy(vec2(0, 20));
+                if(ac.playEvent.Idle) igBeginDisabled();
+                if(uiImCheckbox(__("Idle"), idle)){
+                    ac.fullStopEvent.Idle = idle;
+                    ac.triggerEvent();
+                }
+                if(ac.playEvent.Idle) igEndDisabled();
+                if(ac.playEvent.Sleep) igBeginDisabled();
+                if(uiImCheckbox(__("Sleep"), sleep)){
+                    ac.fullStopEvent.Sleep = sleep;
+                    ac.triggerEvent();
+                }
+                if(ac.playEvent.Sleep) igEndDisabled();
+            }
+            uiImPop();
+            uiImUnindent();
+
+            igEndTable();
         uiImUnindent();
         
     }

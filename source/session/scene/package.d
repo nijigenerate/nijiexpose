@@ -30,6 +30,8 @@ struct Scene {
 
     bool shouldPostProcess = true;
     float zoneInactiveTimer = 0;
+
+    bool sleeping = false;
 }
 
 struct SceneItem {
@@ -38,7 +40,6 @@ struct SceneItem {
     TrackingBinding[] bindings;
     AnimationControl[] animations;
     AnimationPlayer player;
-    AnimationPlaybackRef sleepAnim;
 
     void saveBindings() {
         puppet.extData["com.inochi2d.inochi-session.bindings"] = cast(ubyte[])serializeToJson(bindings);
@@ -154,6 +155,17 @@ struct SceneItem {
 
     }
 
+    void sleep(){
+        foreach(ref animation; animations) {
+            animation.sleep();
+        }
+    }
+
+    void awake(){
+        foreach(ref animation; animations) {
+            animation.awake();
+        }
+    }
 }
 
 /**
@@ -168,7 +180,6 @@ void insSceneAddPuppet(string path, Puppet puppet) {
     item.filePath = path;
     item.puppet = puppet;
     item.player = new AnimationPlayer(puppet);
-    item.sleepAnim = item.player.createOrGet("tracking_lost");
     
     if (!item.tryLoadBindings()) {
         // Reset bindings
@@ -182,6 +193,7 @@ void insSceneAddPuppet(string path, Puppet puppet) {
     item.genBindings();
     item.genAnimationControls();
 
+    if(insScene.sleeping) item.sleep();
     insScene.sceneItems ~= item;
 }
 
@@ -315,20 +327,24 @@ void insUpdateScene() {
         if (!insScene.space.isCurrentZoneActive()) {
             insScene.zoneInactiveTimer += deltaTime();
             if (insScene.zoneInactiveTimer >= 5) {
-                foreach(ref sceneItem; insScene.sceneItems) {
-                    if (sceneItem.sleepAnim && !sceneItem.sleepAnim.playing()) {
-                        sceneItem.player.stopAll(true);
-                        sceneItem.sleepAnim.strength = 1;
-                        sceneItem.sleepAnim.play(true);
+                if(!insScene.sleeping){
+                    foreach(ref sceneItem; insScene.sceneItems) {
+                        sceneItem.sleep();
                     }
+                    insScene.sleeping = true;
                 }
             }
         } else {
             insScene.zoneInactiveTimer -= deltaTime();
+            // Stop sleep animation
+            if (insScene.sleeping) {
+                foreach(ref sceneItem; insScene.sceneItems) {
+                    sceneItem.awake();
+                }
+                insScene.sleeping = false;
+            }
         }
         insScene.zoneInactiveTimer = clamp(insScene.zoneInactiveTimer, 0, 6);
-        
-        import std.stdio : writeln;
 
         // Update every scene item
         foreach(ref sceneItem; insScene.sceneItems) {
@@ -342,22 +358,6 @@ void insUpdateScene() {
             }
 
             sceneItem.player.update(deltaTime());
-            if (sceneItem.sleepAnim) {
-                if (sceneItem.sleepAnim.isRunning) {
-                    float eframe = sceneItem.sleepAnim.hframe-sceneItem.sleepAnim.loopPointEnd;
-                    float elen = cast(float)sceneItem.sleepAnim.frames-sceneItem.sleepAnim.loopPointEnd;
-
-                    if (sceneItem.sleepAnim.stopping) {
-                        sceneItem.sleepAnim.strength = 1-(eframe/elen);
-                    }
-
-                    // Stop sleep animation
-                    if (!sceneItem.sleepAnim.stopping && sceneItem.sleepAnim.playing && insScene.space.isCurrentZoneActive()) {
-                        sceneItem.sleepAnim.stop();
-                    }
-                }
-            }
-
             sceneItem.puppet.update();
             sceneItem.puppet.draw();
             
