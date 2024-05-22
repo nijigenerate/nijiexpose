@@ -81,6 +81,7 @@ private:
 
     void trackingOptions(AnimationControl ac){
         float default_val;
+        int default_hold_val = 0;
         bool hasTrackingSrc = ac.sourceName.length > 0;
         uiImIndent();
 
@@ -161,6 +162,10 @@ private:
             uiImProgress(ac.inValToBindingValue(), vec2(-float.min_normal, 0), "");
             uiImDummy(vec2(0, 8));
             uiImCheckbox(__("Default Thresholds"), ac.defaultThresholds);
+            uiImSameLine(0, 0);
+            uiImDummy(vec2(10, 5));
+            uiImSameLine(0, 0);
+            uiImCheckbox(__("Use Hold Delay"), ac.useHoldDelay);
 
             if(ac.defaultThresholds){
                 igBeginDisabled();
@@ -194,6 +199,20 @@ private:
                         thresholdDirectionIcon(ac.defaultThresholds ? ThresholdDir.Up : ac.playThresholdDir))) {
                     if(ac.playThresholdDir < ThresholdDir.Both) ac.playThresholdDir += 1;
                     else ac.playThresholdDir = ThresholdDir.None;
+                }
+                if(ac.useHoldDelay){
+                    if(ac.playThresholdDir == ThresholdDir.None || ac.playThresholdDir == ThresholdDir.Both){
+                        igBeginDisabled();
+                    }
+                    uiImLabel(_("Hold Delay (ms):"));
+                    uiImPush(0);
+                    uiImDrag(
+                        ac.defaultThresholds || ac.playThresholdDir == ThresholdDir.None || ac.playThresholdDir == ThresholdDir.Both ? 
+                            default_hold_val : ac.playThresholdHoldDelay, 0, int.max);
+                    uiImPop();
+                    if(ac.playThresholdDir == ThresholdDir.None || ac.playThresholdDir == ThresholdDir.Both){
+                        igEndDisabled();
+                    }
                 }
 
                 uiImUnindent();
@@ -229,6 +248,20 @@ private:
                     if(ac.stopThresholdDir < ThresholdDir.Both) ac.stopThresholdDir += 1;
                     else ac.stopThresholdDir = ThresholdDir.None;
                 }
+                if(ac.useHoldDelay){
+                    if(ac.stopThresholdDir == ThresholdDir.None || ac.stopThresholdDir == ThresholdDir.Both){
+                        igBeginDisabled();
+                    }
+                    uiImLabel(_("Hold Delay (ms):"));
+                    uiImPush(0);
+                    uiImDrag(
+                        ac.defaultThresholds || ac.stopThresholdDir == ThresholdDir.None || ac.stopThresholdDir == ThresholdDir.Both ? 
+                            default_hold_val : ac.stopThresholdHoldDelay, 0, int.max);
+                    uiImPop();
+                    if(ac.stopThresholdDir == ThresholdDir.None || ac.stopThresholdDir == ThresholdDir.Both){
+                        igEndDisabled();
+                    }
+                }
                 uiImUnindent();
             uiImPop();
 
@@ -261,6 +294,20 @@ private:
                         thresholdDirectionIcon(ac.defaultThresholds ? ThresholdDir.Down : ac.fullStopThresholdDir))) {
                     if(ac.fullStopThresholdDir < ThresholdDir.Both) ac.fullStopThresholdDir += 1;
                     else ac.fullStopThresholdDir = ThresholdDir.None;
+                }
+                if(ac.useHoldDelay){
+                    if(ac.fullStopThresholdDir == ThresholdDir.None || ac.fullStopThresholdDir == ThresholdDir.Both){
+                        igBeginDisabled();
+                    }
+                    uiImLabel(_("Hold Delay (ms):"));
+                    uiImPush(0);
+                    uiImDrag(
+                        ac.defaultThresholds || ac.fullStopThresholdDir == ThresholdDir.None || ac.fullStopThresholdDir == ThresholdDir.Both ? 
+                            default_hold_val : ac.fullStopThresholdHoldDelay, 0, int.max);
+                    uiImPop();
+                    if(ac.fullStopThresholdDir == ThresholdDir.None || ac.fullStopThresholdDir == ThresholdDir.Both){
+                        igEndDisabled();
+                    }
                 }
                 uiImUnindent();
             uiImPop();

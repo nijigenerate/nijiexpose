@@ -6,6 +6,7 @@
 module session.animation;
 
 public import session.tracking;
+import inochi2d;
 import inochi2d.core.animation;
 import inochi2d.core.animation.player;
 import fghj;
@@ -95,6 +96,114 @@ private:
                     false);
     }
 
+    bool playHoldCheck(float src){
+        return defaultThresholds ? 
+            (src >= 1) :
+            ((playThresholdDir & ThresholdDir.Up) && (src >= playThresholdValue) ? 
+                true :
+                ((playThresholdDir & ThresholdDir.Down) && (src <= playThresholdValue)) ?
+                    true :
+                    false);
+    }
+
+    bool stopHoldCheck(float src){
+        return defaultThresholds ? 
+            (src <= 0) :
+            ((stopThresholdDir & ThresholdDir.Up) && (src >= stopThresholdValue) ? 
+                true :
+                ((stopThresholdDir & ThresholdDir.Down) && (src <= stopThresholdValue)) ?
+                    true :
+                    false);
+    }
+
+    bool fullStopHoldCheck(float src){
+        return defaultThresholds ? 
+            (src <= -1) :
+            ((fullStopThresholdDir & ThresholdDir.Up) && (src >= fullStopThresholdValue) ? 
+                true :
+                ((fullStopThresholdDir & ThresholdDir.Down) && (src <= fullStopThresholdValue)) ?
+                    true :
+                    false);
+    }
+
+    bool playHoldTest(float src) {
+        return playHoldCheck(src) && playThresholdHoldTime >= playThresholdHoldDelay;
+    }
+
+    bool stopHoldTest(float src) {
+        return stopHoldCheck(src) && stopThresholdHoldTime >= stopThresholdHoldDelay;
+    }
+
+    bool fullStopHoldTest(float src) {
+        return fullStopHoldCheck(src) && fullStopThresholdHoldTime >= fullStopThresholdHoldDelay;
+    }
+
+    void updateHold(float src){
+        if(useHoldDelay && playThresholdHoldDelay > 0) {
+            if(playThresholdHoldTime == 0)
+            {
+                if(playTest(src)) {
+                    playThresholdHoldTime += cast(int)(deltaTime() * 1000);
+                }
+                else {
+                    playThresholdHoldTime = 0;
+                }
+            }
+            else
+            {
+                if(playHoldCheck(src)) {
+                    playThresholdHoldTime += cast(int)(deltaTime() * 1000);
+                }
+                else {
+                    playThresholdHoldTime = 0;
+                }
+            }
+        }
+
+        if(useHoldDelay && stopThresholdHoldDelay > 0) {
+            if(stopThresholdHoldTime == 0)
+            {
+                if(stopTest(src)) {
+                    stopThresholdHoldTime += cast(int)(deltaTime() * 1000);
+                }
+                else {
+                    stopThresholdHoldTime = 0;
+                }
+            }
+            else
+            {
+                if(stopHoldCheck(src)) {
+                    stopThresholdHoldTime += cast(int)(deltaTime() * 1000);
+                }
+                else {
+                    stopThresholdHoldTime = 0;
+                }
+            }
+        }
+
+        if(useHoldDelay && fullStopThresholdHoldDelay > 0) {
+            if(fullStopThresholdHoldTime == 0)
+            {
+                if(fullStopTest(src)) {
+                    fullStopThresholdHoldTime += cast(int)(deltaTime() * 1000);
+                }
+                else {
+                    fullStopThresholdHoldTime = 0;
+                }
+            }
+            else
+            {
+                if(fullStopHoldCheck(src)) {
+                    fullStopThresholdHoldTime += cast(int)(deltaTime() * 1000);
+                }
+                else {
+                    fullStopThresholdHoldTime = 0;
+                }
+
+            }
+        }
+    }
+
     bool playEventTest(TriggerEvent event){
         return cast(bool) (event & playEvent);
     }
@@ -119,6 +228,7 @@ public:
     SourceType sourceType;
 
     bool defaultThresholds = true;
+    bool useHoldDelay = false;
 
     float playThresholdValue = 1;
     float stopThresholdValue = 0;
@@ -127,6 +237,14 @@ public:
     ThresholdDir playThresholdDir = ThresholdDir.Up;
     ThresholdDir stopThresholdDir = ThresholdDir.Down;
     ThresholdDir fullStopThresholdDir = ThresholdDir.Down;
+
+    int playThresholdHoldDelay = 0;
+    int stopThresholdHoldDelay = 0;
+    int fullStopThresholdHoldDelay = 0;
+
+    int playThresholdHoldTime = 0;
+    int stopThresholdHoldTime = 0;
+    int fullStopThresholdHoldTime = 0;
 
     // EventBidning
     BitFlags!TriggerEvent playEvent = TriggerEvent.None;
@@ -164,6 +282,8 @@ public:
 
                     serializer.putKey("defaultThresholds");
                     serializer.putValue(defaultThresholds);
+                    serializer.putKey("useHoldDelay");
+                    serializer.putValue(useHoldDelay);
 
                     serializer.putKey("playThresholdValue");
                     serializer.putValue(playThresholdValue);
@@ -171,6 +291,13 @@ public:
                     serializer.putValue(stopThresholdValue);
                     serializer.putKey("fullStopThresholdValue");
                     serializer.putValue(fullStopThresholdValue);
+
+                    serializer.putKey("playThresholdHoldDelay");
+                    serializer.putValue(playThresholdHoldDelay);
+                    serializer.putKey("stopThresholdHoldDelay");
+                    serializer.putValue(stopThresholdHoldDelay);
+                    serializer.putKey("fullStopThresholdHoldDelay");
+                    serializer.putValue(fullStopThresholdHoldDelay);
 
                     serializer.putKey("playThresholdDir");
                     serializer.serializeValue(playThresholdDir);
@@ -204,10 +331,15 @@ public:
                 data["sourceType"].deserializeValue(sourceType);
 
                 data["defaultThresholds"].deserializeValue(defaultThresholds);
+                if (!data["useHoldDelay"].isEmpty) data["useHoldDelay"].deserializeValue(useHoldDelay);
 
                 data["playThresholdValue"].deserializeValue(playThresholdValue);
                 data["stopThresholdValue"].deserializeValue(stopThresholdValue);
                 data["fullStopThresholdValue"].deserializeValue(fullStopThresholdValue);
+
+                if (!data["playThresholdHoldDelay"].isEmpty) data["playThresholdHoldDelay"].deserializeValue(playThresholdHoldDelay);
+                if (!data["stopThresholdHoldDelay"].isEmpty) data["stopThresholdHoldDelay"].deserializeValue(stopThresholdHoldDelay);
+                if (!data["fullStopThresholdHoldDelay"].isEmpty) data["fullStopThresholdHoldDelay"].deserializeValue(fullStopThresholdHoldDelay);
 
                 data["playThresholdDir"].deserializeValue(playThresholdDir);
                 data["stopThresholdDir"].deserializeValue(stopThresholdDir);
@@ -350,14 +482,16 @@ public:
                     break;
                 }
 
+                updateHold(src);
+
                 // Check if need to trigger change
                 if (!anim.playing || anim.paused) {
                     // Test for play
-                    if(playTest(src)) anim.play(loop);
+                    if(!useHoldDelay || playThresholdHoldDelay == 0 ? playTest(src) : playHoldTest(src)) anim.play(loop);
                 } else {
                     // Test for Stop
-                    if(fullStopTest(src)) anim.stop(true);
-                    else if(stopTest(src)) anim.stop(false);
+                    if(!useHoldDelay || fullStopThresholdHoldDelay == 0 ? fullStopTest(src) : fullStopHoldTest(src)) anim.stop(true);
+                    else if(!useHoldDelay || stopThresholdHoldDelay == 0 ? stopTest(src) : stopHoldTest(src)) anim.stop(false);
                 }
 
                 //Set latest inVal
