@@ -37,6 +37,9 @@ jobs:
         git clone https://github.com/Inochi2D/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
 
+        git clone https://github.com/Inochi2D/inochi2d.git --recurse-submodules
+        dub add-local inochi2d/ "0.8.3"
+
     - name: 'Build Inochi Session'
       run: |
         # Build metadata (like version information and icons)
@@ -82,6 +85,9 @@ jobs:
       run: |
         git clone https://github.com/Inochi2D/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
+        
+        git clone https://github.com/Inochi2D/inochi2d.git --recurse-submodules
+        dub add-local inochi2d/ "0.8.3"
 
     - name: 'Build Inochi Session'
       run: |
@@ -190,6 +196,9 @@ jobs:
       run: |
         git clone https://github.com/Inochi2D/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
+        
+        git clone https://github.com/Inochi2D/inochi2d.git --recurse-submodules
+        dub add-local inochi2d/ "0.8.3"
 
     - name: 'Build Inochi Session'
       env:
