@@ -172,7 +172,7 @@ protected:
                     }
                     if (uiImMenuItem(__("About"))) {
                         uiImDialog(__("nijiexpose"),
-                        "nijiexpose %s\n(nijilive %s)\n\nMade with <3\nby Luna the Foxgirl and nijilive Contributors.".format(INS_VERSION, IN_VERSION), DialogLevel.Info);
+                        "nijiexpose %s\n(nijilive %s)\n\nMade with <3\nby seagetch and nijilive Contributors.\n\nSpecial thanks to Inochi2D project.".format(INS_VERSION, IN_VERSION), DialogLevel.Info);
                     }
                     
                     uiImEndMenu();
@@ -183,6 +183,7 @@ protected:
                 uiImDummy(vec2(4, 0));
                 uiImLabel(_("Double-click to show/hide UI"));
 
+/*
                 // DONATE BUTTON
                 avail = uiImAvailableSpace();
                 vec2 donateBtnLength = uiImMeasureString(_("Donate")).x+16;
@@ -190,6 +191,7 @@ protected:
                 if (uiImMenuItem(__("Donate"))) {
                     uiOpenLink("https://www.patreon.com/LunaFoxgirlVT");
                 }
+*/
             uiImEndMainMenuBar();
         }
 
