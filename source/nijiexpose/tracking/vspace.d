@@ -12,8 +12,8 @@ import std.string;
 import inmath;
 public import ft.data : Bone;
 public import ft;
-import inui.core.settings;
-import inui.core.utils;
+import nijiui.core.settings;
+import nijiui.core.utils;
 import fghj;
 
 

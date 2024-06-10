@@ -6,7 +6,7 @@
 */
 module nijiexpose.plugins.api.ui;
 import lumars;
-import inui.widgets;
+import nijiui.widgets;
 import std.string;
 import std.meta : AliasSeq;
 
@@ -30,7 +30,7 @@ void insRegisterUIAPI(LuaState* state) {
     state.register!GUI_API("ui");
 }
 
-void insPluginBeginUI() {
+void insPluginBegnijiui() {
     uiBegun = true;
 }
 

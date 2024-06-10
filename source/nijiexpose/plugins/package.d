@@ -7,8 +7,8 @@
 module nijiexpose.plugins;
 public import nijiexpose.plugins.plugin;
 import nijiexpose.plugins.api;
-import inui.core.settings;
-import inui.core.path;
+import nijiui.core.settings;
+import nijiui.core.path;
 import bindbc.lua;
 import lumars;
 import nijiexpose.log;

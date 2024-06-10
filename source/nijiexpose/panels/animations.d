@@ -4,10 +4,10 @@
     Authors: Grillo del Mal
 */
 module nijiexpose.panels.animations;
-import inui.panel;
+import nijiui.panel;
 import i18n;
 import nijiexpose.scene;
-import inui.widgets;
+import nijiui.widgets;
 import std.string;
 import std.algorithm.searching;
 import nijilive.core.animation.player;

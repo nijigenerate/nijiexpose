@@ -8,7 +8,7 @@
 */
 module app;
 import nijilive;
-import inui;
+import nijiui;
 import nijiexpose.windows;
 import std.stdio : writeln;
 import nijiexpose.plugins;

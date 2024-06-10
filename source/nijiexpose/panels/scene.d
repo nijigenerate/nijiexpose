@@ -5,11 +5,11 @@
     Authors: Luna Nielsen
 */
 module nijiexpose.panels.scene;
-import inui.panel;
+import nijiui.panel;
 import i18n;
 import nijiexpose.scene;
-import inui;
-import inui.widgets;
+import nijiui;
+import nijiui.widgets;
 import nijiexpose.log;
 import inmath;
 import std.format;

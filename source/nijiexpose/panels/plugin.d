@@ -8,11 +8,11 @@ module nijiexpose.panels.plugin;
 import nijiexpose.tracking.expr;
 import nijiexpose.plugins;
 import nijiexpose.plugins.api;
-import inui.panel;
+import nijiui.panel;
 import i18n;
 import nijiexpose.scene;
-import inui;
-import inui.widgets;
+import nijiui;
+import nijiui.widgets;
 import nijiexpose.log;
 import inmath;
 import std.format;
@@ -37,7 +37,7 @@ protected:
                                         vec4(1, 0.3, 0.3, 1)
                                     );
                                 } else if (plugin.hasEvent("onRenderUI")) {
-                                        insPluginBeginUI();
+                                        insPluginBegnijiui();
                                         try {
                                             plugin.callEvent("onRenderUI");
                                         } catch(Exception ex) {

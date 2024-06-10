@@ -1,11 +1,11 @@
 module nijiexpose.panels.blends;
 import nijiexpose.tracking.expr;
-import inui.panel;
+import nijiui.panel;
 import i18n;
 import nijiexpose.scene;
 import nijiexpose.tracking;
-import inui;
-import inui.widgets;
+import nijiui;
+import nijiui.widgets;
 import nijiexpose.log;
 import inmath;
 import std.string;

@@ -11,15 +11,15 @@ import nijiexpose.log;
 import nijiexpose.framesend;
 import nijiexpose.plugins;
 import nijiexpose.io;
-import inui;
-import inui.widgets;
-import inui.toolwindow;
-import inui.panel;
-import inui.input;
+import nijiui;
+import nijiui.widgets;
+import nijiui.toolwindow;
+import nijiui.panel;
+import nijiui.input;
 import nijilive;
 import ft;
 import i18n;
-import inui.utils.link;
+import nijiui.utils.link;
 import std.format;
 import nijiexpose.ver;
 import bindbc.opengl;
@@ -65,7 +65,7 @@ protected:
 
     override
     void onUpdate() {
-        if (!inInputIsInUI()) {
+        if (!inInputIsnijiui()) {
             if (inInputMouseDoubleClicked(MouseButton.Left)) this.showUI = !showUI;
             insInteractWithScene();
 
@@ -235,6 +235,8 @@ public:
 
         version (InBranding) {
             logo = new Texture(ShallowTexture(cast(ubyte[])import("tex/logo.png")));
+            auto tex = ShallowTexture(cast(ubyte[])import("icon_x256.png"));
+            setIcon(tex);
         }
 
         version(linux) dpInit();

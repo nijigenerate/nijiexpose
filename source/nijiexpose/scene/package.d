@@ -7,8 +7,8 @@
 module nijiexpose.scene;
 import nijilive;
 import inmath;
-import inui.input;
-import inui;
+import nijiui.input;
+import nijiui;
 import nijiexpose.tracking;
 import nijiexpose.animation;
 import nijiexpose.tracking.vspace;
@@ -403,7 +403,7 @@ private {
 void insInteractWithScene() {
 
     // Skip doing stuff is mouse drag begin in the UI
-    if (inInputMouseDownBeganInUI(MouseButton.Left)) return;
+    if (inInputMouseDownBegannijiui(MouseButton.Left)) return;
 
     int width, height;
     inGetViewport(width, height);
