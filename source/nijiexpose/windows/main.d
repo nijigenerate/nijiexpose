@@ -172,7 +172,7 @@ protected:
                     }
                     if (uiImMenuItem(__("About"))) {
                         uiImDialog(__("nijiexpose"),
-                        "nijiexpose %s\n(nijilive %s)\n\nMade with <3\nby seagetch and nijilive Contributors.\n\nSpecial thanks to Inochi2D project.".format(INS_VERSION, IN_VERSION), DialogLevel.Info);
+                        "nijiexpose %s\n(nijilive %s)\n\nMade with <3\nby seagetch and nijigenerate Contributors.\n\nSpecial thanks to Inochi2D project.".format(INS_VERSION, IN_VERSION), DialogLevel.Info);
                     }
                     
                     uiImEndMenu();
