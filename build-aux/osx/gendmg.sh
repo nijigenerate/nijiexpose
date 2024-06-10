@@ -1,7 +1,7 @@
-DMGTITLE="Install Inochi Session"
-DMGFILENAME="Install_Inochi_Session.dmg"
+DMGTITLE="Install nijiexpose"
+DMGFILENAME="Install_Inochi_nijiexpose.dmg"
 
-if [ -d "out/Inochi Session.app" ]; then
+if [ -d "out/nijiexpose.app" ]; then
     if [ -f "out/$DMGFILENAME" ]; then
         echo "Removing prior install dmg..."
         rm "out/$DMGFILENAME"
@@ -20,15 +20,15 @@ if [ -d "out/Inochi Session.app" ]; then
 
     mkdir -p InstallVolume
     cp ../LICENSE LICENSE
-    cp -r "Inochi Session.app" "InstallVolume/Inochi Session.app"
+    cp -r "nijiexpose.app" "InstallVolume/nijiexpose.app"
     
     create-dmg \
         --volname "$DMGTITLE" \
-        --volicon "InochiSession.icns" \
+        --volicon "Inochinijiexpose.icns" \
         --background "../build-aux/osx/dmgbg.png" \
         --window-size 800 600 \
-        --icon "Inochi Session.app" 200 250 \
-        --hide-extension "Inochi Session.app" \
+        --icon "nijiexpose.app" 200 250 \
+        --hide-extension "nijiexpose.app" \
         --eula "LICENSE" \
         --app-drop-link 600 250 \
         "$DMGFILENAME" InstallVolume/
@@ -39,5 +39,5 @@ if [ -d "out/Inochi Session.app" ]; then
     echo "DMG generated as $PWD/$DMGFILENAME"
     cd $PREVPWD
 else
-    echo "Could not find Inochi Session for packaging..."
+    echo "Could not find nijiexpose for packaging..."
 fi

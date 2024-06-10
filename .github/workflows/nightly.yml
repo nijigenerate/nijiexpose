@@ -67,10 +67,10 @@ jobs:
 
     - name: "Clone dependencies & set versions"
       run: |
-        git clone https://github.com/Inochi2D/i2d-imgui.git --recurse-submodules
+        git clone https://github.com/nijilife/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
 
-    - name: 'Build Inochi Session'
+    - name: 'Build nijiexpose'
       run: |
         # Build metadata (like version information and icons)
         dub build --config=meta
@@ -82,7 +82,7 @@ jobs:
       uses: thedoctor0/zip-release@main
       with:
         type: 'zip'
-        filename: 'inochi-session-linux-x86_64.zip'
+        filename: 'nijiexpose-linux-x86_64.zip'
         directory: 'out/'
         path: '*'
 
@@ -92,7 +92,7 @@ jobs:
         name: 'Nightly Build'
         tag_name: nightly
         files: |
-          out/inochi-session-linux-x86_64.zip
+          out/nijiexpose-linux-x86_64.zip
         generate_release_notes: true
 
   windows-zip:
@@ -114,10 +114,10 @@ jobs:
       
     - name: "Clone dependencies & set versions"
       run: |
-        git clone https://github.com/Inochi2D/i2d-imgui.git --recurse-submodules
+        git clone https://github.com/nijilife/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
 
-    - name: 'Build Inochi Session'
+    - name: 'Build nijiexpose'
       run: |
         function Invoke-VSDevEnvironment {
         $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -141,7 +141,7 @@ jobs:
       uses: thedoctor0/zip-release@main
       with:
         type: 'zip'
-        filename: 'inochi-session-win32-x86_64.zip'
+        filename: 'nijiexpose-win32-x86_64.zip'
         directory: 'out/'
         path: '*'
 
@@ -150,7 +150,7 @@ jobs:
       with:
         name: 'Nightly Build'
         tag_name: nightly
-        files: 'out/inochi-session-win32-x86_64.zip'
+        files: 'out/nijiexpose-win32-x86_64.zip'
 
   macOS-dmg:
     runs-on: macos-12
@@ -186,10 +186,10 @@ jobs:
 
     - name: "Clone dependencies & set versions"
       run: |
-        git clone https://github.com/Inochi2D/i2d-imgui.git --recurse-submodules
+        git clone https://github.com/nijilife/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
 
-    - name: 'Build Inochi Session'
+    - name: 'Build nijiexpose'
       env:
         DFLAGS: "-g -force-dwarf-frame-section=false"
       run: |
@@ -199,24 +199,24 @@ jobs:
         # First build ARM64 version...
         echo "Building arm64 binary..."
         dub build --config=osx-nightly --arch=arm64-apple-macos
-        mv "out/Inochi Session.app/Contents/MacOS/inochi-session" "out/Inochi Session.app/Contents/MacOS/inochi-session-arm64"
+        mv "out/nijiexpose.app/Contents/MacOS/nijiexpose" "out/nijiexpose.app/Contents/MacOS/nijiexpose-arm64"
 
         # Then the X86_64 version...
         echo "Building x86_64 binary..."
         dub build --config=osx-nightly --arch=x86_64-apple-macos
-        mv "out/Inochi Session.app/Contents/MacOS/inochi-session" "out/Inochi Session.app/Contents/MacOS/inochi-session-x86_64"
+        mv "out/nijiexpose.app/Contents/MacOS/nijiexpose" "out/nijiexpose.app/Contents/MacOS/nijiexpose-x86_64"
 
         # Glue them together with lipo
         echo "Gluing them together..."
-        lipo "out/Inochi Session.app/Contents/MacOS/inochi-session-x86_64" "out/Inochi Session.app/Contents/MacOS/inochi-session-arm64" -output "out/Inochi Session.app/Contents/MacOS/inochi-session" -create
+        lipo "out/nijiexpose.app/Contents/MacOS/nijiexpose-x86_64" "out/nijiexpose.app/Contents/MacOS/nijiexpose-arm64" -output "out/nijiexpose.app/Contents/MacOS/nijiexpose" -create
 
         # Print some nice info
         echo "Done!"
-        lipo -info "out/Inochi Session.app/Contents/MacOS/inochi-session"
+        lipo -info "out/nijiexpose.app/Contents/MacOS/nijiexpose"
 
         # Cleanup and bundle
         echo "Cleaning up..."
-        rm "out/Inochi Session.app/Contents/MacOS/inochi-session-x86_64" "out/Inochi Session.app/Contents/MacOS/inochi-session-arm64"
+        rm "out/nijiexpose.app/Contents/MacOS/nijiexpose-x86_64" "out/nijiexpose.app/Contents/MacOS/nijiexpose-arm64"
         ./build-aux/osx/osxbundle.sh
 
     - name: 'Build DMG'
@@ -228,4 +228,4 @@ jobs:
       with:
         name: 'Nightly Build'
         tag_name: nightly
-        files: 'out/Install_Inochi_Session.dmg'
+        files: 'out/Install_Inochi_nijiexpose.dmg'

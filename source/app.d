@@ -1,33 +1,33 @@
 /*
-    Inochi Session main app entry
+    nijiexpose main app entry
     
-    Copyright © 2022, Inochi2D Project
+    Copyright © 2022, nijilife Project
     Distributed under the 2-Clause BSD License, see LICENSE file.
     
     Authors: Luna Nielsen
 */
 module app;
-import inochi2d;
+import nijilife;
 import inui;
-import session.windows;
+import nijiexpose.windows;
 import std.stdio : writeln;
-import session.plugins;
-import session.log;
-import session.ver;
-import session.scene;
-import session.framesend;
-import session.tracking.expr;
+import nijiexpose.plugins;
+import nijiexpose.log;
+import nijiexpose.ver;
+import nijiexpose.scene;
+import nijiexpose.framesend;
+import nijiexpose.tracking.expr;
 import std.process;
 
 
 void main(string[] args) {
-    insLogInfo("Inochi Session %s, args=%s", INS_VERSION, args[1..$]);
+    insLogInfo("nijiexpose %s, args=%s", INS_VERSION, args[1..$]);
 
     // Set the application info
     InApplication appInfo = InApplication(
-        "net.inochi2d.InochiSession",   // FQDN
-        "inochi-session",               // Config dir
-        "Inochi Session"                // Human-readable name
+        "net.nijilife.Inochinijiexpose",   // FQDN
+        "nijiexpose",               // Config dir
+        "nijiexpose"                // Human-readable name
     );
     inSetApplication(appInfo);
 
@@ -40,8 +40,8 @@ void main(string[] args) {
     // Initialize expressions before models are loaded.
     insInitExpressions();
 
-    // Open window and init Inochi2D
-    auto window = new InochiSessionWindow(args[1..$]);
+    // Open window and init nijilife
+    auto window = new InochinijiexposeWindow(args[1..$]);
     
     insSceneInit();
     insInitFrameSending();

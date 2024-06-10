@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an idea for Inochi Session
+description: Suggest an idea for nijiexpose
 title: "[Feature Request]"
 labels: ["Enhancement", "Triage"] 
 body:
@@ -23,7 +23,7 @@ body:
       label: Description
       description: |
         Clear and concise description of the problem being solved. Please make the reason and usecases as detailed as possible. If you intend to submit a PR for this issue, tell us in the description. Thanks!
-      placeholder: When using Inochi Session, I would like to be able to [goal / wish] so that [benefit].
+      placeholder: When using nijiexpose, I would like to be able to [goal / wish] so that [benefit].
     validations:
       required: true
   - type: textarea
