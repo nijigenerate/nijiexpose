@@ -168,7 +168,7 @@ protected:
 
                 if (uiImBeginMenu(__("Help"))) {
                     if (uiImMenuItem(__("Documentation"))) {
-                        uiOpenLink("https://github.com/nijilife/nijiexpose/wiki");
+                        uiOpenLink("https://github.com/nijigenerate/nijiexpose/wiki");
                     }
                     if (uiImMenuItem(__("About"))) {
                         uiImDialog(__("nijiexpose"),
