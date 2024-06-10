@@ -1,5 +1,5 @@
 /*
-    Copyright © 2022, nijilife Project
+    Copyright © 2022, nijilive Project
     Distributed under the 2-Clause BSD License, see LICENSE file.
     
     Authors: Luna Nielsen
@@ -16,7 +16,7 @@ import inui.widgets;
 import inui.toolwindow;
 import inui.panel;
 import inui.input;
-import nijilife;
+import nijilive;
 import ft;
 import i18n;
 import inui.utils.link;
@@ -85,7 +85,7 @@ protected:
 
                     if (uiImMenuItem(__("Open"))) {
                         const TFD_Filter[] filters = [
-                            { ["*.inp"], "nijilife Puppet (*.inp)" }
+                            { ["*.inp"], "nijilive Puppet (*.inp)" }
                         ];
 
                         string parentWindow = "";
@@ -172,7 +172,7 @@ protected:
                     }
                     if (uiImMenuItem(__("About"))) {
                         uiImDialog(__("nijiexpose"),
-                        "nijiexpose %s\n(nijilife %s)\n\nMade with <3\nby Luna the Foxgirl and nijilife Contributors.".format(INS_VERSION, IN_VERSION), DialogLevel.Info);
+                        "nijiexpose %s\n(nijilive %s)\n\nMade with <3\nby Luna the Foxgirl and nijilive Contributors.".format(INS_VERSION, IN_VERSION), DialogLevel.Info);
                     }
                     
                     uiImEndMenu();
@@ -218,7 +218,7 @@ public:
         import nijiexpose.ver;
         super("nijiexpose %s".format(INS_VERSION), windowSettings.width, windowSettings.height);
         
-        // Initialize nijilife
+        // Initialize nijilive
         inInit(&inGetTime);
         inSetViewport(windowSettings.width, windowSettings.height);
 

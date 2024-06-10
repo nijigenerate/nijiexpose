@@ -1,5 +1,5 @@
 /*
-    Copyright © 2022, nijilife Project
+    Copyright © 2022, nijilive Project
     Distributed under the 2-Clause BSD License, see LICENSE file.
     
     Authors: Luna Nielsen
@@ -9,7 +9,7 @@ import nijiexpose.tracking;
 import nijiexpose.scene;
 import nijiexpose.log;
 import ft;
-import nijilife;
+import nijilive;
 import lumars;
 import bindbc.lua : luaL_newstate, luaopen_math, lua_close;
 import std.format;

@@ -1,5 +1,5 @@
 /*
-    Copyright © 2022, nijilife Project
+    Copyright © 2022, nijilive Project
     Distributed under the 2-Clause BSD License, see LICENSE file.
     
     Authors: Luna Nielsen
@@ -13,7 +13,7 @@ import inui.widgets;
 import nijiexpose.log;
 import inmath;
 import std.format;
-import nijilife;
+import nijilive;
 import tinyfiledialogs;
 import std.string;
 import bindbc.imgui;

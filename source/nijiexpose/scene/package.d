@@ -1,11 +1,11 @@
 /*
-    Copyright © 2022, nijilife Project
+    Copyright © 2022, nijilive Project
     Distributed under the 2-Clause BSD License, see LICENSE file.
     
     Authors: Luna Nielsen
 */
 module nijiexpose.scene;
-import nijilife;
+import nijilive;
 import inmath;
 import inui.input;
 import inui;
@@ -18,7 +18,7 @@ import std.string;
 import nijiexpose.plugins;
 import nijiexpose.render.spritebatch;
 import bindbc.opengl;
-import nijilife.core.animation.player;
+import nijilive.core.animation.player;
 import std.math.operations : isClose;
 
 struct Scene {
@@ -42,18 +42,18 @@ struct SceneItem {
     AnimationPlayer player;
 
     void saveBindings() {
-        puppet.extData["nijigenerate.nijiexpose.bindings"] = cast(ubyte[])serializeToJson(bindings);
+        puppet.extData["com.inochi2d.inochi-session.bindings"] = cast(ubyte[])serializeToJson(bindings);
         inWriteINPExtensions(puppet, filePath);
     }
 
     void saveAnimations() {
-        puppet.extData["nijigenerate.nijiexpose.animations"] = cast(ubyte[])serializeToJson(animations);
+        puppet.extData["com.inochi2d.inochi-session.animations"] = cast(ubyte[])serializeToJson(animations);
         inWriteINPExtensions(puppet, filePath);
     }
 
     bool tryLoadBindings() {
-        if ("nijigenerate.nijiexpose.bindings" in puppet.extData) {
-            auto preBindings = deserialize!(TrackingBinding[])(cast(string)puppet.extData["nijigenerate.nijiexpose.bindings"]);
+        if ("com.inochi2d.inochi-session.bindings" in puppet.extData) {
+            auto preBindings = deserialize!(TrackingBinding[])(cast(string)puppet.extData["com.inochi2d.inochi-session.bindings"]);
 
             // finalize the loading
             bindings = [];
@@ -68,8 +68,8 @@ struct SceneItem {
     }
 
     bool tryLoadAnimations() {
-        if ("nijigenerate.nijiexpose.animations" in puppet.extData) {
-            auto preAnimation = deserialize!(AnimationControl[])(cast(string)puppet.extData["nijigenerate.nijiexpose.animations"]);
+        if ("com.inochi2d.inochi-session.animations" in puppet.extData) {
+            auto preAnimation = deserialize!(AnimationControl[])(cast(string)puppet.extData["com.inochi2d.inochi-session.animations"]);
 
             // finalize the loading
             animations = [];

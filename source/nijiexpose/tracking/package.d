@@ -1,5 +1,5 @@
 /*
-    Copyright © 2022, nijilife Project
+    Copyright © 2022, nijilive Project
     Distributed under the 2-Clause BSD License, see LICENSE file.
     
     Authors: Luna Nielsen
@@ -8,8 +8,8 @@ module nijiexpose.tracking;
 import nijiexpose.tracking.expr;
 import nijiexpose.tracking.vspace;
 import nijiexpose.scene;
-import nijilife;
-import nijilife.math.serialization;
+import nijilive;
+import nijilive.math.serialization;
 import fghj;
 import i18n;
 import std.format;
@@ -138,7 +138,7 @@ public:
     SourceType sourceType;
 
     /**
-        The nijilife parameter it should apply to
+        The nijilive parameter it should apply to
     */
     Parameter param;
 

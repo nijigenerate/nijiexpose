@@ -67,7 +67,7 @@ jobs:
 
     - name: "Clone dependencies & set versions"
       run: |
-        git clone https://github.com/nijilife/i2d-imgui.git --recurse-submodules
+        git clone https://github.com/nijilive/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
 
     - name: 'Build nijiexpose'
@@ -114,7 +114,7 @@ jobs:
       
     - name: "Clone dependencies & set versions"
       run: |
-        git clone https://github.com/nijilife/i2d-imgui.git --recurse-submodules
+        git clone https://github.com/nijilive/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
 
     - name: 'Build nijiexpose'
@@ -186,7 +186,7 @@ jobs:
 
     - name: "Clone dependencies & set versions"
       run: |
-        git clone https://github.com/nijilife/i2d-imgui.git --recurse-submodules
+        git clone https://github.com/nijilive/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
 
     - name: 'Build nijiexpose'

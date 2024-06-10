@@ -6,9 +6,9 @@
 module nijiexpose.animation;
 
 public import nijiexpose.tracking;
-import nijilife;
-import nijilife.core.animation;
-import nijilife.core.animation.player;
+import nijilive;
+import nijilive.core.animation;
+import nijilive.core.animation.player;
 import fghj;
 import i18n;
 import std.format;

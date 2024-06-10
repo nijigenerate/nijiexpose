@@ -1,13 +1,13 @@
 /*
     nijiexpose main app entry
     
-    Copyright © 2022, nijilife Project
+    Copyright © 2022, nijilive Project
     Distributed under the 2-Clause BSD License, see LICENSE file.
     
     Authors: Luna Nielsen
 */
 module app;
-import nijilife;
+import nijilive;
 import inui;
 import nijiexpose.windows;
 import std.stdio : writeln;
@@ -25,7 +25,7 @@ void main(string[] args) {
 
     // Set the application info
     InApplication appInfo = InApplication(
-        "net.nijilife.Inochinijiexpose",   // FQDN
+        "net.nijilive.Inochinijiexpose",   // FQDN
         "nijiexpose",               // Config dir
         "nijiexpose"                // Human-readable name
     );
@@ -40,7 +40,7 @@ void main(string[] args) {
     // Initialize expressions before models are loaded.
     insInitExpressions();
 
-    // Open window and init nijilife
+    // Open window and init nijilive
     auto window = new InochinijiexposeWindow(args[1..$]);
     
     insSceneInit();

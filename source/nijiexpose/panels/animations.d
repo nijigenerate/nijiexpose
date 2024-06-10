@@ -10,7 +10,7 @@ import nijiexpose.scene;
 import inui.widgets;
 import std.string;
 import std.algorithm.searching;
-import nijilife.core.animation.player;
+import nijilive.core.animation.player;
 import inmath;
 import nijiexpose.animation;
 import bindbc.imgui;

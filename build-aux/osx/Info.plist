@@ -24,12 +24,12 @@
         <key>CFBundleTypeIconFile</key>
         <string>project.icns</string>
         <key>CFBundleTypeName</key>
-        <string>nijilife Puppet</string>
+        <string>nijilive Puppet</string>
         <key>CFBundleTypeRole</key>
         <string>Editor</string>
         <key>LSItemContentTypes</key>
         <array>
-            <string>nijigenerate.nijilife.puppet</string>
+            <string>nijigenerate.nijilive.puppet</string>
         </array>
       </dict>
     </array>
@@ -37,11 +37,11 @@
     <array>
       <dict>
         <key>UTTypeIdentifier</key>
-        <string>nijigenerate.nijilife.puppet</string>
+        <string>nijigenerate.nijilive.puppet</string>
         <key>UTTypeReferenceURL</key>
-        <string>https://github.com/nijilife/nijilife/wiki/INP-Data-Interchange-Format</string>
+        <string>https://github.com/nijilive/nijilive/wiki/INP-Data-Interchange-Format</string>
         <key>UTTypeDescription</key>
-        <string>nijilife Puppet</string>
+        <string>nijilive Puppet</string>
         <key>UTTypeIconFile</key>
         <string>puppet.icns</string>
         <key>UTTypeConformsTo</key>
