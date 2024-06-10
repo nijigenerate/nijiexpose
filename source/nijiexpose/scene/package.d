@@ -42,18 +42,18 @@ struct SceneItem {
     AnimationPlayer player;
 
     void saveBindings() {
-        puppet.extData["com.nijilife.nijiexpose.bindings"] = cast(ubyte[])serializeToJson(bindings);
+        puppet.extData["nijigenerate.nijiexpose.bindings"] = cast(ubyte[])serializeToJson(bindings);
         inWriteINPExtensions(puppet, filePath);
     }
 
     void saveAnimations() {
-        puppet.extData["com.nijilife.nijiexpose.animations"] = cast(ubyte[])serializeToJson(animations);
+        puppet.extData["nijigenerate.nijiexpose.animations"] = cast(ubyte[])serializeToJson(animations);
         inWriteINPExtensions(puppet, filePath);
     }
 
     bool tryLoadBindings() {
-        if ("com.nijilife.nijiexpose.bindings" in puppet.extData) {
-            auto preBindings = deserialize!(TrackingBinding[])(cast(string)puppet.extData["com.nijilife.nijiexpose.bindings"]);
+        if ("nijigenerate.nijiexpose.bindings" in puppet.extData) {
+            auto preBindings = deserialize!(TrackingBinding[])(cast(string)puppet.extData["nijigenerate.nijiexpose.bindings"]);
 
             // finalize the loading
             bindings = [];
@@ -68,8 +68,8 @@ struct SceneItem {
     }
 
     bool tryLoadAnimations() {
-        if ("com.nijilife.nijiexpose.animations" in puppet.extData) {
-            auto preAnimation = deserialize!(AnimationControl[])(cast(string)puppet.extData["com.nijilife.nijiexpose.animations"]);
+        if ("nijigenerate.nijiexpose.animations" in puppet.extData) {
+            auto preAnimation = deserialize!(AnimationControl[])(cast(string)puppet.extData["nijigenerate.nijiexpose.animations"]);
 
             // finalize the loading
             animations = [];

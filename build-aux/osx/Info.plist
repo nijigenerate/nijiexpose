@@ -7,7 +7,7 @@
     <key>CFBundleDisplayName</key>
     <string>nijiexpose</string>
     <key>CFBundleIdentifier</key>
-    <string>com.nijilife.nijiexpose</string>
+    <string>nijigenerate.nijiexpose</string>
     <key>CFBundleVersion</key>
     <string>0.7.4</string>
     <key>CFBundlePackageType</key>
@@ -29,7 +29,7 @@
         <string>Editor</string>
         <key>LSItemContentTypes</key>
         <array>
-            <string>com.nijilife.nijilife.puppet</string>
+            <string>nijigenerate.nijilife.puppet</string>
         </array>
       </dict>
     </array>
@@ -37,7 +37,7 @@
     <array>
       <dict>
         <key>UTTypeIdentifier</key>
-        <string>com.nijilife.nijilife.puppet</string>
+        <string>nijigenerate.nijilife.puppet</string>
         <key>UTTypeReferenceURL</key>
         <string>https://github.com/nijilife/nijilife/wiki/INP-Data-Interchange-Format</string>
         <key>UTTypeDescription</key>
