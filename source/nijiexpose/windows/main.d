@@ -37,7 +37,7 @@ private {
     }
 }
 
-class InochinijiexposeWindow : InApplicationWindow {
+class nijiexposeWindow : InApplicationWindow {
 private:
     Adaptor adaptor;
     version (InBranding) Texture logo;

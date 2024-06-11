@@ -24,7 +24,7 @@ if [ -d "out/nijiexpose.app" ]; then
     
     create-dmg \
         --volname "$DMGTITLE" \
-        --volicon "Inochinijiexpose.icns" \
+        --volicon "nijiexpose.icns" \
         --background "../build-aux/osx/dmgbg.png" \
         --window-size 800 600 \
         --icon "nijiexpose.app" 200 250 \

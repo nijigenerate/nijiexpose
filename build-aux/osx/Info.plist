@@ -17,7 +17,7 @@
     <key>CFBundleExecutable</key>
     <string>nijiexpose</string>
     <key>CFBundleIconFile</key>
-    <string>Inochinijiexpose</string>
+    <string>nijiexpose</string>
     <key>CFBundleDocumentTypes</key>
     <array>
       <dict>

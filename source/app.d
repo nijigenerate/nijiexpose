@@ -25,7 +25,7 @@ void main(string[] args) {
 
     // Set the application info
     InApplication appInfo = InApplication(
-        "net.nijilive.Inochinijiexpose",   // FQDN
+        "net.nijilive.nijiexpose",   // FQDN
         "nijiexpose",               // Config dir
         "nijiexpose"                // Human-readable name
     );
@@ -41,7 +41,7 @@ void main(string[] args) {
     insInitExpressions();
 
     // Open window and init nijilive
-    auto window = new InochinijiexposeWindow(args[1..$]);
+    auto window = new nijiexposeWindow(args[1..$]);
     
     insSceneInit();
     insInitFrameSending();
