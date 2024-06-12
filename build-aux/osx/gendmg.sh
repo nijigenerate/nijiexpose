@@ -1,5 +1,5 @@
 DMGTITLE="Install nijiexpose"
-DMGFILENAME="Install_Inochi_nijiexpose.dmg"
+DMGFILENAME="Install_nijiexpose.dmg"
 
 if [ -d "out/nijiexpose.app" ]; then
     if [ -f "out/$DMGFILENAME" ]; then
