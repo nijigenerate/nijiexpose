@@ -1,7 +1,7 @@
 # nijiexpose
 ![image](https://github.com/nijigenerate/nijiexpose/assets/449741/26830ec6-32ac-4a7b-ab73-06ada20badc3)
 
-_[Aka (example model)](https://github.com/nijilive/example-models#aka) by [seagetch](https://twitter.com/seagetch)_
+model by [seagetch](https://twitter.com/seagetch)_
 
 *nijiexpose is the official tool for using nijilive puppets for VTubing.*
 

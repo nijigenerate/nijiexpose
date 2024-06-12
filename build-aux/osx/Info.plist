@@ -39,7 +39,7 @@
         <key>UTTypeIdentifier</key>
         <string>nijigenerate.nijilive.puppet</string>
         <key>UTTypeReferenceURL</key>
-        <string>https://github.com/nijilive/nijilive/wiki/INP-Data-Interchange-Format</string>
+        <string>https://github.com/nijigenerate/nijilive/wiki/INP-Data-Interchange-Format</string>
         <key>UTTypeDescription</key>
         <string>nijilive Puppet</string>
         <key>UTTypeIconFile</key>
