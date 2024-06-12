@@ -35,7 +35,7 @@ cp LICENSE out/nijiexpose.app/Contents/SharedSupport/LICENSE
 
 # Create icons dir
 # TODO: check if dir exists, skip this step if it does
-if [ ! -d "out/InochiCreator.icns" ]; then
+if [ ! -d "out/nijigenerate.icns" ]; then
     iconutil -c icns -o out/nijiexpose.icns build-aux/osx/nijiexpose.iconset
 else
     echo "Icons already exist, skipping..."
