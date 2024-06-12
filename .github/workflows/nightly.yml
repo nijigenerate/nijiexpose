@@ -240,4 +240,4 @@ jobs:
       with:
         name: 'Nightly Build'
         tag_name: nightly
-        files: 'out/Installnijiexpose.dmg'
+        files: 'out/Install_nijiexpose.dmg'
