@@ -1,7 +1,7 @@
 name "nijiexpose"
 description "App that allows you to stream with nijilive puppets"
-authors "nijilive Project"
-copyright "Copyright © 2021, nijilive Project"
+authors "nijigenerate Project"
+copyright "Copyright © 2021, nijigenerate Project"
 license "BSD 2-clause"
 dependency "tinyfiledialogs" version="~>0.10.1"
 dependency "facetrack-d" version="~>0.7.8"
@@ -38,7 +38,7 @@ configuration "barebones" {
 
 // Official build configurations.
 // Do not package your compilation of Inochi Creator with these configurations
-// unless you have prior permission from the nijilive project.
+// unless you have prior permission from the nijigenerate Project.
 configuration "meta" {
 	targetType "none"
 	preGenerateCommands "dub run gitver -- --prefix INS --file source/nijiexpose/ver.d --mod nijiexpose.ver --appname \"nijiexpose\" --itchfile version.txt"
