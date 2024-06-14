@@ -115,7 +115,7 @@ jobs:
           files: out/nijiexpose-win32-x86_64.zip
 
   macOS-build:
-    runs-on: macos-12
+    runs-on: macos-14
 
     steps:
     - uses: actions/checkout@v4
@@ -127,6 +127,7 @@ jobs:
       continue-on-error: true
       run: |
         export HOMEBREW_NO_INSTALL_CLEANUP=1
+        export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
         brew update
         brew install create-dmg gettext
 
@@ -134,7 +135,7 @@ jobs:
       continue-on-error: true
       run: |
         # Remove conflicting brew items
-        brew remove --ignore-dependencies aom cairo composer curl fontconfig freetype gd ghostscript httpd imagemagick jpeg-xl libavif libheif libxft mongodb-community@5.0 mongosh node@16 openjpeg php r sox webp libpng brotli
+        brew remove --ignore-dependencies libpng brotli harfbuzz
 
     - name: "Remove final conflicting files"
       continue-on-error: true
@@ -147,7 +148,7 @@ jobs:
         # And the .a for it as well
         if [ -f "/usr/local/lib/libharfbuzz.a" ]; then
           sudo rm -r /usr/local/lib/libharfbuzz.a
-        fi
+        fi  macOS-build:
 
     - name: 'Generate i18n'
       run: |
