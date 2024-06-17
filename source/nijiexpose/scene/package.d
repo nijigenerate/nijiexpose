@@ -179,6 +179,7 @@ void insSceneAddPuppet(string path, Puppet puppet) {
     SceneItem item;
     item.filePath = path;
     item.puppet = puppet;
+    item.puppet.root.build();
     item.player = new AnimationPlayer(puppet);
     
     if (!item.tryLoadBindings()) {
