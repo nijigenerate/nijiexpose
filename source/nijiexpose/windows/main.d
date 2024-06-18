@@ -23,6 +23,7 @@ import nijiui.utils.link;
 import std.format;
 import nijiexpose.ver;
 import bindbc.opengl;
+import nijiexpose.windows.utils;
 
 version(linux) import dportals;
 
@@ -207,7 +208,6 @@ protected:
     override
     void onClosed() {
     }
-
 public:
 
     /**
@@ -222,6 +222,7 @@ public:
         
         // Initialize nijilive
         inInit(&inGetTime);
+        neSetStyle();
         inSetViewport(windowSettings.width, windowSettings.height);
 
         // Preload any specified models
