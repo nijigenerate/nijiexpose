@@ -168,7 +168,7 @@ public:
         float lhs = 196;
         float rhs = avail.x-lhs;
 
-        if (uiImBeginChild("##LHS", vec2(lhs, -24), true)) {
+        if (uiImBeginChild("##LHS", vec2(lhs, -28), true)) {
             avail = uiImAvailableSpace();
             foreach(i, ref VirtualSpaceZone zone; insScene.space.getZones()) {
                 uiImPush(cast(int)i);
@@ -187,7 +187,7 @@ public:
 
         uiImSameLine(0, 0);
 
-        if (uiImBeginChild("##RHS", vec2(rhs, -24), true)) {
+        if (uiImBeginChild("##RHS", vec2(rhs, -28), true)) {
             if (editingZone is null) {
                 uiImLabel(_("No zone selected for editing..."));
             } else {
@@ -277,5 +277,6 @@ public:
 
     this() {
         super(_("Virtual Space"));
+        flags |= ImGuiWindowFlags.NoScrollbar;
     }
 }
