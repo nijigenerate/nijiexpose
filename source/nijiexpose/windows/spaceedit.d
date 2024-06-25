@@ -7,6 +7,7 @@
 module nijiexpose.windows.spaceedit;
 import nijiexpose.scene;
 import nijiexpose.tracking.vspace;
+import nijiexpose.panels.tracking;
 import nijiexpose.log;
 import nijiui.widgets;
 import nijiui.toolwindow;
@@ -279,6 +280,7 @@ public:
         uiImSameLine(0, 0);
         if (uiImButton(__("Save"), vec2(64, 0))) {
             insSaveVSpace(insScene.space);
+            neTrackingPanelReset();
             this.close();
         }
     }

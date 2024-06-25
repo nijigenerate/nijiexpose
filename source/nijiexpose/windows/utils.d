@@ -27,6 +27,9 @@ void neSetStyle() {
     style.Colors[ImGuiCol.ButtonHovered] = ImVec4(0.75f, 0.30f, 0.05f, 1.00f); // ホバー時もさらに濃いオレンジ色に設定
     style.Colors[ImGuiCol.ButtonActive] = ImVec4(0.60f, 0.20f, 0.00f, 1.00f); // アクティブ時はさらに濃いオレンジ色に設定
 
+    style.Colors[ImGuiCol.SliderGrabActive] = ImVec4(0.70f, 0.25f, 0.00f, 1.00f); // さらに濃いオレンジ色に設定
+    style.Colors[ImGuiCol.SliderGrab] = ImVec4(0.95f, 0.47f, 0.08f, 1.00f); // オレンジ色に設定
+
     // チェックボックスのチェックマークの色をボタンと同じさらに濃いオレンジ色に変更
     style.Colors[ImGuiCol.CheckMark] = ImVec4(0.70f, 0.25f, 0.00f, 1.00f);
 

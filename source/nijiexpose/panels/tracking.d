@@ -13,6 +13,7 @@ import nijiexpose.tracking;
 import nijiui;
 import nijiui.widgets;
 import nijiexpose.log;
+import bindbc.imgui;
 import inmath;
 import std.string;
 import std.uni;
@@ -21,12 +22,21 @@ import std.algorithm.searching;
 private {
     string trackingFilter;
     const(char)*[] paramNames;
+    string[] indexableSourceNames;
+    float[] minValues;
+    float[] maxValues;
 
     struct TrackingSource {
         bool isBone;
         string name;
         const(char)* cName;
     }
+}
+
+void neTrackingPanelReset() {
+    indexableSourceNames.length = 0;
+    minValues.length = 0;
+    maxValues.length = 0;
 }
 
 // Refreshes the tracking bindings listed in the tracking panel (headers)
@@ -43,7 +53,6 @@ void insTrackingPanelRefresh() {
 class TrackingPanel : Panel {
 private:
     TrackingSource[] sources;
-    string[] indexableSourceNames;
 
     // Refreshes the list of tracking sources
     void refresh(ref TrackingBinding[] trackingBindings) {
@@ -52,6 +61,8 @@ private:
         
         sources.length = blendshapes.length + bones.length;
         indexableSourceNames.length = sources.length;
+        minValues.length = sources.length;
+        maxValues.length = sources.length;
 
         foreach(i, blendshape; blendshapes) {
             sources[i] = TrackingSource(
@@ -60,6 +71,8 @@ private:
                 blendshape.toStringz
             );
             indexableSourceNames[i] = blendshape.toLower;
+            minValues[i] = 0;
+            maxValues[i] = 1;
         }
 
         foreach(i, bone; bones) {
@@ -70,6 +83,8 @@ private:
             );
 
             indexableSourceNames[blendshapes.length+i] = bone.toLower;
+            minValues[i] = -1;
+            maxValues[i] = 1;
         }
 
         // Add any bindings unnacounted for which are stored in the model.
@@ -91,41 +106,55 @@ private:
 
             sources ~= src;
             indexableSourceNames ~= src.name.toLower;
+            minValues ~= 0;
+            maxValues ~= 1;
         }
     }
 
     
     // Settings popup for binding types
     pragma(inline, true)
-    void settingsPopup(ref TrackingBinding binding) {
-        uiImRightClickPopup("BINDING_SETTINGS");
-
+    bool settingsPopup(ref TrackingBinding binding) {
+        bool changed = false;
         if (uiImBeginPopup("BINDING_SETTINGS")) {
             if (uiImBeginMenu(__("Type"))) {
 
                 if (uiImMenuItem(__("Ratio Binding"))) {
+                    if (binding.type == BindingType.ExpressionBinding)
+                        changed = true;
                     binding.expr = null;
                     binding.type = BindingType.RatioBinding;
                 }
 
                 if (uiImMenuItem(__("Expression Binding"))) {
+                    if (binding.type == BindingType.RatioBinding)
+                        changed = true;
                     binding.expr = new Expression(insExpressionGenerateSignature(cast(int)binding.hashOf(), binding.axis), "");
                     binding.type = BindingType.ExpressionBinding;
+                    changed = true;
                 }
 
                 uiImEndMenu();
             }
             uiImEndPopup();
         }
+
+        if (uiImButton("\ue5d2")) {
+            uiImOpenPopup("BINDING_SETTINGS");
+        }
+
+        return changed;
     }
 
     // Configuration panel for expression bindings
     void exprBinding(size_t i, ref TrackingBinding binding) {
         if (binding.expr) {
             string buf = binding.expr.expression.dup;
+            if (settingsPopup(binding))
+                return;
             
             uiImLabel(_("Dampen"));
-            uiImDrag(binding.dampenLevel, 0, 10);
+            igSliderInt("", &binding.dampenLevel, 0, 10);
 
             if (uiImInputText("###EXPRESSION", buf)) {
                 binding.expr.expression = buf.toStringz.fromStringz;
@@ -155,10 +184,9 @@ private:
     void ratioBinding(size_t i, ref TrackingBinding binding) {
         bool hasTrackingSrc = binding.sourceName.length > 0;
 
-        if (hasTrackingSrc && uiImButton(__("Reset"))) {
-            binding.sourceName = null;
-        }
-
+        if (settingsPopup(binding))
+            return;
+        igSameLine();
         if (uiImBeginComboBox("SELECTION_COMBO", hasTrackingSrc ? binding.sourceDisplayName.toStringz : __("Not tracked"))) {
             string filter = trackingFilter.dup;
             if (uiImInputText("###FILTER", uiImAvailableSpace().x, filter)) {
@@ -215,27 +243,37 @@ private:
                         uiImEndMenu();
                     }
                 } else {
-                    if (uiImSelectable(nameValid ? source.cName : "###NoName", selected)) {
+                    if (igSelectable(nameValid ?source.cName : "###NoName", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap)) {
                         trackingFilter = null;
                         binding.sourceType = SourceType.Blendshape;
                         binding.sourceName = source.name;
                         binding.createSourceDisplayName();
                     }
+                    igSameLine();
+                    float value = insScene.space.currentZone.getBlendshapeFor(source.name);
+                    if (value < minValues[ix]) minValues[ix] = value;
+                    if (value > maxValues[ix]) maxValues[ix] = value;
+                    igProgressBar((value - minValues[ix]) / (maxValues[ix] - minValues[ix]), ImVec2(0, 10), "");
                 }
             }
             uiImEndComboBox();
+        }
+        if (hasTrackingSrc)
+            igSameLine();
+        if (hasTrackingSrc && uiImButton(__("\ue5cd"))) {
+            binding.sourceName = null;
         }
 
         if (hasTrackingSrc) {
             uiImCheckbox(__("Inverse"), binding.inverse);
 
             uiImLabel(_("Dampen"));
-            uiImDrag(binding.dampenLevel, 0, 10);
+            igSliderInt("", &binding.dampenLevel, 0, 10);
 
             uiImLabel(_("Tracking In"));
             uiImPush(0);
                 uiImIndent();
-                    uiImProgress(binding.inVal, vec2(-float.min_normal, 0), "");
+                    igSetNextItemWidth (96);
                     switch(binding.sourceType) {
                         case SourceType.Blendshape:
                             // TODO: Make all blendshapes in facetrack-d 0->1
@@ -256,13 +294,17 @@ private:
                             
                         default: assert(0);
                     }
+                    igSameLine();
+                    uiImProgress(binding.inVal, vec2(-float.min_normal, 0), "");
                 uiImUnindent();
             uiImPop();
             
             uiImLabel(_("Tracking Out"));
             uiImPush(1);
                 uiImIndent();
+                    igSetNextItemWidth (96);
                     uiImRange(binding.outRange.x, binding.outRange.y, -float.max, float.max);
+                    igSameLine();
                     uiImProgress(binding.param.mapAxis(binding.axis, binding.outVal), vec2(-float.min_normal, 0), "");
                 uiImUnindent();
             uiImPop();
@@ -275,7 +317,7 @@ protected:
     void onUpdate() {
         auto item = insSceneSelectedSceneItem();
         if (item) {
-            if (uiImButton(__("Refresh"))) {
+            if (indexableSourceNames.length == 0 || uiImButton(__("Refresh"))) {
                 insScene.space.refresh();
                 refresh(item.bindings);
             }
@@ -293,8 +335,6 @@ protected:
             foreach(i, ref TrackingBinding binding; item.bindings) {
                 uiImPush(&binding);
                     if (uiImHeader(binding.name.toStringz, true)) {
-                        settingsPopup(binding);
-
                         uiImIndent();
                             switch(binding.type) {
 
@@ -308,6 +348,7 @@ protected:
 
                                 // External bindings
                                 default: 
+                                    settingsPopup(binding);
                                     uiImLabel(_("No settings available."));
                                     break;
                             }
