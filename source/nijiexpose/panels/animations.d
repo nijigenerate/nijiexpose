@@ -87,14 +87,14 @@ private:
 
         uiImLabel(_("Tracking Parameter"));
         if (uiImBeginComboBox("SELECTION_COMBO", hasTrackingSrc ? ac.sourceDisplayName.toStringz : __("Not tracked"))) {
-            if (uiImInputText("###FILTER", uiImAvailableSpace().x, trackingFilter)) {
-                trackingFilter = trackingFilter.toLower();
+            string filter = trackingFilter.dup;
+            if (uiImInputText("###FILTER", uiImAvailableSpace().x, filter)) {
+                trackingFilter = filter.toLower().toStringz.fromStringz;
             }
 
             uiImDummy(vec2(0, 8));
 
             foreach(ix, source; sources) {
-                
                 if (trackingFilter.length > 0 && !indexableSourceNames[ix].canFind(trackingFilter)) continue;
 
                 bool selected = ac.sourceName == source.name;

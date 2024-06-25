@@ -122,13 +122,13 @@ private:
     // Configuration panel for expression bindings
     void exprBinding(size_t i, ref TrackingBinding binding) {
         if (binding.expr) {
-            string buf = binding.expr.expression;
+            string buf = binding.expr.expression.dup;
             
             uiImLabel(_("Dampen"));
             uiImDrag(binding.dampenLevel, 0, 10);
 
             if (uiImInputText("###EXPRESSION", buf)) {
-                binding.expr.expression = buf;
+                binding.expr.expression = buf.toStringz.fromStringz;
             }
 
             uiImLabel(_("Output (%s)").format(binding.outVal));
@@ -160,8 +160,9 @@ private:
         }
 
         if (uiImBeginComboBox("SELECTION_COMBO", hasTrackingSrc ? binding.sourceDisplayName.toStringz : __("Not tracked"))) {
-            if (uiImInputText("###FILTER", uiImAvailableSpace().x, trackingFilter)) {
-                trackingFilter = trackingFilter.toLower();
+            string filter = trackingFilter.dup;
+            if (uiImInputText("###FILTER", uiImAvailableSpace().x, filter)) {
+                trackingFilter = filter.toLower().toStringz.fromStringz;
             }
 
             uiImDummy(vec2(0, 8));

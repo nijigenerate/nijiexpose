@@ -254,9 +254,6 @@ public:
                                                 } catch(Exception ex) {
                                                     uiImDialog(__("Error"), ex.msg);
                                                 }
-                                            } else {
-                                                    import std.stdio;
-                                                    writefln("options:%s", options);
                                             }
 
                                         uiImUnindent();
