@@ -32,6 +32,8 @@ struct Scene {
     float zoneInactiveTimer = 0;
 
     bool sleeping = false;
+
+    int throttlingRate = 1;
 }
 
 struct SceneItem {
@@ -225,6 +227,8 @@ void insSceneInit() {
 
     float[4] bgColor = inSettingsGet!(float[4])("bgColor", [0, 0, 0, 0]);
     inSetClearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);
+
+    insScene.throttlingRate = inSettingsGet!(int)("throttlingRate", 1);
 }
 
 void insSceneCleanup() {

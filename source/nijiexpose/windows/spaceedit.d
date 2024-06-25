@@ -28,6 +28,7 @@ private:
             uiImDialog(__("Error"), "Can't create a zone without a name!");
             return;
         }
+        newZoneName = newZoneName.toStringz.fromStringz;
 
         VirtualSpaceZone zone = new VirtualSpaceZone(newZoneName.dup);
         insScene.space.addZone(zone);
@@ -179,7 +180,9 @@ public:
                 uiImPop();
             }
 
-            uiImInputText("###ZONE_NAME", avail.x-24, newZoneName);
+            if (uiImInputText("###ZONE_NAME", avail.x-24, newZoneName)) {
+                newZoneName = newZoneName.toStringz.fromStringz;
+            }
             uiImSameLine(0, 0);
             if (uiImButton(__(""), vec2(24, 24))) addZone();
         }
@@ -192,7 +195,9 @@ public:
                 uiImLabel(_("No zone selected for editing..."));
             } else {
                 uiImPush(cast(int)editingZone.hashOf());
-                    uiImInputText("###ZoneName", avail.x/2, editingZone.name);
+                    if (uiImInputText("###ZoneName", avail.x/2, editingZone.name)) {
+                        editingZone.name = editingZone.name.toStringz.fromStringz;
+                    }
 
                     uiImSeperator();
                     uiImNewLine();
@@ -235,7 +240,10 @@ public:
 
                                                 if (option !in options[source]) options[source][option] = "";
                                                 uiImLabel(option);
-                                                uiImInputText(option, avail.x/2, options[source][option]);
+                                                string optionString = options[source][option].dup;
+                                                if (uiImInputText(option, avail.x/2, optionString)) {
+                                                    options[source][option] = optionString.toStringz.fromStringz;
+                                                }
                                             }
 
                                             if (uiImButton(__("Save Changes"))) {
@@ -246,6 +254,9 @@ public:
                                                 } catch(Exception ex) {
                                                     uiImDialog(__("Error"), ex.msg);
                                                 }
+                                            } else {
+                                                    import std.stdio;
+                                                    writefln("options:%s", options);
                                             }
 
                                         uiImUnindent();
