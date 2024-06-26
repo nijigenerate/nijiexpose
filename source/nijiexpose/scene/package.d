@@ -127,7 +127,7 @@ struct SceneItem {
                 binding.param = param;
                 binding.axis = i;
                 binding.type = BindingType.RatioBinding;
-                binding.inRange = vec2(0, 1);
+                (cast(RatioTrackingBinding)(binding.delegated)).inRange = vec2(0, 1);
                 binding.outRangeToDefault();
 
                 // binding name assignment
