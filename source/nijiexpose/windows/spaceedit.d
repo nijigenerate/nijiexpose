@@ -299,8 +299,12 @@ public:
         }
         uiImEndChild();
 
-        uiImDummy(vec2(-64, 0));
+        uiImDummy(vec2(-132, 0));
         uiImSameLine(0, 0);
+        if (uiImButton(__("Cancel"), vec2(64, 0))) {
+            this.close();
+        }
+        uiImSameLine(0, 4);
         if (uiImButton(__("Save"), vec2(64, 0))) {
             insSaveVSpace(insScene.space);
             neTrackingPanelReset();
