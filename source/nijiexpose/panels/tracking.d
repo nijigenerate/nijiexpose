@@ -17,7 +17,9 @@ import bindbc.imgui;
 import inmath;
 import std.string;
 import std.uni;
+import std.array;
 import std.algorithm.searching;
+import std.algorithm.mutation;
 
 private {
     string trackingFilter;
@@ -120,17 +122,22 @@ private:
             if (uiImBeginMenu(__("Type"))) {
 
                 if (uiImMenuItem(__("Ratio Binding"))) {
-                    if (binding.type == BindingType.ExpressionBinding)
+                    if (binding.type != BindingType.RatioBinding)
                         changed = true;
-                    binding.expr = null;
                     binding.type = BindingType.RatioBinding;
                 }
 
                 if (uiImMenuItem(__("Expression Binding"))) {
-                    if (binding.type == BindingType.RatioBinding)
+                    if (binding.type != BindingType.ExpressionBinding)
                         changed = true;
-                    binding.expr = new Expression(insExpressionGenerateSignature(cast(int)binding.hashOf(), binding.axis), "");
                     binding.type = BindingType.ExpressionBinding;
+                    changed = true;
+                }
+
+                if (uiImMenuItem(__("Event Binding"))) {
+                    if (binding.type != BindingType.EventBinding)
+                        changed = true;
+                    binding.type = BindingType.EventBinding;
                     changed = true;
                 }
 
@@ -148,8 +155,9 @@ private:
 
     // Configuration panel for expression bindings
     void exprBinding(size_t i, ref TrackingBinding binding) {
-        if (binding.expr) {
-            string buf = binding.expr.expression.dup;
+        auto eBinding = cast(ExpressionTrackingBinding)binding.delegated;
+        if (eBinding.expr) {
+            string buf = eBinding.expr.expression.dup;
             if (settingsPopup(binding))
                 return;
             
@@ -157,7 +165,7 @@ private:
             igSliderInt("", &binding.dampenLevel, 0, 10);
 
             if (uiImInputText("###EXPRESSION", buf)) {
-                binding.expr.expression = buf.toStringz.fromStringz;
+                eBinding.expr.expression = buf.toStringz.fromStringz;
             }
 
             uiImLabel(_("Output (%s)").format(binding.outVal));
@@ -166,8 +174,8 @@ private:
             
 
                 uiImPushTextWrapPos();
-                    if (binding.expr.lastError.length > 0) {
-                        uiImLabelColored(binding.expr.lastError, vec4(1, 0.4, 0.4, 1));
+                    if (eBinding.expr.lastError.length > 0) {
+                        uiImLabelColored(eBinding.expr.lastError, vec4(1, 0.4, 0.4, 1));
                         uiImNewLine();
                     }
 
@@ -265,7 +273,8 @@ private:
         }
 
         if (hasTrackingSrc) {
-            uiImCheckbox(__("Inverse"), binding.inverse);
+            auto rBinding = cast(RatioTrackingBinding)binding.delegated;
+            uiImCheckbox(__("Inverse"), rBinding.inverse);
 
             uiImLabel(_("Dampen"));
             igSliderInt("", &binding.dampenLevel, 0, 10);
@@ -277,19 +286,19 @@ private:
                     switch(binding.sourceType) {
                         case SourceType.Blendshape:
                             // TODO: Make all blendshapes in facetrack-d 0->1
-                            uiImRange(binding.inRange.x, binding.inRange.y, -1, 1);
+                            uiImRange(rBinding.inRange.x, rBinding.inRange.y, -1, 1);
                             break;
 
                         case SourceType.BonePosX:
                         case SourceType.BonePosY:
                         case SourceType.BonePosZ:
-                            uiImRange(binding.inRange.x, binding.inRange.y, -float.max, float.max);
+                            uiImRange(rBinding.inRange.x, rBinding.inRange.y, -float.max, float.max);
                             break;
 
                         case SourceType.BoneRotPitch:
                         case SourceType.BoneRotRoll:
                         case SourceType.BoneRotYaw:
-                            uiImRange(binding.inRange.x, binding.inRange.y, -180, 180);
+                            uiImRange(rBinding.inRange.x, rBinding.inRange.y, -180, 180);
                             break;
                             
                         default: assert(0);
@@ -303,11 +312,60 @@ private:
             uiImPush(1);
                 uiImIndent();
                     igSetNextItemWidth (96);
-                    uiImRange(binding.outRange.x, binding.outRange.y, -float.max, float.max);
+                    uiImRange(rBinding.outRange.x, rBinding.outRange.y, -float.max, float.max);
                     igSameLine();
                     uiImProgress(binding.param.mapAxis(binding.axis, binding.outVal), vec2(-float.min_normal, 0), "");
                 uiImUnindent();
             uiImPop();
+        }
+    }
+
+    // Configuration panel for event bindings
+    void eventBinding(size_t i, ref TrackingBinding binding) {
+        auto eBinding = cast(EventTrackingBinding)binding.delegated;
+        if (eBinding) {
+            if (settingsPopup(binding))
+                return;
+
+            uiImLabel(_("Dampen"));
+            igSliderInt("", &binding.dampenLevel, 0, 10);
+
+            int indexToRemove = -1;
+            foreach (idx, item; eBinding.valueMap) {
+                uiImPush(cast(int)idx + 1);
+                string idHold = item.id.dup;
+                if (uiImInputText("###EVENTID", 64, idHold)) {
+                    eBinding.valueMap[idx].id = idHold.toStringz.fromStringz.toUpper();
+                }
+                igSameLine();
+                igSetNextItemWidth(128);
+                igDragFloat("", &(eBinding.valueMap[idx].value), 0.01, binding.param.min.vector[binding.axis], binding.param.max.vector[binding.axis]);
+                igSameLine();
+                if (uiImButton(__("\ue5cd"))) {
+                    indexToRemove = cast(int)idx;
+                }
+                uiImPop();
+            }
+            if (indexToRemove >= 0) {
+                eBinding.valueMap = eBinding.valueMap.remove(indexToRemove);
+            }
+            {
+                if (uiImButton(__("\ue145"))) {
+                    eBinding.valueMap ~= EventTrackingBinding.EventMap(SourceType.KeyPress, "", 0);
+                }
+            }
+
+            uiImLabel(_("Output (%s)").format(binding.outVal));
+            uiImIndent();
+                uiImProgress(binding.outVal);
+            
+                uiImPushTextWrapPos();
+                    if (binding.outVal < 0 || binding.outVal > 1) {
+                        uiImLabelColored(_("Value out of range, clamped to 0..1 range."), vec4(0.95, 0.88, 0.62, 1));
+                        uiImNewLine();
+                    }
+                uiImPopTextWrapPos();
+            uiImUnindent();
         }
     }
 
@@ -344,6 +402,10 @@ protected:
 
                                 case BindingType.ExpressionBinding:
                                     exprBinding(i, binding);
+                                    break;
+
+                                case BindingType.EventBinding:
+                                    eventBinding(i, binding);
                                     break;
 
                                 // External bindings
