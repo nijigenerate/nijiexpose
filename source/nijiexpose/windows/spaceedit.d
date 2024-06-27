@@ -163,6 +163,23 @@ private:
     }
 
 public:
+    override
+    void onBeginUpdate() {
+        ImVec2 wpos = ImVec2(
+            igGetMainViewport().Pos.x+(igGetMainViewport().Size.x/2),
+            igGetMainViewport().Pos.y+(igGetMainViewport().Size.y/2),
+        );
+
+        ImVec2 uiSize = ImVec2(
+            800, 
+            600
+        );
+
+        igSetNextWindowPos(wpos, ImGuiCond.Appearing, ImVec2(0.5, 0.5));
+        igSetNextWindowSize(uiSize, ImGuiCond.Appearing);
+        igSetNextWindowSizeConstraints(uiSize, ImVec2(float.max, float.max));
+        super.onBeginUpdate();
+    }
 
     override
     void onUpdate() {
@@ -293,6 +310,8 @@ public:
 
     this() {
         super(_("Virtual Space"));
-        flags |= ImGuiWindowFlags.NoScrollbar;
+        flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize |
+                ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoSavedSettings |
+                ImGuiWindowFlags.NoScrollbar;
     }
 }

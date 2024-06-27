@@ -32,8 +32,6 @@ struct Scene {
     float zoneInactiveTimer = 0;
 
     bool sleeping = false;
-
-    int throttlingRate = 1;
 }
 
 struct SceneItem {
@@ -225,12 +223,10 @@ void insSceneInit() {
     float[3] ambientLight = inSettingsGet!(float[3])("ambientLight", [1, 1, 1]);
     inSceneAmbientLight.vector = ambientLight;
 
-    float[4] bgColor = inSettingsGet!(float[4])("bgColor", [1, 1, 1, 0.5]);
+    float[4] bgColor = inSettingsGet!(float[4])("bgColor", [0.5, 0.5, 0.5, 0]);
     import std.stdio;
     writefln("bgColor: %s", bgColor);
     inSetClearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);
-
-    insScene.throttlingRate = inSettingsGet!(int)("throttlingRate", 1);
 }
 
 void insSceneCleanup() {
