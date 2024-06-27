@@ -350,7 +350,7 @@ private:
                 eBinding.valueMap = eBinding.valueMap.remove(indexToRemove);
             }
             {
-                if (uiImButton(__("+"))) {
+                if (uiImButton(__("\ue145"))) {
                     eBinding.valueMap ~= EventTrackingBinding.EventMap(SourceType.KeyPress, "", 0);
                 }
             }

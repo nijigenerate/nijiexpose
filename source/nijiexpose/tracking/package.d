@@ -583,11 +583,17 @@ public:
             binding.param.value.vector[binding.axis] = binding.param.defaults.vector[binding.axis];
             return;
         }
-        float src = 0;
+        float src = binding.outVal;
+        bool valSet = false;
         foreach (item; valueMap) {
+            if (item.id == "" || item.id is null) {
+                if (!valSet)
+                    src = item.value;
+            }
             if (item.id !in keyMap) continue;
             if (igIsKeyDown(keyMap[item.id.toUpper()])) {
                 src = item.value;
+                valSet = true;
                 break;
             }
         }
