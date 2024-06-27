@@ -375,20 +375,22 @@ protected:
     void onUpdate() {
         auto item = insSceneSelectedSceneItem();
         if (item) {
-            if (indexableSourceNames.length == 0 || uiImButton(__("Refresh"))) {
+            if (indexableSourceNames.length == 0 || uiImButton(__("\ue5d5"))) {//Refresh
                 insScene.space.refresh();
                 refresh(item.bindings);
             }
+            uiImTooltip(_("Refresh"));
 
             uiImSameLine(0, 4);
 
-            if (uiImButton(__("Save to File"))) {
+            if (uiImButton(__("\ue161"))) { //Save
                 try {
                 item.saveBindings();
                 } catch (Exception ex) {
                     uiImDialog(__("Error"), ex.msg);
                 }
             }
+            uiImTooltip(_("Save to File"));
 
             foreach(i, ref TrackingBinding binding; item.bindings) {
                 uiImPush(&binding);
