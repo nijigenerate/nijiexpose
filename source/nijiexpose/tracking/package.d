@@ -547,12 +547,15 @@ public:
         serializer.putKey("value_map");
         auto state = serializer.arrayBegin;
             foreach (item; valueMap) {
+                serializer.elemBegin;
+                auto state2 = serializer.objectBegin();
                 serializer.putKey("type");
                 serializer.serializeValue(item.type);
                 serializer.putKey("id");
                 serializer.putValue(item.id);
                 serializer.putKey("value");
                 serializer.putValue(item.value);
+                serializer.objectEnd(state2);
             }
         serializer.arrayEnd(state);
     }
