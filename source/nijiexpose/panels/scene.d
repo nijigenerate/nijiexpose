@@ -80,7 +80,7 @@ protected:
 
         uiImIndent();
             if (uiImColorButton4("###BG_COLOR", &clearColor.vector)) {
-                inSetClearColor(clearColor.r, clearColor.g, clearColor.b, clearColor.a);
+                setBGColor(clearColor);
             }
 
             uiImLabelColored(_("Color Swatches"), vec4(0.8, 0.3, 0.3, 1));
@@ -154,7 +154,7 @@ protected:
         if (insScene.backgroundImage) {
             igSameLine(0, 4);
             
-            if (uiImButton(__("Remove"))) {
+            if (uiImButton(__("\ue5cd"))) {
                 this.loadBackground(null);
             }
         }

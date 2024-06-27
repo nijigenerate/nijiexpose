@@ -181,8 +181,11 @@ public:
                 uiImPop();
             }
 
-            if (uiImInputText("###ZONE_NAME", avail.x-24, newZoneName)) {
-                newZoneName = newZoneName.toStringz.fromStringz;
+            string editingZoneName = newZoneName.dup;
+            if (uiImInputText("###ZONE_NAME", avail.x-24, editingZoneName)) {
+                try {
+                    newZoneName = editingZoneName.toStringz.fromStringz;
+                } catch (std.utf.UTFException e) {}
             }
             uiImSameLine(0, 0);
             if (uiImButton(__(""), vec2(24, 24))) addZone();
@@ -196,8 +199,11 @@ public:
                 uiImLabel(_("No zone selected for editing..."));
             } else {
                 uiImPush(cast(int)editingZone.hashOf());
-                    if (uiImInputText("###ZoneName", avail.x/2, editingZone.name)) {
-                        editingZone.name = editingZone.name.toStringz.fromStringz;
+                    string editingZoneName = editingZone.name;
+                    if (uiImInputText("###ZoneName", avail.x/2, editingZoneName)) {
+                        try {
+                            editingZone.name = editingZoneName.toStringz.fromStringz;
+                        } catch (std.utf.UTFException e) {}
                     }
 
                     uiImSeperator();
