@@ -127,6 +127,9 @@ protected:
                         inPushToolWindow(new SpaceEditor());
                     }
 
+                    if (uiImMenuItem(__("Settings"))) {
+                        inPushToolWindow(new SettingWindow());
+                    }
                     uiImEndMenu();
                 }
 
@@ -184,15 +187,6 @@ protected:
                 uiImDummy(vec2(4, 0));
                 uiImLabel(_("Double-click to show/hide UI"));
 
-/*
-                // DONATE BUTTON
-                avail = uiImAvailableSpace();
-                vec2 donateBtnLength = uiImMeasureString(_("Donate")).x+16;
-                uiImDummy(vec2(avail.x-donateBtnLength.x, 0));
-                if (uiImMenuItem(__("Donate"))) {
-                    uiOpenLink("https://www.patreon.com/LunaFoxgirlVT");
-                }
-*/
             uiImEndMainMenuBar();
         }
 
@@ -218,7 +212,10 @@ public:
             inSettingsGet!InochiWindowSettings("window", InochiWindowSettings(1024, 1024));
 
         import nijiexpose.ver;
-        super("nijiexpose %s".format(INS_VERSION), windowSettings.width, windowSettings.height);
+
+        int throttlingRate = inSettingsGet!(int)("throttlingRate", 1);
+
+        super("nijiexpose %s".format(INS_VERSION), windowSettings.width, windowSettings.height, throttlingRate);
         
         // Initialize nijilive
         inInit(&inGetTime);
