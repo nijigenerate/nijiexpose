@@ -15,11 +15,11 @@ import std.array;
 
 class ExpressionTrackingBinding : ITrackingBinding {
 private:
-    TrackingBinding binding;
+    TrackingBinding binding_;
 
 public:
     this(TrackingBinding binding) {
-        this.binding = binding;
+        this.binding_ = binding;
         expr = new Expression(insExpressionGenerateSignature(cast(int)binding.hashOf(), binding.axis), "");        
     }
 
@@ -33,6 +33,8 @@ public:
         Expression (if in ExpressionBinding mode)
     */
     Expression* expr;
+
+    final TrackingBinding binding() { return binding_; }
 
 
     override

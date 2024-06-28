@@ -36,14 +36,14 @@ private {
 
 class EventTrackingBinding : ITrackingBinding {
 private:
-    TrackingBinding binding;
 public:
     this(TrackingBinding binding) {
         this.binding = binding;
         valueMap.length = 0;
     }
 
-    float outVal;
+    TrackingBinding binding;
+    float outVal = 0;
 
     /**
         Expression (if in ExpressionBinding mode)

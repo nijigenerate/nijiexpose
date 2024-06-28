@@ -17,15 +17,16 @@ import bindbc.imgui;
 
 class CompoundTrackingBinding : ITrackingBinding {
 private:
-    TrackingBinding binding;
-    float outVal;
+    TrackingBinding binding_;
 
 public:
     this(TrackingBinding binding) {
-        this.binding = binding;
+        this.binding_ = binding;
         bindingMap.length = 0;
     }
 
+    float outVal = 0;
+    final TrackingBinding binding() { return binding_; }
 
     enum Method {
         WeightedSum,
@@ -40,8 +41,30 @@ public:
         float weight = 1.0;
         BindingType type;
         ITrackingBinding delegated;
+        this(CompoundTrackingBinding binding, float weight, BindingType type) {
+            this.weight = weight;
+            this.type   = type;
+            this.delegated = binding.createBinding(type);
+        }
+
+
     }
     BindingMap[] bindingMap;
+
+    ITrackingBinding createBinding(BindingType type) {
+        switch (type) {
+            case BindingType.RatioBinding:
+                return new RatioTrackingBinding(binding);
+            case BindingType.ExpressionBinding:
+                return new ExpressionTrackingBinding(binding);
+            case BindingType.EventBinding:
+                return new EventTrackingBinding(binding);
+            case BindingType.CompoundBinding:
+                return new CompoundTrackingBinding(binding);
+            default:
+                return null;
+        }
+    }
 
     override
     void serializeSelf(ref Serializer serializer) {
@@ -67,22 +90,7 @@ public:
             BindingMap item;
             elem["type"].deserializeValue(item.type);
             elem["weight"].deserializeValue(item.weight);
-            switch (item.type) {
-                case BindingType.RatioBinding:
-                    item.delegated = new RatioTrackingBinding(binding);
-                    break;
-                case BindingType.ExpressionBinding:
-                    item.delegated = new ExpressionTrackingBinding(binding);
-                    break;
-                case BindingType.EventBinding:
-                    item.delegated = new EventTrackingBinding(binding);
-                    break;
-                case BindingType.CompoundBinding:
-                    item.delegated = new CompoundTrackingBinding(binding);
-                    break;
-                default:
-                    continue;
-            }
+            item.delegated = createBinding(item.type);
             item.delegated.deserializeFromFghj(elem);
             bindingMap ~= item;
         }

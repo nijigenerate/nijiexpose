@@ -10,6 +10,7 @@ import nijiexpose.tracking.vspace;
 public import nijiexpose.tracking.ratiobinding;
 public import nijiexpose.tracking.exprbinding;
 public import nijiexpose.tracking.eventbinding;
+public import nijiexpose.tracking.compoundbinding;
 import nijiexpose.scene;
 import nijilive;
 import nijilive.math.serialization;
@@ -133,24 +134,9 @@ public:
     string name;
 
     /**
-        Name of the source blendshape or bone
-    */
-    string sourceName;
-
-    /**
-        Display Name of the source blendshape or bone
-    */
-    string sourceDisplayName;
-
-    /**
         The type of the binding
     */
     BindingType type_;
-
-    /**
-        The type of the tracking source
-    */
-    SourceType sourceType;
 
     /**
         The nijilive parameter it should apply to
@@ -185,6 +171,9 @@ public:
             case BindingType.EventBinding:
                 delegated = new EventTrackingBinding(this);
                 break;
+            case BindingType.CompoundBinding:
+                delegated = new CompoundTrackingBinding(this);
+                break;
             default:
                 break;
         }
@@ -195,12 +184,6 @@ public:
         auto state = serializer.objectBegin;
             serializer.putKey("name");
             serializer.putValue(name);
-            serializer.putKey("sourceName");
-            serializer.putValue(sourceName);
-            serializer.putKey("sourceDisplayName");
-            serializer.putValue(sourceDisplayName);
-            serializer.putKey("sourceType");
-            serializer.serializeValue(sourceType);
             serializer.putKey("bindingType");
             serializer.serializeValue(type_);
             serializer.putKey("param");
@@ -218,8 +201,6 @@ public:
     
     SerdeException deserializeFromFghj(Fghj data) {
         data["name"].deserializeValue(name);
-        data["sourceName"].deserializeValue(sourceName);
-        data["sourceType"].deserializeValue(sourceType);
         data["bindingType"].deserializeValue(type_);
         type = type_;
         data["param"].deserializeValue(paramUUID);
@@ -229,7 +210,6 @@ public:
         if (delegated) {
             delegated.deserializeFromFghj(data);
         }
-        this.createSourceDisplayName();
         
         return null;
     }
@@ -280,36 +260,6 @@ public:
     */
     void lateUpdate() {
         if (weights > 0) param.value.vector[axis] += round(sum / weights);
-    }
-
-    void createSourceDisplayName() {
-        switch(sourceType) {
-            case SourceType.Blendshape:
-                sourceDisplayName = sourceName;
-                break;
-            case SourceType.BonePosX:
-                sourceDisplayName = _("%s (X)").format(sourceName);
-                break;
-            case SourceType.BonePosY:
-                sourceDisplayName = _("%s (Y)").format(sourceName);
-                break;
-            case SourceType.BonePosZ:
-                sourceDisplayName = _("%s (Z)").format(sourceName);
-                break;
-            case SourceType.BoneRotRoll:
-                sourceDisplayName = _("%s (Roll)").format(sourceName);
-                break;
-            case SourceType.BoneRotPitch:
-                sourceDisplayName = _("%s (Pitch)").format(sourceName);
-                break;
-            case SourceType.BoneRotYaw:
-                sourceDisplayName = _("%s (Yaw)").format(sourceName);
-                break;
-            case SourceType.KeyPress:
-                sourceDisplayName = _("%s (Key)").format(sourceName);
-                break;
-            default: assert(0);    
-        }
     }
 }
 

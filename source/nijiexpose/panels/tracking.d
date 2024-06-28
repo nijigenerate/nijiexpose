@@ -91,33 +91,36 @@ private:
         }
 
         // Add any bindings unnacounted for which are stored in the model.
-        trkMain: foreach(bind; trackingBindings) {
-            
-            // Skip non-existent sources
-            if (bind.sourceName.length == 0) continue;
+        trkMain: foreach(bind_; trackingBindings) {
 
-            TrackingSource src = TrackingSource(
-                bind.sourceType != SourceType.Blendshape,
-                bind.sourceName,
-                bind.sourceName.toStringz
-            );
+            if (auto bind = cast(RatioTrackingBinding)bind_.delegated) {
+                
+                // Skip non-existent sources
+                if (bind.sourceName.length == 0) continue;
 
-            // Skip anything we already know
-            foreach(xsrc; sources) {
-                if (xsrc.isBone == src.isBone && xsrc.name == src.name) continue trkMain;
+                TrackingSource src = TrackingSource(
+                    bind.sourceType != SourceType.Blendshape,
+                    bind.sourceName,
+                    bind.sourceName.toStringz
+                );
+
+                // Skip anything we already know
+                foreach(xsrc; sources) {
+                    if (xsrc.isBone == src.isBone && xsrc.name == src.name) continue trkMain;
+                }
+
+                sources ~= src;
+                indexableSourceNames ~= src.name.toLower;
+                minValues ~= 0;
+                maxValues ~= 1;
             }
-
-            sources ~= src;
-            indexableSourceNames ~= src.name.toLower;
-            minValues ~= 0;
-            maxValues ~= 1;
         }
     }
 
     
     // Settings popup for binding types
     pragma(inline, true)
-    bool settingsPopup(ref TrackingBinding binding) {
+    bool settingsPopup(T)(T binding) {
         bool changed = false;
         if (uiImBeginPopup("BINDING_SETTINGS")) {
             if (uiImBeginMenu(__("Type"))) {
@@ -142,6 +145,13 @@ private:
                     changed = true;
                 }
 
+                if (uiImMenuItem(__("Compound Binding"))) {
+                    if (binding.type != BindingType.CompoundBinding)
+                        changed = true;
+                    binding.type = BindingType.CompoundBinding;
+                    changed = true;
+                }
+
                 uiImEndMenu();
             }
             uiImEndPopup();
@@ -155,15 +165,16 @@ private:
     }
 
     // Configuration panel for expression bindings
-    void exprBinding(size_t i, ref TrackingBinding binding) {
-        auto eBinding = cast(ExpressionTrackingBinding)binding.delegated;
+    void exprBinding(size_t i, ITrackingBinding binding) {
+        auto eBinding = cast(ExpressionTrackingBinding)binding;
         if (eBinding.expr) {
             string buf = eBinding.expr.expression.dup;
-            if (settingsPopup(binding))
-                return;
+            if(eBinding.binding && eBinding.binding.delegated == eBinding)
+                if (settingsPopup(eBinding.binding))
+                    return;
             
             uiImLabel(_("Dampen"));
-            igSliderInt("", &binding.dampenLevel, 0, 10);
+            igSliderInt("", &eBinding.binding.dampenLevel, 0, 10);
 
             if (uiImInputText("###EXPRESSION", buf)) {
                 eBinding.expr.expression = buf.toStringz.fromStringz;
@@ -190,13 +201,19 @@ private:
     }
 
     // Configuration panel for ratio bindings
-    void ratioBinding(size_t i, ref TrackingBinding binding) {
-        bool hasTrackingSrc = binding.sourceName.length > 0;
+    void ratioBinding(size_t i, ITrackingBinding binding) {
+        auto rBinding = cast(RatioTrackingBinding)binding;
+        if (!rBinding) return;
 
-        if (settingsPopup(binding))
-            return;
-        igSameLine();
-        if (uiImBeginComboBox("SELECTION_COMBO", hasTrackingSrc ? binding.sourceDisplayName.toStringz : __("Not tracked"))) {
+        if (rBinding.binding && rBinding.binding.delegated == rBinding) {
+            if (settingsPopup(rBinding.binding))
+                return;
+            igSameLine();
+        }
+
+        bool hasTrackingSrc = rBinding.sourceName.length > 0;
+
+        if (uiImBeginComboBox("SELECTION_COMBO", hasTrackingSrc ? rBinding.sourceDisplayName.toStringz : __("Not tracked"))) {
             string filter = trackingFilter.dup;
             if (uiImInputText("###FILTER", uiImAvailableSpace().x, filter)) {
                 trackingFilter = filter.toLower().toStringz.fromStringz;
@@ -209,44 +226,44 @@ private:
                 
                 if (trackingFilter.length > 0 && !indexableSourceNames[ix].canFind(trackingFilter)) continue;
 
-                bool selected = binding.sourceName == source.name;
+                bool selected = rBinding.sourceName == source.name;
                 bool nameValid = source.name.length > 0;
                 if (source.isBone) {
                     if (uiImBeginMenu(source.cName)) {
                         if (uiImMenuItem(__("X"))) {
-                            binding.sourceName = source.name;
-                            binding.sourceType = SourceType.BonePosX;
-                            binding.createSourceDisplayName();
+                            rBinding.sourceName = source.name;
+                            rBinding.sourceType = SourceType.BonePosX;
+                            rBinding.createSourceDisplayName();
                             trackingFilter = null;
                         }
                         if (uiImMenuItem(__("Y"))) {
-                            binding.sourceName = source.name;
-                            binding.sourceType = SourceType.BonePosY;
-                            binding.createSourceDisplayName();
+                            rBinding.sourceName = source.name;
+                            rBinding.sourceType = SourceType.BonePosY;
+                            rBinding.createSourceDisplayName();
                             trackingFilter = null;
                         }
                         if (uiImMenuItem(__("Z"))) {
-                            binding.sourceName = source.name;
-                            binding.sourceType = SourceType.BonePosZ;
-                            binding.createSourceDisplayName();
+                            rBinding.sourceName = source.name;
+                            rBinding.sourceType = SourceType.BonePosZ;
+                            rBinding.createSourceDisplayName();
                             trackingFilter = null;
                         }
                         if (uiImMenuItem(__("Roll"))) {
-                            binding.sourceName = source.name;
-                            binding.sourceType = SourceType.BoneRotRoll;
-                            binding.createSourceDisplayName();
+                            rBinding.sourceName = source.name;
+                            rBinding.sourceType = SourceType.BoneRotRoll;
+                            rBinding.createSourceDisplayName();
                             trackingFilter = null;
                         }
                         if (uiImMenuItem(__("Pitch"))) {
-                            binding.sourceName = source.name;
-                            binding.sourceType = SourceType.BoneRotPitch;
-                            binding.createSourceDisplayName();
+                            rBinding.sourceName = source.name;
+                            rBinding.sourceType = SourceType.BoneRotPitch;
+                            rBinding.createSourceDisplayName();
                             trackingFilter = null;
                         }
                         if (uiImMenuItem(__("Yaw"))) {
-                            binding.sourceName = source.name;
-                            binding.sourceType = SourceType.BoneRotYaw;
-                            binding.createSourceDisplayName();
+                            rBinding.sourceName = source.name;
+                            rBinding.sourceType = SourceType.BoneRotYaw;
+                            rBinding.createSourceDisplayName();
                             trackingFilter = null;
                         }
                         uiImEndMenu();
@@ -254,9 +271,9 @@ private:
                 } else {
                     if (igSelectable(nameValid ?source.cName : "###NoName", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap)) {
                         trackingFilter = null;
-                        binding.sourceType = SourceType.Blendshape;
-                        binding.sourceName = source.name;
-                        binding.createSourceDisplayName();
+                        rBinding.sourceType = SourceType.Blendshape;
+                        rBinding.sourceName = source.name;
+                        rBinding.createSourceDisplayName();
                     }
                     igSameLine();
                     float value = insScene.space.currentZone.getBlendshapeFor(source.name);
@@ -270,21 +287,20 @@ private:
         if (hasTrackingSrc)
             igSameLine();
         if (hasTrackingSrc && uiImButton(__("\ue5cd"))) {
-            binding.sourceName = null;
+            rBinding.sourceName = null;
         }
 
         if (hasTrackingSrc) {
-            auto rBinding = cast(RatioTrackingBinding)binding.delegated;
             uiImCheckbox(__("Inverse"), rBinding.inverse);
 
             uiImLabel(_("Dampen"));
-            igSliderInt("", &binding.dampenLevel, 0, 10);
+            igSliderInt("", &rBinding.binding.dampenLevel, 0, 10);
 
             uiImLabel(_("Tracking In"));
             uiImPush(0);
                 uiImIndent();
                     igSetNextItemWidth (96);
-                    switch(binding.sourceType) {
+                    switch(rBinding.sourceType) {
                         case SourceType.Blendshape:
                             // TODO: Make all blendshapes in facetrack-d 0->1
                             uiImRange(rBinding.inRange.x, rBinding.inRange.y, -1, 1);
@@ -315,21 +331,22 @@ private:
                     igSetNextItemWidth (96);
                     uiImRange(rBinding.outRange.x, rBinding.outRange.y, -float.max, float.max);
                     igSameLine();
-                    uiImProgress(binding.param.mapAxis(binding.axis, rBinding.outVal), vec2(-float.min_normal, 0), "");
+                    uiImProgress(rBinding.binding.param.mapAxis(rBinding.binding.axis, rBinding.outVal), vec2(-float.min_normal, 0), "");
                 uiImUnindent();
             uiImPop();
         }
     }
 
     // Configuration panel for event bindings
-    void eventBinding(size_t i, ref TrackingBinding binding) {
-        auto eBinding = cast(EventTrackingBinding)binding.delegated;
+    void eventBinding(size_t i, ITrackingBinding binding) {
+        auto eBinding = cast(EventTrackingBinding)binding;
         if (eBinding) {
-            if (settingsPopup(binding))
-                return;
+            if (eBinding.binding && eBinding.binding.delegated == eBinding)
+                if (settingsPopup(eBinding.binding))
+                    return;
 
             uiImLabel(_("Dampen"));
-            igSliderInt("", &binding.dampenLevel, 0, 10);
+            igSliderInt("", &eBinding.binding.dampenLevel, 0, 10);
 
             int indexToRemove = -1;
             foreach (idx, item; eBinding.valueMap) {
@@ -340,7 +357,7 @@ private:
                 }
                 igSameLine();
                 igSetNextItemWidth(128);
-                igDragFloat("", &(eBinding.valueMap[idx].value), 0.01, binding.param.min.vector[binding.axis], binding.param.max.vector[binding.axis]);
+                igDragFloat("", &(eBinding.valueMap[idx].value), 0.01, eBinding.binding.param.min.vector[eBinding.binding.axis], eBinding.binding.param.max.vector[eBinding.binding.axis]);
                 igSameLine();
                 if (uiImButton(__("\ue5cd"))) {
                     indexToRemove = cast(int)idx;
@@ -362,6 +379,75 @@ private:
             
                 uiImPushTextWrapPos();
                     if (eBinding.outVal < 0 || eBinding.outVal > 1) {
+                        uiImLabelColored(_("Value out of range, clamped to 0..1 range."), vec4(0.95, 0.88, 0.62, 1));
+                        uiImNewLine();
+                    }
+                uiImPopTextWrapPos();
+            uiImUnindent();
+        }
+    }
+
+    // Configuration panel for event bindings
+    void compoundBinding(size_t i, ITrackingBinding binding) {
+        auto cBinding = cast(CompoundTrackingBinding)binding;
+        if (cBinding) {
+            if (cBinding.binding && cBinding.binding.delegated == cBinding)
+                if (settingsPopup(cBinding.binding))
+                    return;
+
+            uiImLabel(_("Dampen"));
+            igSliderInt("", &cBinding.binding.dampenLevel, 0, 10);
+
+            int indexToRemove = -1;
+            foreach (idx, item; cBinding.bindingMap) {
+                uiImPush(cast(int)idx + 1);
+                // call for every binding.
+                uiImIndent();
+                    settingsPopup(item);
+                    igSameLine();
+                    float weight = item.weight;
+                    if (igDragFloat("###1", &weight, 0, 1)) {
+                        cBinding.bindingMap[idx].weight = weight;
+                    }
+                    igSameLine();
+                    if (uiImButton(__("\ue5cd"))) {
+                        indexToRemove = cast(int)idx;
+                    }
+                    switch (item.type) {
+                        case BindingType.RatioBinding:
+                            ratioBinding(idx, item.delegated);
+                            break;
+                        case BindingType.ExpressionBinding:
+                            exprBinding(idx, item.delegated);
+                            break;
+                        case BindingType.EventBinding:
+                            eventBinding(idx, item.delegated);
+                            break;
+                        case BindingType.CompoundBinding:
+                            compoundBinding(idx, item.delegated);
+                            break;
+                        default:
+                            break;
+                    }
+                uiImUnindent();
+
+                uiImPop();
+            }
+            if (indexToRemove >= 0) {
+                cBinding.bindingMap = cBinding.bindingMap.remove(indexToRemove);
+            }
+            {
+                if (uiImButton(__("\ue145"))) {
+                    cBinding.bindingMap ~= CompoundTrackingBinding.BindingMap(cBinding, 1, BindingType.RatioBinding);
+                }
+            }
+
+            uiImLabel(_("Output (%s)").format(cBinding.outVal));
+            uiImIndent();
+                uiImProgress(cBinding.outVal);
+            
+                uiImPushTextWrapPos();
+                    if (cBinding.outVal < 0 || cBinding.outVal > 1) {
                         uiImLabelColored(_("Value out of range, clamped to 0..1 range."), vec4(0.95, 0.88, 0.62, 1));
                         uiImNewLine();
                     }
@@ -400,15 +486,19 @@ protected:
                             switch(binding.type) {
 
                                 case BindingType.RatioBinding:
-                                    ratioBinding(i, binding);
+                                    ratioBinding(i, binding.delegated);
                                     break;
 
                                 case BindingType.ExpressionBinding:
-                                    exprBinding(i, binding);
+                                    exprBinding(i, binding.delegated);
                                     break;
 
                                 case BindingType.EventBinding:
-                                    eventBinding(i, binding);
+                                    eventBinding(i, binding.delegated);
+                                    break;
+
+                                case BindingType.CompoundBinding:
+                                    compoundBinding(i, binding.delegated);
                                     break;
 
                                 // External bindings
