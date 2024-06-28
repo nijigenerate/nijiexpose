@@ -55,6 +55,7 @@ void insTrackingPanelRefresh() {
 class TrackingPanel : Panel {
 private:
     TrackingSource[] sources;
+    int outVal;
 
     // Refreshes the list of tracking sources
     void refresh(ref TrackingBinding[] trackingBindings) {
@@ -168,9 +169,9 @@ private:
                 eBinding.expr.expression = buf.toStringz.fromStringz;
             }
 
-            uiImLabel(_("Output (%s)").format(binding.outVal));
+            uiImLabel(_("Output (%s)").format(outVal));
             uiImIndent();
-                uiImProgress(binding.outVal);
+                uiImProgress(outVal);
             
 
                 uiImPushTextWrapPos();
@@ -179,7 +180,7 @@ private:
                         uiImNewLine();
                     }
 
-                    if (binding.outVal < 0 || binding.outVal > 1) {
+                    if (outVal < 0 || outVal > 1) {
                         uiImLabelColored(_("Value out of range, clamped to 0..1 range."), vec4(0.95, 0.88, 0.62, 1));
                         uiImNewLine();
                     }
@@ -304,7 +305,7 @@ private:
                         default: assert(0);
                     }
                     igSameLine();
-                    uiImProgress(binding.inVal, vec2(-float.min_normal, 0), "");
+                    uiImProgress(rBinding.inVal, vec2(-float.min_normal, 0), "");
                 uiImUnindent();
             uiImPop();
             
@@ -314,7 +315,7 @@ private:
                     igSetNextItemWidth (96);
                     uiImRange(rBinding.outRange.x, rBinding.outRange.y, -float.max, float.max);
                     igSameLine();
-                    uiImProgress(binding.param.mapAxis(binding.axis, binding.outVal), vec2(-float.min_normal, 0), "");
+                    uiImProgress(binding.param.mapAxis(binding.axis, rBinding.outVal), vec2(-float.min_normal, 0), "");
                 uiImUnindent();
             uiImPop();
         }
@@ -355,12 +356,12 @@ private:
                 }
             }
 
-            uiImLabel(_("Output (%s)").format(binding.outVal));
+            uiImLabel(_("Output (%s)").format(eBinding.outVal));
             uiImIndent();
-                uiImProgress(binding.outVal);
+                uiImProgress(eBinding.outVal);
             
                 uiImPushTextWrapPos();
-                    if (binding.outVal < 0 || binding.outVal > 1) {
+                    if (eBinding.outVal < 0 || eBinding.outVal > 1) {
                         uiImLabelColored(_("Value out of range, clamped to 0..1 range."), vec4(0.95, 0.88, 0.62, 1));
                         uiImNewLine();
                     }
