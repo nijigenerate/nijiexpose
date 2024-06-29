@@ -391,9 +391,25 @@ private:
     void compoundBinding(size_t i, ITrackingBinding binding) {
         auto cBinding = cast(CompoundTrackingBinding)binding;
         if (cBinding) {
-            if (cBinding.binding && cBinding.binding.delegated == cBinding)
+            if (cBinding.binding && cBinding.binding.delegated == cBinding) {
                 if (settingsPopup(cBinding.binding))
                     return;
+                igSameLine();
+            }
+            auto methodMap = [
+                CompoundTrackingBinding.Method.WeightedSum: __("Weighted Sum"),
+                CompoundTrackingBinding.Method.WeightedMul: __("Weighted Multiply"),
+                CompoundTrackingBinding.Method.Ordered: __("Ordered"),
+            ];
+            if (uiImBeginComboBox("COMPOUND_COMBO", methodMap[cBinding.method])) {
+                foreach (key, value; methodMap) {
+                    if (uiImMenuItem(value, null, cBinding.method == key, true)) {
+                        cBinding.method = key;
+                    }
+
+                }
+                uiImEndComboBox();
+            }
 
             uiImLabel(_("Dampen"));
             igSliderInt("", &cBinding.binding.dampenLevel, 0, 10);
@@ -403,7 +419,7 @@ private:
                 uiImPush(cast(int)idx + 1);
                 // call for every binding.
                 uiImIndent();
-                    settingsPopup(item);
+                    settingsPopup(&cBinding.bindingMap[idx]);
                     igSameLine();
                     float weight = item.weight;
                     if (igDragFloat("###1", &weight, 0, 1)) {

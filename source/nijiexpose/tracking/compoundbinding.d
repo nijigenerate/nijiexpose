@@ -39,14 +39,21 @@ public:
     */
     struct BindingMap {
         float weight = 1.0;
-        BindingType type;
+        BindingType type_;
         ITrackingBinding delegated;
+        CompoundTrackingBinding compound;
         this(CompoundTrackingBinding binding, float weight, BindingType type) {
             this.weight = weight;
-            this.type   = type;
+            this.type_  = type;
+            this.compound = binding;
             this.delegated = binding.createBinding(type);
         }
 
+        BindingType type() { return type_; }
+        void type(BindingType value) {
+            type_ = value;
+            delegated = compound.createBinding(type_);
+        }
 
     }
     BindingMap[] bindingMap;
@@ -88,7 +95,7 @@ public:
         bindingMap.length = 0;
         foreach (elem; data["binding_map"].byElement) {
             BindingMap item;
-            elem["type"].deserializeValue(item.type);
+            elem["type"].deserializeValue(item.type_);
             elem["weight"].deserializeValue(item.weight);
             item.delegated = createBinding(item.type);
             item.delegated.deserializeFromFghj(elem);
@@ -133,12 +140,8 @@ public:
         if (method == Method.WeightedSum)
             if (weightSum > 0)
                 sum /= weightSum;
-        if (binding.dampenLevel == 0) outVal = sum;
-        else {
-            outVal = dampen(outVal, sum, deltaTime(), cast(float)(11-binding.dampenLevel));
-            outVal = quantize(outVal, 0.0001);
-        }
-        result = binding.param.unmapAxis(binding.axis, outVal);
+        outVal = sum;
+        result = outVal;
         return true;
     }
 }

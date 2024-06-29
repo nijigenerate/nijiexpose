@@ -99,8 +99,10 @@ public:
         bool valSet = false;
         foreach (item; valueMap) {
             if (item.id == "" || item.id is null) {
-                if (!valSet)
+                if (!valSet) {
                     src = item.value;
+                    valSet = true;
+                }
             }
             if (item.id !in keyMap) continue;
             if (igIsKeyDown(keyMap[item.id.toUpper()])) {
@@ -115,6 +117,6 @@ public:
             outVal = quantize(outVal, 0.0001);
         }
         result = binding.param.unmapAxis(binding.axis, outVal);
-        return true;
+        return valSet;
     }
 }
