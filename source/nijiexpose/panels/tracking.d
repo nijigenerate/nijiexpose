@@ -283,20 +283,15 @@ private:
                         uiImEndMenu();
                     }
                 } else {
-                    if (igSelectable("###NoName", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap)) {
+                    if (igSelectable(nameValid? source.cName: "###NoName", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap)) {
                         trackingFilter = null;
                         rBinding.sourceType = SourceType.Blendshape;
                         rBinding.sourceName = source.name;
                         rBinding.createSourceDisplayName();
                     }
-                    if (nameValid) {
-                        uiImSameLine();
-                        igSetNextItemWidth(trackingSourceNameWidth);
-                        igText(source.cName);
-                        uiImSameLine();
-                        uiImDummy(vec2(source.dummyWidth + 1, 1));
-                    }
-                    igSameLine();
+                    uiImSameLine();
+                    uiImDummy(vec2(source.dummyWidth + 1, 1));
+                    uiImSameLine();
                     float value = insScene.space.currentZone.getBlendshapeFor(source.name);
                     if (value < minValues[ix]) minValues[ix] = value;
                     if (value > maxValues[ix]) maxValues[ix] = value;
