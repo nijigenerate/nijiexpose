@@ -7,6 +7,10 @@
 module nijiexpose.tracking;
 import nijiexpose.tracking.expr;
 import nijiexpose.tracking.vspace;
+public import nijiexpose.tracking.ratiobinding;
+public import nijiexpose.tracking.exprbinding;
+public import nijiexpose.tracking.eventbinding;
+public import nijiexpose.tracking.compoundbinding;
 import nijiexpose.scene;
 import nijilive;
 import nijilive.math.serialization;
@@ -39,6 +43,11 @@ enum BindingType {
         A binding triggered by event.
     */
     EventBinding,
+
+    /**
+        A Binding which combined values of sub-bindings.
+    */
+    CompoundBinding,
 
     /**
         Binding controlled from an external source.
@@ -102,7 +111,7 @@ interface ITrackingBinding {
     void serializeSelf(ref Serializer serializer);
     SerdeException deserializeFromFghj(Fghj data);
     void outRangeToDefault();
-    void update();
+    bool update(out float result);
 }
 
 class TrackingBinding {
@@ -119,36 +128,15 @@ protected:
 public:
     ITrackingBinding delegated;
 
-    /// Last input value
-    float inVal = 0;
-
-    /// Last output value
-    float outVal = 0;
-
     /**
         Display name for the binding
     */
     string name;
 
     /**
-        Name of the source blendshape or bone
-    */
-    string sourceName;
-
-    /**
-        Display Name of the source blendshape or bone
-    */
-    string sourceDisplayName;
-
-    /**
         The type of the binding
     */
     BindingType type_;
-
-    /**
-        The type of the tracking source
-    */
-    SourceType sourceType;
 
     /**
         The nijilive parameter it should apply to
@@ -183,6 +171,9 @@ public:
             case BindingType.EventBinding:
                 delegated = new EventTrackingBinding(this);
                 break;
+            case BindingType.CompoundBinding:
+                delegated = new CompoundTrackingBinding(this);
+                break;
             default:
                 break;
         }
@@ -193,12 +184,6 @@ public:
         auto state = serializer.objectBegin;
             serializer.putKey("name");
             serializer.putValue(name);
-            serializer.putKey("sourceName");
-            serializer.putValue(sourceName);
-            serializer.putKey("sourceDisplayName");
-            serializer.putValue(sourceDisplayName);
-            serializer.putKey("sourceType");
-            serializer.serializeValue(sourceType);
             serializer.putKey("bindingType");
             serializer.serializeValue(type_);
             serializer.putKey("param");
@@ -216,8 +201,6 @@ public:
     
     SerdeException deserializeFromFghj(Fghj data) {
         data["name"].deserializeValue(name);
-        data["sourceName"].deserializeValue(sourceName);
-        data["sourceType"].deserializeValue(sourceType);
         data["bindingType"].deserializeValue(type_);
         type = type_;
         data["param"].deserializeValue(paramUUID);
@@ -227,7 +210,6 @@ public:
         if (delegated) {
             delegated.deserializeFromFghj(data);
         }
-        this.createSourceDisplayName();
         
         return null;
     }
@@ -254,8 +236,12 @@ public:
         Updates the parameter binding
     */
     void update() {
-        if (delegated)
-            delegated.update();
+        if (delegated) {
+            float updatedValue;
+            if (delegated.update(updatedValue)) {
+                param.value.vector[axis] = updatedValue;
+            }
+        }
     }
     
     /**
@@ -275,336 +261,6 @@ public:
     void lateUpdate() {
         if (weights > 0) param.value.vector[axis] += round(sum / weights);
     }
-
-    void createSourceDisplayName() {
-        switch(sourceType) {
-            case SourceType.Blendshape:
-                sourceDisplayName = sourceName;
-                break;
-            case SourceType.BonePosX:
-                sourceDisplayName = _("%s (X)").format(sourceName);
-                break;
-            case SourceType.BonePosY:
-                sourceDisplayName = _("%s (Y)").format(sourceName);
-                break;
-            case SourceType.BonePosZ:
-                sourceDisplayName = _("%s (Z)").format(sourceName);
-                break;
-            case SourceType.BoneRotRoll:
-                sourceDisplayName = _("%s (Roll)").format(sourceName);
-                break;
-            case SourceType.BoneRotPitch:
-                sourceDisplayName = _("%s (Pitch)").format(sourceName);
-                break;
-            case SourceType.BoneRotYaw:
-                sourceDisplayName = _("%s (Yaw)").format(sourceName);
-                break;
-            case SourceType.KeyPress:
-                sourceDisplayName = _("%s (Key)").format(sourceName);
-                break;
-            default: assert(0);    
-        }
-    }
 }
 
-/**
-    Ratio Tracking Binding 
-*/
-class RatioTrackingBinding : ITrackingBinding {
-private:
-    TrackingBinding binding;
-    /**
-        Maps an input value to an offset (0.0->1.0)
-    */
-    float mapValue(float value, float min, float max) {
-        float range = max - min;
-        float tmp = (value - min);
-        float off = tmp / range;
-        return clamp(off, 0, 1);
-    }
 
-    /**
-        Maps an offset (0.0->1.0) to a value
-    */
-    float unmapValue(float offset, float min, float max) {
-        float range = max - min;
-        return (range * offset) + min;
-    }
-
-
-public:
-    this(TrackingBinding binding) { this.binding = binding; }
-    /// Ratio for input
-    vec2 inRange = vec2(0, 1);
-
-    /// Ratio for output
-    vec2 outRange = vec2(0, 1);
-
-    /**
-        Whether to inverse the binding
-    */
-    bool inverse;
-
-    override
-    void serializeSelf(ref Serializer serializer) {
-        serializer.putKey("inverse");
-        serializer.putValue(inverse);
-
-        serializer.putKey("inRange");
-        inRange.serialize(serializer);
-        serializer.putKey("outRange");
-        outRange.serialize(serializer);
-    }
-    
-    override
-    SerdeException deserializeFromFghj(Fghj data) {
-        data["inverse"].deserializeValue(inverse);
-        inRange.deserialize(data["inRange"]);
-        outRange.deserialize(data["outRange"]);
-        return null;
-    }
-
-    /**
-        Sets the parameter out range to the default for the axis
-    */
-    void outRangeToDefault() {
-        outRange = vec2(binding.param.min.vector[binding.axis], binding.param.max.vector[binding.axis]);
-    }
-
-    /**
-        Updates the parameter binding
-    */
-    void update() {
-        if (binding.sourceName.length == 0) {
-            binding.param.value.vector[binding.axis] = binding.param.defaults.vector[binding.axis];
-            return;
-        }
-
-        float src = 0;
-        if (insScene.space.currentZone) {
-            switch(binding.sourceType) {
-
-                case SourceType.Blendshape:
-                    src = insScene.space.currentZone.getBlendshapeFor(binding.sourceName);
-                    break;
-
-                case SourceType.BonePosX:
-                    src = insScene.space.currentZone.getBoneFor(binding.sourceName).position.x;
-                    break;
-
-                case SourceType.BonePosY:
-                    src = insScene.space.currentZone.getBoneFor(binding.sourceName).position.y;
-                    break;
-
-                case SourceType.BonePosZ:
-                    src = insScene.space.currentZone.getBoneFor(binding.sourceName).position.z;
-                    break;
-
-                case SourceType.BoneRotRoll:
-                    src = insScene.space.currentZone.getBoneFor(binding.sourceName).rotation.roll.degrees;
-                    break;
-
-                case SourceType.BoneRotPitch:
-                    src = insScene.space.currentZone.getBoneFor(binding.sourceName).rotation.pitch.degrees;
-                    break;
-
-                case SourceType.BoneRotYaw:
-                    src = insScene.space.currentZone.getBoneFor(binding.sourceName).rotation.yaw.degrees;
-                    break;
-
-                default: assert(0);
-            }
-        }
-
-        // Smoothly transition back to default pose if tracking is lost.
-        if (!insScene.space.hasAnyFocus()) {
-            binding.param.value.vector[binding.axis] = dampen(binding.param.value.vector[binding.axis], binding.param.defaults.vector[binding.axis], deltaTime(), 1);
-            
-            // Fix anoying -e values from dampening
-            binding.param.value.vector[binding.axis] = quantize(binding.param.value.vector[binding.axis], 0.0001);
-            return;
-        }
-
-        // Calculate the input ratio (within 0->1)
-        float target = mapValue(src, inRange.x, inRange.y);
-        if (inverse) target = 1f-target;
-
-        // NOTE: Dampen level of 0 = no damping
-        // Dampen level 1-10 is inverse due to the dampen function taking *speed* as a value.
-        if (binding.dampenLevel == 0) binding.inVal = target;
-        else {
-            binding.inVal = dampen(binding.inVal, target, deltaTime(), cast(float)(11-binding.dampenLevel));
-            binding.inVal = quantize(binding.inVal, 0.0001);
-        }
-        
-        // Calculate the output ratio (whatever outRange is)
-        binding.outVal = unmapValue(binding.inVal, outRange.x, outRange.y);
-        binding.param.value.vector[binding.axis] = binding.outVal;
-    }
-}
-
-class ExpressionTrackingBinding : ITrackingBinding {
-private:
-    TrackingBinding binding;
-public:
-    this(TrackingBinding binding) {
-        this.binding = binding;
-        expr = new Expression(insExpressionGenerateSignature(cast(int)binding.hashOf(), binding.axis), "");        
-    }
-
-    /**
-        Expression (if in ExpressionBinding mode)
-    */
-    Expression* expr;
-
-
-    override
-    void serializeSelf(ref Serializer serializer) {
-        serializer.putKey("expression");
-        serializer.putValue(expr.expression());
-    }
-    
-    override
-    SerdeException deserializeFromFghj(Fghj data) {
-        string exprStr;
-        data["expression"].deserializeValue(exprStr);
-        expr = new Expression(insExpressionGenerateSignature(cast(int)binding.hashOf(), binding.axis), exprStr);
-        return null;
-    }
-
-    /**
-        Sets the parameter out range to the default for the axis
-    */
-    void outRangeToDefault() {}
-
-    /**
-        Updates the parameter binding
-    */
-    void update() {
-        if (binding.sourceName.length == 0) {
-            binding.param.value.vector[binding.axis] = binding.param.defaults.vector[binding.axis];
-            return;
-        }
-        if (expr) {
-
-            // Skip NaN values
-            float src = expr.call();
-            if (!src.isFinite) return;
-
-            // No dampen, or dampen
-            if (binding.dampenLevel == 0) binding.outVal = src;
-            else {
-                
-                binding.outVal = dampen(binding.outVal, src, deltaTime(), cast(float)(11-binding.dampenLevel));
-                binding.outVal = quantize(binding.outVal, 0.0001);
-            }
-
-            binding.param.value.vector[binding.axis] = binding.param.unmapAxis(binding.axis, binding.outVal);
-        }
-    }
-}
-
-string keyMapStr() {
-
-    string keyMap(char keyCode) { return "\"%c\": ImGuiKey.%c".format(keyCode, keyCode); }
-    string[] codes;
-    for (char keyCode = 'A'; keyCode <= 'Z'; keyCode ++) {
-        codes ~= keyMap(keyCode);
-    }
-    return "["~ codes.join(",") ~ "]";
-}
-private {
-    ImGuiKey[string] keyMap_;
-
-    ImGuiKey[string] keyMap() {
-        if (keyMap_.length == 0)
-            keyMap_ = mixin(keyMapStr());
-        return keyMap_;
-    }
-}
-
-class EventTrackingBinding : ITrackingBinding {
-private:
-    TrackingBinding binding;
-public:
-    this(TrackingBinding binding) {
-        this.binding = binding;
-        valueMap.length = 0;
-    }
-
-    /**
-        Expression (if in ExpressionBinding mode)
-    */
-    struct EventMap {
-        SourceType type;
-        string id;
-        float value;
-    }
-    EventMap[] valueMap;
-
-    override
-    void serializeSelf(ref Serializer serializer) {
-        serializer.putKey("value_map");
-        auto state = serializer.arrayBegin;
-            foreach (item; valueMap) {
-                serializer.elemBegin;
-                auto state2 = serializer.objectBegin();
-                serializer.putKey("type");
-                serializer.serializeValue(item.type);
-                serializer.putKey("id");
-                serializer.putValue(item.id);
-                serializer.putKey("value");
-                serializer.putValue(item.value);
-                serializer.objectEnd(state2);
-            }
-        serializer.arrayEnd(state);
-    }
-    
-    override
-    SerdeException deserializeFromFghj(Fghj data) {
-        valueMap.length = 0;
-        foreach (elem; data["value_map"].byElement) {
-            EventMap item;
-            elem["type"].deserializeValue(item.type);
-            elem["id"].deserializeValue(item.id);
-            elem["value"].deserializeValue(item.value);
-            valueMap ~= item;
-        }
-        return null;
-    }
-
-    /**
-        Sets the parameter out range to the default for the axis
-    */
-    void outRangeToDefault() {}
-
-    /**
-        Updates the parameter binding
-    */
-    void update() {
-        if (binding.sourceName.length == 0) {
-            binding.param.value.vector[binding.axis] = binding.param.defaults.vector[binding.axis];
-            return;
-        }
-        float src = binding.outVal;
-        bool valSet = false;
-        foreach (item; valueMap) {
-            if (item.id == "" || item.id is null) {
-                if (!valSet)
-                    src = item.value;
-            }
-            if (item.id !in keyMap) continue;
-            if (igIsKeyDown(keyMap[item.id.toUpper()])) {
-                src = item.value;
-                valSet = true;
-                break;
-            }
-        }
-        if (binding.dampenLevel == 0) binding.outVal = src;
-        else {
-            binding.outVal = dampen(binding.outVal, src, deltaTime(), cast(float)(11-binding.dampenLevel));
-            binding.outVal = quantize(binding.outVal, 0.0001);
-        }
-        binding.param.value.vector[binding.axis] = binding.param.unmapAxis(binding.axis, binding.outVal);
-    }
-}

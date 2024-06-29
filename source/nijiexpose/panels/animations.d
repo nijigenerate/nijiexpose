@@ -422,21 +422,23 @@ protected:
         auto item = insSceneSelectedSceneItem();
         if (item) {
 
-            if (uiImButton(__("Refresh"))) {
+            if (uiImButton(__("\ue5d5"))) { //Refresh
                 insScene.space.refresh();
                 refresh(item.animations);
             }
+            uiImTooltip(_("Refresh"));
 
             uiImSameLine(0, 4);
 
-            if (uiImButton(__("Save to File"))) {
+            if (uiImButton(__("\ue161"))) { //Save
                 try {
                     item.saveAnimations();
                 } catch (Exception ex) {
                     uiImDialog(__("Error"), ex.msg);
                 }
             }
-
+            uiImTooltip(_("Save to File"));
+            
             foreach(ref ac; item.animations) {
                 uiImPush(&ac);
                 auto anim = ac.anim;
