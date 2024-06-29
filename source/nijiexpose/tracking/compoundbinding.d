@@ -75,6 +75,8 @@ public:
 
     override
     void serializeSelf(ref Serializer serializer) {
+        serializer.putKey("method");
+        serializer.serializeValue(method);
         serializer.putKey("binding_map");
         auto state = serializer.arrayBegin;
             foreach (item; bindingMap) {
@@ -92,6 +94,7 @@ public:
     
     override
     SerdeException deserializeFromFghj(Fghj data) {
+        if (!data["method"].isEmpty) data["method"].deserializeValue(method);
         bindingMap.length = 0;
         foreach (elem; data["binding_map"].byElement) {
             BindingMap item;
