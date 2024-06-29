@@ -163,6 +163,23 @@ private:
     }
 
 public:
+    override
+    void onBeginUpdate() {
+        ImVec2 wpos = ImVec2(
+            igGetMainViewport().Pos.x+(igGetMainViewport().Size.x/2),
+            igGetMainViewport().Pos.y+(igGetMainViewport().Size.y/2),
+        );
+
+        ImVec2 uiSize = ImVec2(
+            800, 
+            600
+        );
+
+        igSetNextWindowPos(wpos, ImGuiCond.Appearing, ImVec2(0.5, 0.5));
+        igSetNextWindowSize(uiSize, ImGuiCond.Appearing);
+        igSetNextWindowSizeConstraints(uiSize, ImVec2(float.max, float.max));
+        super.onBeginUpdate();
+    }
 
     override
     void onUpdate() {
@@ -282,8 +299,12 @@ public:
         }
         uiImEndChild();
 
-        uiImDummy(vec2(-64, 0));
+        uiImDummy(vec2(-132, 0));
         uiImSameLine(0, 0);
+        if (uiImButton(__("Cancel"), vec2(64, 0))) {
+            this.close();
+        }
+        uiImSameLine(0, 4);
         if (uiImButton(__("Save"), vec2(64, 0))) {
             insSaveVSpace(insScene.space);
             neTrackingPanelReset();
@@ -293,6 +314,8 @@ public:
 
     this() {
         super(_("Virtual Space"));
-        flags |= ImGuiWindowFlags.NoScrollbar;
+        flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize |
+                ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoSavedSettings |
+                ImGuiWindowFlags.NoScrollbar;
     }
 }

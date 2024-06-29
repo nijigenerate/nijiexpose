@@ -32,8 +32,13 @@ struct Scene {
     float zoneInactiveTimer = 0;
 
     bool sleeping = false;
+}
 
-    int throttlingRate = 1;
+private {
+    bool measureFPS = false;
+    double lastFPS = 0;
+    double lastMeasureTime = 0;
+    uint  loopCount = 0;
 }
 
 struct SceneItem {
@@ -225,12 +230,10 @@ void insSceneInit() {
     float[3] ambientLight = inSettingsGet!(float[3])("ambientLight", [1, 1, 1]);
     inSceneAmbientLight.vector = ambientLight;
 
-    float[4] bgColor = inSettingsGet!(float[4])("bgColor", [1, 1, 1, 0.5]);
+    float[4] bgColor = inSettingsGet!(float[4])("bgColor", [0.5, 0.5, 0.5, 0]);
     import std.stdio;
     writefln("bgColor: %s", bgColor);
     inSetClearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);
-
-    insScene.throttlingRate = inSettingsGet!(int)("throttlingRate", 1);
 }
 
 void insSceneCleanup() {
@@ -376,6 +379,16 @@ void insUpdateScene() {
 
     if (insScene.shouldPostProcess) {
         inPostProcessScene();
+    }
+
+    if (measureFPS) {
+        double latestTime = currentTime();
+        loopCount ++;
+        if (latestTime - lastMeasureTime >= 1.0) {
+            lastFPS = loopCount / (latestTime - lastMeasureTime);
+            lastMeasureTime = latestTime;
+            loopCount = 0;
+        }
     }
 }
 
@@ -593,3 +606,13 @@ void insInteractWithScene() {
         }
     } else isDragDown = false;
 }
+
+bool neGetMeasureFPS() {
+    return measureFPS;
+}
+
+void neSetMeasureFPS(bool value) {
+    measureFPS = value;
+}
+
+double neGetFPS() { return lastFPS; }

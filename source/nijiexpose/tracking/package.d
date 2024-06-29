@@ -254,5 +254,3 @@ public:
         if (weights > 0) param.value.vector[axis] += round(sum / weights);
     }
 }
-
-

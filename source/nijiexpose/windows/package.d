@@ -7,3 +7,4 @@
 module nijiexpose.windows;
 public import nijiexpose.windows.main;
 public import nijiexpose.windows.spaceedit;
+public import nijiexpose.windows.settings;
