@@ -34,6 +34,13 @@ struct Scene {
     bool sleeping = false;
 }
 
+private {
+    bool measureFPS = false;
+    double lastFPS = 0;
+    double lastMeasureTime = 0;
+    uint  loopCount = 0;
+}
+
 struct SceneItem {
     string filePath;
     Puppet puppet;
@@ -373,6 +380,16 @@ void insUpdateScene() {
     if (insScene.shouldPostProcess) {
         inPostProcessScene();
     }
+
+    if (measureFPS) {
+        double latestTime = currentTime();
+        loopCount ++;
+        if (latestTime - lastMeasureTime >= 1.0) {
+            lastFPS = loopCount / (latestTime - lastMeasureTime);
+            lastMeasureTime = latestTime;
+            loopCount = 0;
+        }
+    }
 }
 
 /**
@@ -589,3 +606,13 @@ void insInteractWithScene() {
         }
     } else isDragDown = false;
 }
+
+bool neGetMeasureFPS() {
+    return measureFPS;
+}
+
+void neSetMeasureFPS(bool value) {
+    measureFPS = value;
+}
+
+double neGetFPS() { return lastFPS; }

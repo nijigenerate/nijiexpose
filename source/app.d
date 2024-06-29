@@ -41,7 +41,7 @@ void main(string[] args) {
     insInitExpressions();
 
     // Open window and init nijilive
-    auto window = new nijiexposeWindow(args[1..$]);
+    auto window = neCreateWindow(args[1..$]);
     
     insSceneInit();
     insInitFrameSending();

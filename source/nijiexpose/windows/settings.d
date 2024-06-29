@@ -1,6 +1,8 @@
 module nijiexpose.windows.settings;
 
 import nijiexpose.log;
+import nijiexpose.scene;
+import nijiexpose.windows.main;
 import nijiui.core.settings;
 import nijiui.widgets;
 import nijiui.toolwindow;
@@ -14,11 +16,12 @@ import std.algorithm.mutation;
 
 class SettingWindow : ToolWindow {
 private:
-
+    bool prevMeasureFPS;
 public:
 
     override
     void onBeginUpdate() {
+        neSetMeasureFPS(true);
         ImVec2 wpos = ImVec2(
             igGetMainViewport().Pos.x+(igGetMainViewport().Size.x/2),
             igGetMainViewport().Pos.y+(igGetMainViewport().Size.y/2),
@@ -58,13 +61,15 @@ public:
             avail = uiImAvailableSpace();
             if (uiImHeader(__("V-Sync throttling"), true)) {
                 uiImIndent();
-                    uiImLabel(_("Throtting interval"));
+                    uiImLabel("%s (%s)".format(_("Throtting interval"), _("Experimental")));
 
                     int throttling = inSettingsGet!int("throttlingRate", 1);
-                    if (igDragInt("##THROTTLING", &throttling, 1, 0, 10)) {
+                    if (igSliderInt("##THROTTLING", &throttling, 0, 6)) {
                         inSettingsSet("throttlingRate", throttling);
-
+                        neWindowSetThrottlingRate(throttling);
                     }
+                    uiImSameLine();
+                    uiImLabel(_("Frame rate: %.2f fps".format(neGetFPS())));
                 uiImUnindent();
             }
         }
@@ -73,6 +78,7 @@ public:
         uiImDummy(vec2(-64, 0));
         uiImSameLine(0, 0);
         if (uiImButton(__("OK"), vec2(64, 0))) {
+            neSetMeasureFPS(prevMeasureFPS);
             this.close();
         }
     }
@@ -83,6 +89,7 @@ public:
         flags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoResize |
                 ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoSavedSettings |
                 ImGuiWindowFlags.NoScrollbar;
+        prevMeasureFPS = neGetMeasureFPS();
     }
 
 }

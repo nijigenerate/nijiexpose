@@ -36,6 +36,20 @@ private {
     struct PuppetSavedData {
         float scale;
     }
+    nijiexposeWindow window_ = null;
+}
+
+nijiexposeWindow neCreateWindow(string[] args) {
+    if (!window_) {
+        window_ = new nijiexposeWindow(args);
+    }
+    return window_;
+}
+
+void neWindowSetThrottlingRate(int rate) {
+    if (window_) {
+        window_.setThrottlingRate(rate);
+    }
 }
 
 class nijiexposeWindow : InApplicationWindow {
