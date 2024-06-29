@@ -46,6 +46,11 @@ public:
     float outVal = 0;
 
     /**
+        Dampening level
+    */
+    int dampenLevel = 0;
+
+    /**
         Expression (if in ExpressionBinding mode)
     */
     struct EventMap {
@@ -57,6 +62,8 @@ public:
 
     override
     void serializeSelf(ref Serializer serializer) {
+        serializer.putKey("dampenLevel");
+        serializer.putValue(dampenLevel);
         serializer.putKey("value_map");
         auto state = serializer.arrayBegin;
             foreach (item; valueMap) {
@@ -76,6 +83,7 @@ public:
     override
     SerdeException deserializeFromFghj(Fghj data) {
         valueMap.length = 0;
+        if (!data["dampenLevel"].isEmpty) data["dampenLevel"].deserializeValue(dampenLevel);
         foreach (elem; data["value_map"].byElement) {
             EventMap item;
             elem["type"].deserializeValue(item.type);
@@ -111,9 +119,9 @@ public:
                 break;
             }
         }
-        if (binding.dampenLevel == 0) outVal = src;
+        if (dampenLevel == 0) outVal = src;
         else {
-            outVal = dampen(outVal, src, deltaTime(), cast(float)(11-binding.dampenLevel));
+            outVal = dampen(outVal, src, deltaTime(), cast(float)(11-dampenLevel));
             outVal = quantize(outVal, 0.0001);
         }
         result = binding.param.unmapAxis(binding.axis, outVal);

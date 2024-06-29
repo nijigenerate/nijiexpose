@@ -153,11 +153,6 @@ public:
     */
     int axis = 0;
 
-    /**
-        Dampening level
-    */
-    int dampenLevel = 0;
-
     BindingType type() { return type_; }
     void type(BindingType value) {
         type_ = value;
@@ -190,8 +185,6 @@ public:
             serializer.serializeValue(param.uuid);
             serializer.putKey("axis");
             serializer.putValue(axis);
-            serializer.putKey("dampenLevel");
-            serializer.putValue(dampenLevel);
 
             if (delegated)
                 delegated.serializeSelf(serializer);
@@ -205,7 +198,6 @@ public:
         type = type_;
         data["param"].deserializeValue(paramUUID);
         if (!data["axis"].isEmpty) data["axis"].deserializeValue(axis);
-        if (!data["dampenLevel"].isEmpty) data["dampenLevel"].deserializeValue(dampenLevel);
 
         if (delegated) {
             delegated.deserializeFromFghj(data);

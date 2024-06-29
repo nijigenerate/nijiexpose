@@ -28,10 +28,13 @@ private {
     float[] minValues;
     float[] maxValues;
 
+    float trackingSourceNameWidth = 0;
+
     struct TrackingSource {
         bool isBone;
         string name;
         const(char)* cName;
+        float dummyWidth;
     }
 }
 
@@ -61,6 +64,7 @@ private:
     void refresh(ref TrackingBinding[] trackingBindings) {
         auto blendshapes = insScene.space.getAllBlendshapeNames();
         auto bones = insScene.space.getAllBoneNames();
+        ImVec2 size;
         
         sources.length = blendshapes.length + bones.length;
         indexableSourceNames.length = sources.length;
@@ -73,6 +77,9 @@ private:
                 blendshape,
                 blendshape.toStringz
             );
+
+            igCalcTextSize(&size, blendshape.toStringz);
+            trackingSourceNameWidth = max(trackingSourceNameWidth, size.x);
             indexableSourceNames[i] = blendshape.toLower;
             minValues[i] = 0;
             maxValues[i] = 1;
@@ -85,6 +92,8 @@ private:
                 bone.toStringz
             );
 
+            igCalcTextSize(&size, bone.toStringz);
+            trackingSourceNameWidth = max(trackingSourceNameWidth, size.x);
             indexableSourceNames[blendshapes.length+i] = bone.toLower;
             minValues[i] = -1;
             maxValues[i] = 1;
@@ -104,6 +113,9 @@ private:
                     bind.sourceName.toStringz
                 );
 
+                igCalcTextSize(&size, bind.sourceName.toStringz);
+                trackingSourceNameWidth = max(trackingSourceNameWidth, size.x);
+
                 // Skip anything we already know
                 foreach(xsrc; sources) {
                     if (xsrc.isBone == src.isBone && xsrc.name == src.name) continue trkMain;
@@ -114,6 +126,10 @@ private:
                 minValues ~= 0;
                 maxValues ~= 1;
             }
+        }
+        foreach (ref TrackingSource source; sources) {
+            igCalcTextSize(&size, source.cName);
+            source.dummyWidth = trackingSourceNameWidth - size.x;
         }
     }
 
@@ -174,7 +190,7 @@ private:
                     return;
             
             uiImLabel(_("Dampen"));
-            igSliderInt("", &eBinding.binding.dampenLevel, 0, 10);
+            igSliderInt("", &eBinding.dampenLevel, 0, 10);
 
             if (uiImInputText("###EXPRESSION", buf)) {
                 eBinding.expr.expression = buf.toStringz.fromStringz;
@@ -220,10 +236,8 @@ private:
             }
 
             uiImDummy(vec2(0, 8));
-
-            
+               
             foreach(ix, source; sources) {
-                
                 if (trackingFilter.length > 0 && !indexableSourceNames[ix].canFind(trackingFilter)) continue;
 
                 bool selected = rBinding.sourceName == source.name;
@@ -269,13 +283,15 @@ private:
                         uiImEndMenu();
                     }
                 } else {
-                    if (igSelectable(nameValid ?source.cName : "###NoName", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap)) {
+                    if (igSelectable(nameValid? source.cName: "###NoName", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap)) {
                         trackingFilter = null;
                         rBinding.sourceType = SourceType.Blendshape;
                         rBinding.sourceName = source.name;
                         rBinding.createSourceDisplayName();
                     }
-                    igSameLine();
+                    uiImSameLine();
+                    uiImDummy(vec2(source.dummyWidth + 1, 1));
+                    uiImSameLine();
                     float value = insScene.space.currentZone.getBlendshapeFor(source.name);
                     if (value < minValues[ix]) minValues[ix] = value;
                     if (value > maxValues[ix]) maxValues[ix] = value;
@@ -294,7 +310,7 @@ private:
             uiImCheckbox(__("Inverse"), rBinding.inverse);
 
             uiImLabel(_("Dampen"));
-            igSliderInt("", &rBinding.binding.dampenLevel, 0, 10);
+            igSliderInt("", &rBinding.dampenLevel, 0, 10);
 
             uiImLabel(_("Tracking In"));
             uiImPush(0);
@@ -346,7 +362,7 @@ private:
                     return;
 
             uiImLabel(_("Dampen"));
-            igSliderInt("", &eBinding.binding.dampenLevel, 0, 10);
+            igSliderInt("", &eBinding.dampenLevel, 0, 10);
 
             int indexToRemove = -1;
             foreach (idx, item; eBinding.valueMap) {
@@ -411,42 +427,44 @@ private:
                 uiImEndComboBox();
             }
 
-            uiImLabel(_("Dampen"));
-            igSliderInt("", &cBinding.binding.dampenLevel, 0, 10);
+//            uiImLabel(_("Dampen"));
+//            igSliderInt("", &cBinding.binding.dampenLevel, 0, 10);
 
             int indexToRemove = -1;
             foreach (idx, item; cBinding.bindingMap) {
                 uiImPush(cast(int)idx + 1);
-                // call for every binding.
                 uiImIndent();
-                    settingsPopup(&cBinding.bindingMap[idx]);
-                    igSameLine();
-                    float weight = item.weight;
-                    if (igDragFloat("###1", &weight, 0, 1)) {
-                        cBinding.bindingMap[idx].weight = weight;
+                // call for every binding.
+                    if (uiImBeginCategory("#%d".format(idx).toStringz)) {
+                        settingsPopup(&cBinding.bindingMap[idx]);
+                        igSameLine();
+                        float weight = item.weight;
+                        if (igDragFloat("###1", &weight, 0, 1)) {
+                            cBinding.bindingMap[idx].weight = weight;
+                        }
+                        igSameLine();
+                        if (uiImButton(__("\ue5cd"))) {
+                            indexToRemove = cast(int)idx;
+                        }
+                        switch (item.type) {
+                            case BindingType.RatioBinding:
+                                ratioBinding(idx, item.delegated);
+                                break;
+                            case BindingType.ExpressionBinding:
+                                exprBinding(idx, item.delegated);
+                                break;
+                            case BindingType.EventBinding:
+                                eventBinding(idx, item.delegated);
+                                break;
+                            case BindingType.CompoundBinding:
+                                compoundBinding(idx, item.delegated);
+                                break;
+                            default:
+                                break;
+                        }
                     }
-                    igSameLine();
-                    if (uiImButton(__("\ue5cd"))) {
-                        indexToRemove = cast(int)idx;
-                    }
-                    switch (item.type) {
-                        case BindingType.RatioBinding:
-                            ratioBinding(idx, item.delegated);
-                            break;
-                        case BindingType.ExpressionBinding:
-                            exprBinding(idx, item.delegated);
-                            break;
-                        case BindingType.EventBinding:
-                            eventBinding(idx, item.delegated);
-                            break;
-                        case BindingType.CompoundBinding:
-                            compoundBinding(idx, item.delegated);
-                            break;
-                        default:
-                            break;
-                    }
+                    uiImEndCategory();
                 uiImUnindent();
-
                 uiImPop();
             }
             if (indexToRemove >= 0) {
@@ -460,7 +478,7 @@ private:
 
             uiImLabel(_("Output (%s)").format(cBinding.outVal));
             uiImIndent();
-                uiImProgress(cBinding.outVal);
+                uiImProgress(cBinding.binding.param.mapAxis(cBinding.binding.axis, cBinding.outVal), vec2(-float.min_normal, 0), "");
             
                 uiImPushTextWrapPos();
                     if (cBinding.outVal < 0 || cBinding.outVal > 1) {

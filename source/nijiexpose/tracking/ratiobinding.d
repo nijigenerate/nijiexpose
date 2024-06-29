@@ -73,6 +73,11 @@ public:
     */
     bool inverse;
 
+    /**
+        Dampening level
+    */
+    int dampenLevel = 0;
+
     override
     void serializeSelf(ref Serializer serializer) {
         serializer.putKey("sourceType");
@@ -88,6 +93,8 @@ public:
         inRange.serialize(serializer);
         serializer.putKey("outRange");
         outRange.serialize(serializer);
+        serializer.putKey("dampenLevel");
+        serializer.putValue(dampenLevel);
     }
     
     override
@@ -95,6 +102,7 @@ public:
         data["sourceType"].deserializeValue(sourceType);
         data["sourceName"].deserializeValue(sourceName);
         data["inverse"].deserializeValue(inverse);
+        if (!data["dampenLevel"].isEmpty) data["dampenLevel"].deserializeValue(dampenLevel);
         inRange.deserialize(data["inRange"]);
         outRange.deserialize(data["outRange"]);
         this.createSourceDisplayName();
@@ -168,9 +176,9 @@ public:
 
         // NOTE: Dampen level of 0 = no damping
         // Dampen level 1-10 is inverse due to the dampen function taking *speed* as a value.
-        if (binding.dampenLevel == 0) inVal = target;
+        if (dampenLevel == 0) inVal = target;
         else {
-            inVal = dampen(inVal, target, deltaTime(), cast(float)(11-binding.dampenLevel));
+            inVal = dampen(inVal, target, deltaTime(), cast(float)(11-dampenLevel));
             inVal = quantize(inVal, 0.0001);
         }
         
