@@ -28,10 +28,13 @@ private {
     float[] minValues;
     float[] maxValues;
 
+    float trackingSourceNameWidth = 0;
+
     struct TrackingSource {
         bool isBone;
         string name;
         const(char)* cName;
+        float dummyWidth;
     }
 }
 
@@ -61,6 +64,7 @@ private:
     void refresh(ref TrackingBinding[] trackingBindings) {
         auto blendshapes = insScene.space.getAllBlendshapeNames();
         auto bones = insScene.space.getAllBoneNames();
+        ImVec2 size;
         
         sources.length = blendshapes.length + bones.length;
         indexableSourceNames.length = sources.length;
@@ -73,6 +77,9 @@ private:
                 blendshape,
                 blendshape.toStringz
             );
+
+            igCalcTextSize(&size, blendshape.toStringz);
+            trackingSourceNameWidth = max(trackingSourceNameWidth, size.x);
             indexableSourceNames[i] = blendshape.toLower;
             minValues[i] = 0;
             maxValues[i] = 1;
@@ -85,6 +92,8 @@ private:
                 bone.toStringz
             );
 
+            igCalcTextSize(&size, bone.toStringz);
+            trackingSourceNameWidth = max(trackingSourceNameWidth, size.x);
             indexableSourceNames[blendshapes.length+i] = bone.toLower;
             minValues[i] = -1;
             maxValues[i] = 1;
@@ -104,6 +113,9 @@ private:
                     bind.sourceName.toStringz
                 );
 
+                igCalcTextSize(&size, bind.sourceName.toStringz);
+                trackingSourceNameWidth = max(trackingSourceNameWidth, size.x);
+
                 // Skip anything we already know
                 foreach(xsrc; sources) {
                     if (xsrc.isBone == src.isBone && xsrc.name == src.name) continue trkMain;
@@ -114,6 +126,10 @@ private:
                 minValues ~= 0;
                 maxValues ~= 1;
             }
+        }
+        foreach (ref TrackingSource source; sources) {
+            igCalcTextSize(&size, source.cName);
+            source.dummyWidth = trackingSourceNameWidth - size.x;
         }
     }
 
@@ -220,10 +236,8 @@ private:
             }
 
             uiImDummy(vec2(0, 8));
-
-            
+               
             foreach(ix, source; sources) {
-                
                 if (trackingFilter.length > 0 && !indexableSourceNames[ix].canFind(trackingFilter)) continue;
 
                 bool selected = rBinding.sourceName == source.name;
@@ -269,11 +283,18 @@ private:
                         uiImEndMenu();
                     }
                 } else {
-                    if (igSelectable(nameValid ?source.cName : "###NoName", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap)) {
+                    if (igSelectable("###NoName", selected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap)) {
                         trackingFilter = null;
                         rBinding.sourceType = SourceType.Blendshape;
                         rBinding.sourceName = source.name;
                         rBinding.createSourceDisplayName();
+                    }
+                    if (nameValid) {
+                        uiImSameLine();
+                        igSetNextItemWidth(trackingSourceNameWidth);
+                        igText(source.cName);
+                        uiImSameLine();
+                        uiImDummy(vec2(source.dummyWidth + 1, 1));
                     }
                     igSameLine();
                     float value = insScene.space.currentZone.getBlendshapeFor(source.name);
