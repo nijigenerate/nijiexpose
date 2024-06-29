@@ -460,7 +460,7 @@ private:
 
             uiImLabel(_("Output (%s)").format(cBinding.outVal));
             uiImIndent();
-                uiImProgress(cBinding.outVal);
+                uiImProgress(cBinding.binding.param.mapAxis(cBinding.binding.axis, cBinding.outVal), vec2(-float.min_normal, 0), "");
             
                 uiImPushTextWrapPos();
                     if (cBinding.outVal < 0 || cBinding.outVal > 1) {
