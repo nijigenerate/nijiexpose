@@ -535,10 +535,6 @@ protected:
                                     compoundBinding(i, binding.delegated);
                                     break;
 
-                                case BindingType.EventBinding:
-                                    eventBinding(i, binding);
-                                    break;
-
                                 // External bindings
                                 default: 
                                     settingsPopup(binding);
