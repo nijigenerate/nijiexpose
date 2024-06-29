@@ -417,36 +417,38 @@ private:
             int indexToRemove = -1;
             foreach (idx, item; cBinding.bindingMap) {
                 uiImPush(cast(int)idx + 1);
-                // call for every binding.
                 uiImIndent();
-                    settingsPopup(&cBinding.bindingMap[idx]);
-                    igSameLine();
-                    float weight = item.weight;
-                    if (igDragFloat("###1", &weight, 0, 1)) {
-                        cBinding.bindingMap[idx].weight = weight;
+                // call for every binding.
+                    if (uiImBeginCategory("#%d".format(idx).toStringz)) {
+                        settingsPopup(&cBinding.bindingMap[idx]);
+                        igSameLine();
+                        float weight = item.weight;
+                        if (igDragFloat("###1", &weight, 0, 1)) {
+                            cBinding.bindingMap[idx].weight = weight;
+                        }
+                        igSameLine();
+                        if (uiImButton(__("\ue5cd"))) {
+                            indexToRemove = cast(int)idx;
+                        }
+                        switch (item.type) {
+                            case BindingType.RatioBinding:
+                                ratioBinding(idx, item.delegated);
+                                break;
+                            case BindingType.ExpressionBinding:
+                                exprBinding(idx, item.delegated);
+                                break;
+                            case BindingType.EventBinding:
+                                eventBinding(idx, item.delegated);
+                                break;
+                            case BindingType.CompoundBinding:
+                                compoundBinding(idx, item.delegated);
+                                break;
+                            default:
+                                break;
+                        }
                     }
-                    igSameLine();
-                    if (uiImButton(__("\ue5cd"))) {
-                        indexToRemove = cast(int)idx;
-                    }
-                    switch (item.type) {
-                        case BindingType.RatioBinding:
-                            ratioBinding(idx, item.delegated);
-                            break;
-                        case BindingType.ExpressionBinding:
-                            exprBinding(idx, item.delegated);
-                            break;
-                        case BindingType.EventBinding:
-                            eventBinding(idx, item.delegated);
-                            break;
-                        case BindingType.CompoundBinding:
-                            compoundBinding(idx, item.delegated);
-                            break;
-                        default:
-                            break;
-                    }
+                    uiImEndCategory();
                 uiImUnindent();
-
                 uiImPop();
             }
             if (indexToRemove >= 0) {
