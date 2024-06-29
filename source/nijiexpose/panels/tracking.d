@@ -174,7 +174,7 @@ private:
                     return;
             
             uiImLabel(_("Dampen"));
-            igSliderInt("", &eBinding.binding.dampenLevel, 0, 10);
+            igSliderInt("", &eBinding.dampenLevel, 0, 10);
 
             if (uiImInputText("###EXPRESSION", buf)) {
                 eBinding.expr.expression = buf.toStringz.fromStringz;
@@ -294,7 +294,7 @@ private:
             uiImCheckbox(__("Inverse"), rBinding.inverse);
 
             uiImLabel(_("Dampen"));
-            igSliderInt("", &rBinding.binding.dampenLevel, 0, 10);
+            igSliderInt("", &rBinding.dampenLevel, 0, 10);
 
             uiImLabel(_("Tracking In"));
             uiImPush(0);
@@ -346,7 +346,7 @@ private:
                     return;
 
             uiImLabel(_("Dampen"));
-            igSliderInt("", &eBinding.binding.dampenLevel, 0, 10);
+            igSliderInt("", &eBinding.dampenLevel, 0, 10);
 
             int indexToRemove = -1;
             foreach (idx, item; eBinding.valueMap) {
@@ -411,8 +411,8 @@ private:
                 uiImEndComboBox();
             }
 
-            uiImLabel(_("Dampen"));
-            igSliderInt("", &cBinding.binding.dampenLevel, 0, 10);
+//            uiImLabel(_("Dampen"));
+//            igSliderInt("", &cBinding.binding.dampenLevel, 0, 10);
 
             int indexToRemove = -1;
             foreach (idx, item; cBinding.bindingMap) {

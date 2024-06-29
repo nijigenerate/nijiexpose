@@ -34,6 +34,13 @@ public:
         Ordered,
     }
     Method method = Method.WeightedSum;
+
+    /**
+        Dampening level
+    */
+    int dampenLevel = 0;
+
+
     /**
         Expression (if in ExpressionBinding mode)
     */

@@ -36,17 +36,24 @@ public:
 
     final TrackingBinding binding() { return binding_; }
 
+    /**
+        Dampening level
+    */
+    int dampenLevel = 0;
 
     override
     void serializeSelf(ref Serializer serializer) {
         serializer.putKey("expression");
         serializer.putValue(expr.expression());
+        serializer.putKey("dampenLevel");
+        serializer.putValue(dampenLevel);
     }
     
     override
     SerdeException deserializeFromFghj(Fghj data) {
         string exprStr;
         data["expression"].deserializeValue(exprStr);
+        if (!data["dampenLevel"].isEmpty) data["dampenLevel"].deserializeValue(dampenLevel);
         expr = new Expression(insExpressionGenerateSignature(cast(int)binding.hashOf(), binding.axis), exprStr);
         return null;
     }
@@ -67,10 +74,10 @@ public:
             if (!src.isFinite) return false;
 
             // No dampen, or dampen
-            if (binding.dampenLevel == 0) outVal = src;
+            if (dampenLevel == 0) outVal = src;
             else {
                 
-                outVal = dampen(outVal, src, deltaTime(), cast(float)(11-binding.dampenLevel));
+                outVal = dampen(outVal, src, deltaTime(), cast(float)(11-dampenLevel));
                 outVal = quantize(outVal, 0.0001);
             }
 
