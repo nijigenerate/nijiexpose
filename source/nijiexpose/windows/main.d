@@ -211,6 +211,7 @@ protected:
     void onResized(int w, int h) {
         inSetViewport(w, h);
         inSettingsSet("window", InochiWindowSettings(width, height));
+        super.onResized(w, h);
     }
 
     override
