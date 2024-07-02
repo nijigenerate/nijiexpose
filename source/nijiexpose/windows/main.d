@@ -25,8 +25,6 @@ import nijiexpose.ver;
 import bindbc.opengl;
 import nijiexpose.windows.utils;
 
-version(linux) import dportals;
-
 private {
     struct InochiWindowSettings {
         int width;
@@ -203,8 +201,6 @@ protected:
 
             uiImEndMainMenuBar();
         }
-
-        version(linux) dpUpdate();
     }
 
     override
@@ -253,7 +249,5 @@ public:
             auto tex = ShallowTexture(cast(ubyte[])import("icon_x256.png"));
             setIcon(tex);
         }
-
-        version(linux) dpInit();
     }
 }
