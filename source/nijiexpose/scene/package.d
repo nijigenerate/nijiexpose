@@ -5,6 +5,8 @@
     Authors: Luna Nielsen
 */
 module nijiexpose.scene;
+import nijilive.core.animation.player;
+import nijilive.math.triangle;
 import nijilive;
 import inmath;
 import nijiui.input;
@@ -14,12 +16,14 @@ import nijiexpose.animation;
 import nijiexpose.tracking.vspace;
 import nijiexpose.panels.tracking : insTrackingPanelRefresh;
 import nijiexpose.log;
-import std.string;
 import nijiexpose.plugins;
 import nijiexpose.render.spritebatch;
 import bindbc.opengl;
-import nijilive.core.animation.player;
+import bindbc.imgui : igIsKeyDown, ImGuiKey;
+import std.string: format;
 import std.math.operations : isClose;
+import std.algorithm: sort;
+import std.array;
 
 struct Scene {
     VirtualSpace space;
@@ -44,6 +48,8 @@ private {
 struct SceneItem {
     string filePath;
     Puppet puppet;
+    Node puppetRoot;
+    Puppet attachedParent;
     TrackingBinding[] bindings;
     AnimationControl[] animations;
     AnimationPlayer player;
@@ -91,30 +97,6 @@ struct SceneItem {
     }
 
     void genBindings() {
-        struct LinkSrcDst {
-            Parameter dst;
-            int outAxis;
-        }
-        LinkSrcDst[] srcDst;
-
-        // Note down link targets
-        // foreach(param; puppet.parameters) {
-        //     foreach(ref ParamLink link; param.links) {
-        //         srcDst ~= LinkSrcDst(link.link, cast(int)link.outAxis);
-        //     }
-        // }
-
-        // Note existing bindings
-        foreach(ref binding; bindings) {
-            srcDst ~= LinkSrcDst(binding.param, binding.axis);
-        }
-
-        bool isParamAxisLinked(Parameter dst, int axis) {
-            foreach(ref LinkSrcDst link; srcDst) {
-                if (link.dst == dst && axis == link.outAxis) return true;
-            }
-            return false;
-        }
 
         mforeach: foreach(ref Parameter param; puppet.parameters) {
 
@@ -126,8 +108,6 @@ struct SceneItem {
             // Loop over X/Y for parameter
             int imax = param.isVec2 ? 2 : 1;
             for (int i = 0; i < imax; i++) {
-                if (isParamAxisLinked(param, i)) continue;
-                
                 TrackingBinding binding = new TrackingBinding();
                 binding.param = param;
                 binding.axis = i;
@@ -187,6 +167,8 @@ void insSceneAddPuppet(string path, Puppet puppet) {
     item.filePath = path;
     item.puppet = puppet;
     item.puppet.root.build();
+    item.puppetRoot = puppet.root;
+    item.attachedParent = null;
     item.player = new AnimationPlayer(puppet);
     
     if (!item.tryLoadBindings()) {
@@ -245,6 +227,33 @@ void insSceneCleanup() {
                 source.stop();
             }
             destroy(source);
+        }
+    }
+}
+
+void neSceneAttachItem(ref SceneItem parent, ref SceneItem target) {
+    import std.stdio;
+
+    vec2 relPos = (parent.puppet.transform.matrix.inverse * vec4(target.puppet.transform.translation, 1)).xy;
+    vec2 relScale = vec2(target.puppet.transform.scale.x / parent.puppet.transform.scale.x,
+        target.puppet.transform.scale.y / parent.puppet.transform.scale.y);
+
+    auto drawables = parent.puppet.getRootParts().sort!((a, b)=> a.zSort < b.zSort).array;
+    foreach (node; drawables) {
+        auto d = cast(Drawable)node;
+        if (d is null) continue;
+        vec2 posInDrawable = relPos - d.transform.translation.xy;
+        vec2 targetScale = vec2(relScale.x / d.transform.scale.x, relScale.y / d.transform.scale.y);
+        auto triangle = findSurroundingTriangle(posInDrawable, d.getMesh());
+        if (triangle) {
+            writefln("%s: pos=%s", d.name, posInDrawable);
+            Node intermediateNode = new Node(node);
+            node.setValue("transform.t.x", posInDrawable.x);
+            node.setValue("transform.t.y", posInDrawable.y);
+            node.setValue("transform.s.x", targetScale.x);
+            node.setValue("transform.s.y", targetScale.y);
+            target.puppetRoot.reparent(intermediateNode, 0);
+            target.puppet.rescanNodes();
         }
     }
 }
@@ -369,7 +378,8 @@ void insUpdateScene() {
 
             sceneItem.player.update(deltaTime());
             sceneItem.puppet.update();
-            sceneItem.puppet.draw();
+            if (sceneItem.attachedParent is null)
+                sceneItem.puppet.draw();
             
             foreach(ref binding; sceneItem.bindings) {
                 binding.lateUpdate();
@@ -401,7 +411,14 @@ SceneItem* insSceneSelectedSceneItem() {
 }
 
 private {
+    struct ItemHitTest {
+        SceneItem* item = null;
+        long index = -1;
+        vec2 size;
+    }
+
     ptrdiff_t selectedPuppet = -1;
+    ItemHitTest draggingItem;
     Puppet draggingPuppet;
     vec2 draggingPuppetStartPos;
     bool hasDonePuppetSelect;
@@ -445,6 +462,30 @@ void insInteractWithScene() {
         )
     );
 
+    ItemHitTest doHitTestOnItem(Puppet stopTarget) {
+        ItemHitTest result;
+        foreach(i, ref sceneItem; insScene.sceneItems) {
+
+            auto puppet = sceneItem.puppet;
+            if (puppet == stopTarget)
+                break;
+
+            // Calculate on-screen bounds of the object
+            vec4 lbounds = puppet.getCombinedBounds!true();
+            vec2 tl = vec4(lbounds.xy, 0, 1);
+            vec2 br = vec4(lbounds.zw, 0, 1);
+            vec2 size = abs(br-tl);
+            rect bounds = rect(tl.x, tl.y, size.x, size.y);
+
+            if (bounds.intersects(mousePos)) {
+                result.item = &sceneItem;
+                result.index = i;
+                result.size = size;
+            }
+        }
+        return result;
+    }
+
     if (!inInputWasMouseDown(MouseButton.Left) && inInputMouseDown(MouseButton.Left)) {
 
         // One shot check if there's a puppet to drag under the cursor
@@ -454,34 +495,21 @@ void insInteractWithScene() {
 
             // For performance sake we should disable bounds calculation after we're done getting drag state.
             inSetUpdateBounds(true);
-                bool selectedAny = false;
-                foreach(i, ref sceneItem; insScene.sceneItems) {
 
-                    auto puppet = sceneItem.puppet;
-
-                    // Calculate on-screen bounds of the object
-                    vec4 lbounds = puppet.getCombinedBounds!true();
-                    vec2 tl = vec4(lbounds.xy, 0, 1);
-                    vec2 br = vec4(lbounds.zw, 0, 1);
-                    vec2 size = abs(br-tl);
-                    rect bounds = rect(tl.x, tl.y, size.x, size.y);
-
-                    if (bounds.intersects(mousePos)) {
-                        draggingPuppetStartPos = puppet.transform.translation.xy;
-                        targetScale = puppet.transform.scale.x;
-                        targetPos = draggingPuppetStartPos;
-                        targetSize = size;
-                        draggingPuppet = puppet;
-                        selectedPuppet = i;
-                        selectedAny = true;
-                        insTrackingPanelRefresh();
-                    }
-                }
-                if (!selectedAny) {
-                    selectedPuppet = -1;
-                    draggingPuppet = null;
-                    insTrackingPanelRefresh();
-                }
+            draggingItem = doHitTestOnItem(null);
+            if (draggingItem.item !is null) {
+                draggingPuppetStartPos = draggingItem.item.puppet.transform.translation.xy;
+                targetScale = draggingItem.item.puppet.transform.scale.x;
+                targetPos = draggingPuppetStartPos;
+                targetSize = draggingItem.size;
+                draggingPuppet = draggingItem.item.puppet;
+                selectedPuppet = draggingItem.index;
+                insTrackingPanelRefresh();
+            } else {
+                selectedPuppet = -1;
+                draggingPuppet = null;
+                insTrackingPanelRefresh();
+            }
             inSetUpdateBounds(false);
             
         }
@@ -555,11 +583,20 @@ void insInteractWithScene() {
                     return;
                 }
             }
+        } else if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
+            if (draggingPuppet && isDragDown && !inInputMouseDown(MouseButton.Left)) {
+                ItemHitTest hitTest = doHitTestOnItem(draggingPuppet);
+                if (hitTest.item) {
+                    neSceneAttachItem(*hitTest.item, *draggingItem.item);
+                }
+            } else if (draggingPuppet && isDragDown) {
+                ItemHitTest hitTest = doHitTestOnItem(draggingPuppet);
+                // Hit Test Action
+            }
         }
 
         isDragDown = inInputMouseDown(MouseButton.Left);
 
-        import bindbc.imgui : igIsKeyDown, ImGuiKey;
         if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
             float targetDelta = (inInputMouseScrollDelta()*0.05)*(1-clamp(targetScale, 0, 0.45));
             targetScale = clamp(

@@ -24,6 +24,9 @@ import std.format;
 import nijiexpose.ver;
 import bindbc.opengl;
 import nijiexpose.windows.utils;
+import nijiexpose.io.image;
+import std.path;
+import std.string;
 
 version(linux) import dportals;
 
@@ -59,12 +62,25 @@ private:
 
     void loadModels(string[] args) {
         foreach(arg; args) {
-            import std.file : exists;
-            if (!exists(arg)) continue;
-            try {
-                insSceneAddPuppet(arg, inLoadPuppet(arg));
-            } catch(Exception ex) {
-                uiImDialog(__("Error"), "Could not load %s, %s".format(arg, ex.msg));
+            string filebase = arg.baseName;
+
+            switch(filebase.extension.toLower) {                
+                case ".png", ".tga", ".jpeg", ".jpg":
+                    insSceneAddPuppet(arg, neLoadModelFromImage(arg));
+                    break;
+
+                case ".inp", ".inx":
+                    import std.file : exists;
+                    if (!exists(arg)) continue;
+                    try {
+                        insSceneAddPuppet(arg, inLoadPuppet(arg));
+                    } catch(Exception ex) {
+                        uiImDialog(__("Error"), "Could not load %s, %s".format(arg, ex.msg));
+                    }
+                    break;
+                default:
+                    uiImDialog(__("Error"), _("Could not load %s, unsupported file format.").format(arg));
+                    break;
             }
         }
     }
