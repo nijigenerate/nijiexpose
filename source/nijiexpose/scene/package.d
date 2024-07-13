@@ -49,7 +49,7 @@ struct SceneItem {
     string filePath;
     Puppet puppet;
     Node puppetRoot;
-    Puppet attachedParent;
+    SceneItem* attachedParent;
     TrackingBinding[] bindings;
     AnimationControl[] animations;
     AnimationPlayer player;
@@ -97,7 +97,30 @@ struct SceneItem {
     }
 
     void genBindings() {
+        struct LinkSrcDst {
+            Parameter dst;
+            int outAxis;
+        }
+        LinkSrcDst[] srcDst;
 
+        // Note down link targets
+        // foreach(param; puppet.parameters) {
+        //     foreach(ref ParamLink link; param.links) {
+        //         srcDst ~= LinkSrcDst(link.link, cast(int)link.outAxis);
+        //     }
+        // }
+
+        // Note existing bindings
+        foreach(ref binding; bindings) {
+            srcDst ~= LinkSrcDst(binding.param, binding.axis);
+        }
+
+        bool isParamAxisLinked(Parameter dst, int axis) {
+            foreach(ref LinkSrcDst link; srcDst) {
+                if (link.dst == dst && axis == link.outAxis) return true;
+            }
+            return false;
+        }
         mforeach: foreach(ref Parameter param; puppet.parameters) {
 
             // Skip all params affected by physics
@@ -108,6 +131,7 @@ struct SceneItem {
             // Loop over X/Y for parameter
             int imax = param.isVec2 ? 2 : 1;
             for (int i = 0; i < imax; i++) {
+                if (isParamAxisLinked(param, i)) continue;
                 TrackingBinding binding = new TrackingBinding();
                 binding.param = param;
                 binding.axis = i;
@@ -236,24 +260,35 @@ void neSceneAttachItem(ref SceneItem parent, ref SceneItem target) {
 
     vec2 relPos = (parent.puppet.transform.matrix.inverse * vec4(target.puppet.transform.translation, 1)).xy;
     vec2 relScale = vec2(target.puppet.transform.scale.x / parent.puppet.transform.scale.x,
-        target.puppet.transform.scale.y / parent.puppet.transform.scale.y);
+                         target.puppet.transform.scale.y / parent.puppet.transform.scale.y);
 
     auto drawables = parent.puppet.getRootParts().sort!((a, b)=> a.zSort < b.zSort).array;
     foreach (node; drawables) {
         auto d = cast(Drawable)node;
         if (d is null) continue;
-        vec2 posInDrawable = relPos - d.transform.translation.xy;
+        auto posInDrawable = (d.transform.matrix.inverse * vec4(relPos, 0, 1)).xyz;
         vec2 targetScale = vec2(relScale.x / d.transform.scale.x, relScale.y / d.transform.scale.y);
-        auto triangle = findSurroundingTriangle(posInDrawable, d.getMesh());
+        auto triangle = findSurroundingTriangle(posInDrawable.xy, d.getMesh());
         if (triangle) {
-            writefln("%s: pos=%s", d.name, posInDrawable);
-            Node intermediateNode = new Node(node);
-            node.setValue("transform.t.x", posInDrawable.x);
-            node.setValue("transform.t.y", posInDrawable.y);
-            node.setValue("transform.s.x", targetScale.x);
-            node.setValue("transform.s.y", targetScale.y);
-            target.puppetRoot.reparent(intermediateNode, 0);
-            target.puppet.rescanNodes();
+            target.puppetRoot.reparent(node, 0);
+            void printNode(Node node, string varName) {
+                writefln(" %s: transform=+%sx%s, translate=%.2f,%.2fx%.2f,%.2f", varName, node.transform.translation, node.transform.scale, node.getValue("transform.t.x"), node.getValue("transfrom.t.y"), node.getValue("transform.s.x"), node.getValue("transform.s.y"));
+            }
+            node.transformChanged();
+            writefln("BEFORE: %s", node.name);
+            printNode(node,              "node  ");
+            printNode(target.puppetRoot, "target");
+            target.puppetRoot.localTransform.translation = posInDrawable;
+            target.puppetRoot.localTransform.scale = targetScale;
+            writefln("pos=%s, scale=%s", posInDrawable, targetScale);
+            writefln("AFTER: %s", node.name);
+            node.transformChanged();
+            target.puppetRoot.zSort = -1000;
+            printNode(node,              "node  ");
+            printNode(target.puppetRoot, "target");
+            parent.puppet.rescanNodes();
+            target.attachedParent = &parent;
+            break;
         }
     }
 }
@@ -378,8 +413,9 @@ void insUpdateScene() {
 
             sceneItem.player.update(deltaTime());
             sceneItem.puppet.update();
-            if (sceneItem.attachedParent is null)
+            if (sceneItem.attachedParent is null) {
                 sceneItem.puppet.draw();
+            }
             
             foreach(ref binding; sceneItem.bindings) {
                 binding.lateUpdate();
