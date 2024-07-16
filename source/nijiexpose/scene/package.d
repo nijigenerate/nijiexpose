@@ -257,6 +257,7 @@ void insSceneCleanup() {
 
 void neSceneAttachItem(ref SceneItem parent, ref SceneItem target) {
     import std.stdio;
+    writefln("Attach %s, %s", parent.filePath, target.filePath);
 
     vec2 relPos = (parent.puppet.transform.matrix.inverse * vec4(target.puppet.transform.translation, 1)).xy;
     vec2 relScale = vec2(target.puppet.transform.scale.x / parent.puppet.transform.scale.x,
@@ -284,6 +285,7 @@ void neSceneAttachItem(ref SceneItem parent, ref SceneItem target) {
             writefln("AFTER: %s", node.name);
             node.transformChanged();
             target.puppetRoot.zSort = -1000;
+            target.puppetRoot.pinToMesh = true;
             printNode(node,              "node  ");
             printNode(target.puppetRoot, "target");
             parent.puppet.rescanNodes();
@@ -291,6 +293,28 @@ void neSceneAttachItem(ref SceneItem parent, ref SceneItem target) {
             break;
         }
     }
+}
+
+void neSceneDetachItem(ref SceneItem parent, ref SceneItem target) {
+    import std.stdio;
+
+    Transform curTransform = target.puppetRoot.transform;
+
+    writefln("Detach %s from %s, and restore to %s", target.puppetRoot, parent.filePath, target.filePath); 
+
+    target.puppet.setRootNode(target.puppetRoot);
+    target.puppet.transform = curTransform;
+    target.puppet.transform.update();
+    writefln("  transform=%s", target.puppet.transform);
+    target.puppetRoot.localTransform.translation = vec3(0, 0, 0);
+    target.puppetRoot.localTransform.scale = vec2(1, 1);
+    target.puppetRoot.localTransform.rotation = vec3(0, 0, 0);
+    target.puppetRoot.transformChanged();
+    target.puppetRoot.zSort = 0;
+    target.puppet.rescanNodes();
+    target.attachedParent = null;
+    target.puppetRoot.pinToMesh = false;
+    parent.puppet.rescanNodes();
 }
 
 void insUpdateScene() {
@@ -450,6 +474,7 @@ private {
     struct ItemHitTest {
         SceneItem* item = null;
         long index = -1;
+        T opCast(T: bool)() { return item !is null; }
         vec2 size;
     }
 
@@ -523,7 +548,7 @@ void insInteractWithScene() {
     }
 
     if (!inInputWasMouseDown(MouseButton.Left) && inInputMouseDown(MouseButton.Left)) {
-
+        import std.stdio;
         // One shot check if there's a puppet to drag under the cursor
         if (!hasDonePuppetSelect) {
             hasDonePuppetSelect = true;
@@ -533,7 +558,7 @@ void insInteractWithScene() {
             inSetUpdateBounds(true);
 
             draggingItem = doHitTestOnItem(null);
-            if (draggingItem.item !is null) {
+            if (draggingItem) {
                 draggingPuppetStartPos = draggingItem.item.puppet.transform.translation.xy;
                 targetScale = draggingItem.item.puppet.transform.scale.x;
                 targetPos = draggingPuppetStartPos;
@@ -541,10 +566,12 @@ void insInteractWithScene() {
                 draggingPuppet = draggingItem.item.puppet;
                 selectedPuppet = draggingItem.index;
                 insTrackingPanelRefresh();
+                writefln("Selected %s", draggingItem.item.filePath);
             } else {
                 selectedPuppet = -1;
                 draggingPuppet = null;
                 insTrackingPanelRefresh();
+                writefln("Unselect item");
             }
             inSetUpdateBounds(false);
             
@@ -604,7 +631,7 @@ void insInteractWithScene() {
     }
 
     // Apply Movement + Scaling
-    if (draggingPuppet) {
+    if (draggingItem) {
         if (isMouseOverDelete) {
 
             // If the mouse was let go
@@ -613,6 +640,7 @@ void insInteractWithScene() {
                     
                     import std.algorithm.mutation : remove;
                     insScene.sceneItems = insScene.sceneItems.remove(selectedPuppet);
+                    draggingItem.item = null;
                     draggingPuppet = null;
                     selectedPuppet = -1;
                     isDragDown = false;
@@ -620,12 +648,15 @@ void insInteractWithScene() {
                 }
             }
         } else if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
-            if (draggingPuppet && isDragDown && !inInputMouseDown(MouseButton.Left)) {
+            if (draggingItem.item.attachedParent !is null && isDragDown) { // Ctrl + drag should detach attached children
+                neSceneDetachItem(*draggingItem.item.attachedParent, *draggingItem.item);
+            }
+            if (draggingPuppet && isDragDown && !inInputMouseDown(MouseButton.Left)) { // Drop the model
                 ItemHitTest hitTest = doHitTestOnItem(draggingPuppet);
                 if (hitTest.item) {
                     neSceneAttachItem(*hitTest.item, *draggingItem.item);
                 }
-            } else if (draggingPuppet && isDragDown) {
+            } else if (draggingPuppet && isDragDown) { // Dragging
                 ItemHitTest hitTest = doHitTestOnItem(draggingPuppet);
                 // Hit Test Action
             }
