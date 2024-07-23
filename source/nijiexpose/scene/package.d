@@ -299,6 +299,10 @@ void neSceneDetachItem(ref SceneItem parent, ref SceneItem target) {
     import std.stdio;
 
     Transform curTransform = target.puppetRoot.transform;
+    curTransform.translation = (parent.puppet.transform.matrix * vec4(curTransform.translation, 1)).xyz;
+    curTransform.scale.x *= parent.puppet.transform.scale.x;
+    curTransform.scale.y *= parent.puppet.transform.scale.y;
+    curTransform.rotation.z += parent.puppet.transform.rotation.z;
 
     writefln("Detach %s from %s, and restore to %s", target.puppetRoot, parent.filePath, target.filePath); 
 
@@ -650,6 +654,7 @@ void insInteractWithScene() {
         } else if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
             if (draggingItem.item.attachedParent !is null && isDragDown) { // Ctrl + drag should detach attached children
                 neSceneDetachItem(*draggingItem.item.attachedParent, *draggingItem.item);
+                targetPos = draggingItem.item.puppet.transform.translation.xy;
             }
             if (draggingPuppet && isDragDown && !inInputMouseDown(MouseButton.Left)) { // Drop the model
                 ItemHitTest hitTest = doHitTestOnItem(draggingPuppet);
@@ -695,15 +700,25 @@ void insInteractWithScene() {
             );
         } else {
 
-            draggingPuppet.transform.translation = dampen(
-                draggingPuppet.transform.translation,
+            auto movingTarget = draggingItem.item;
+            Puppet movingPuppet = draggingPuppet;
+            while (movingTarget.attachedParent) {
+                movingPuppet = movingTarget.puppet;
+                movingTarget = movingTarget.attachedParent;
+                targetScale = draggingItem.item.puppet.transform.scale.x;
+                targetPos =  draggingItem.item.puppet.transform.translation.xy;
+                targetSize = draggingItem.size;
+            }
+
+            movingPuppet.transform.translation = dampen(
+                movingPuppet.transform.translation,
                 vec3(targetPos, 0),
                 inGetDeltaTime()
             );
 
             // Dampen & clamp scaling
-            draggingPuppet.transform.scale = dampen(
-                draggingPuppet.transform.scale,
+            movingPuppet.transform.scale = dampen(
+                movingPuppet.transform.scale,
                 vec2(targetScale),
                 inGetDeltaTime()
             );
