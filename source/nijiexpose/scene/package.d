@@ -54,6 +54,11 @@ struct SceneItem {
     AnimationControl[] animations;
     AnimationPlayer player;
 
+    vec2 startPos;
+    vec2 targetPos = vec2(0);
+    float targetScale = 0;
+    vec2 targetSize = vec2(0);
+
     void saveBindings() {
         puppet.extData["com.inochi2d.inochi-session.bindings"] = cast(ubyte[])serializeToJson(bindings);
         inWriteINPExtensions(puppet, filePath);
@@ -485,11 +490,8 @@ private {
     ptrdiff_t selectedPuppet = -1;
     ItemHitTest draggingItem;
     Puppet draggingPuppet;
-    vec2 draggingPuppetStartPos;
     bool hasDonePuppetSelect;
-    vec2 targetPos = vec2(0);
-    float targetScale = 0;
-    vec2 targetSize = vec2(0);
+    SceneItem* movingTarget;
 
     bool isDragDown = false;
     Camera inCamera;
@@ -563,10 +565,10 @@ void insInteractWithScene() {
 
             draggingItem = doHitTestOnItem(null);
             if (draggingItem) {
-                draggingPuppetStartPos = draggingItem.item.puppet.transform.translation.xy;
-                targetScale = draggingItem.item.puppet.transform.scale.x;
-                targetPos = draggingPuppetStartPos;
-                targetSize = draggingItem.size;
+                draggingItem.item.startPos = draggingItem.item.puppet.transform.translation.xy;
+                draggingItem.item.targetScale = draggingItem.item.puppet.transform.scale.x;
+                draggingItem.item.targetPos = draggingItem.item.startPos;
+                draggingItem.item.targetSize = draggingItem.size;
                 draggingPuppet = draggingItem.item.puppet;
                 selectedPuppet = draggingItem.index;
                 insTrackingPanelRefresh();
@@ -577,6 +579,14 @@ void insInteractWithScene() {
                 insTrackingPanelRefresh();
                 writefln("Unselect item");
             }
+
+            movingTarget = draggingItem.item;
+            while (movingTarget.attachedParent) {
+                movingTarget = movingTarget.attachedParent;
+                movingTarget.startPos = movingTarget.puppet.transform.translation.xy;
+                movingTarget.targetScale = movingTarget.puppet.transform.scale.x;
+                movingTarget.targetPos =  movingTarget.puppet.transform.translation.xy;
+            }
             inSetUpdateBounds(false);
             
         }
@@ -585,57 +595,58 @@ void insInteractWithScene() {
     }
 
     // Model Scaling
-    if (hasDonePuppetSelect && draggingPuppet) {
+    if (hasDonePuppetSelect && draggingItem) {
         import bindbc.imgui : igSetMouseCursor, ImGuiMouseCursor;
         igSetMouseCursor(ImGuiMouseCursor.Hand);
-        float prevScale = targetScale;
+        float prevScale = draggingItem.item.targetScale;
 
-        float targetDelta = (inInputMouseScrollDelta()*0.05)*(1-clamp(targetScale, 0, 0.45));
-        targetScale = clamp(
-            targetScale+targetDelta, 
+        float targetDelta = (inInputMouseScrollDelta()*0.05)*(1-clamp(draggingItem.item.targetScale, 0, 0.45));
+        draggingItem.item.targetScale = clamp(
+            draggingItem.item.targetScale+targetDelta, 
             0.25,
             5
         );
         
-        if (targetScale != prevScale) {
+        if (draggingItem.item.targetScale != prevScale) {
             inSetUpdateBounds(true);
                 vec4 lbounds = draggingPuppet.transform.matrix*draggingPuppet.getCombinedBounds!true();
                 vec2 tl = vec4(lbounds.xy, 0, 1);
                 vec2 br = vec4(lbounds.zw, 0, 1);
-                targetSize = abs(br-tl);
+                draggingItem.item.targetSize = abs(br-tl);
             inSetUpdateBounds(false);
         }
     }
 
     // Model Movement
-    if (inInputMouseDragging(MouseButton.Left) && hasDonePuppetSelect && draggingPuppet) {
+    if (inInputMouseDragging(MouseButton.Left) && hasDonePuppetSelect && draggingItem) {
         vec2 delta = inInputMouseDragDelta(MouseButton.Left);
-        targetPos = vec2(
-            draggingPuppetStartPos.x+delta.x/inCamera.scale.x, 
-            draggingPuppetStartPos.y+delta.y/inCamera.scale.y, 
+        draggingItem.item.targetPos = vec2(
+            draggingItem.item.startPos.x+delta.x/inCamera.scale.x, 
+            draggingItem.item.startPos.y+delta.y/inCamera.scale.y, 
+        );
+        movingTarget.targetPos = vec2(
+            movingTarget.startPos.x+delta.x/inCamera.scale.x,
+            movingTarget.startPos.y+delta.y/inCamera.scale.y
         );
     }
     
-    // Model clamping
-    {
-        float camPosClampX = (cameraCenter.x*2)+(targetSize.x/3);
-        float camPosClampY = (cameraCenter.y*2)+(targetSize.y/1.5);
+    if (draggingItem) {
+        // Model clamping
+        float camPosClampX = (cameraCenter.x*2)+(draggingItem.item.targetSize.x/3);
+        float camPosClampY = (cameraCenter.y*2)+(draggingItem.item.targetSize.y/1.5);
 
         // Clamp model to be within viewport
-        targetPos.x = clamp(
-            targetPos.x,
+        draggingItem.item.targetPos.x = clamp(
+            draggingItem.item.targetPos.x,
             (inCamera.position.x-camPosClampX)*inCamera.scale.x,
             (inCamera.position.x+camPosClampX)*inCamera.scale.x
         );
-        targetPos.y = clamp(
-            targetPos.y,
+        draggingItem.item.targetPos.y = clamp(
+            draggingItem.item.targetPos.y,
             (inCamera.position.y-camPosClampY)*inCamera.scale.y,
             (inCamera.position.y+camPosClampY)*inCamera.scale.y
         );
-    }
-
-    // Apply Movement + Scaling
-    if (draggingItem) {
+        // Apply Movement + Scaling
         if (isMouseOverDelete) {
 
             // If the mouse was let go
@@ -654,7 +665,7 @@ void insInteractWithScene() {
         } else if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
             if (draggingItem.item.attachedParent !is null && isDragDown) { // Ctrl + drag should detach attached children
                 neSceneDetachItem(*draggingItem.item.attachedParent, *draggingItem.item);
-                targetPos = draggingItem.item.puppet.transform.translation.xy;
+                draggingItem.item.targetPos = draggingItem.item.puppet.transform.translation.xy;
             }
             if (draggingPuppet && isDragDown && !inInputMouseDown(MouseButton.Left)) { // Drop the model
                 ItemHitTest hitTest = doHitTestOnItem(draggingPuppet);
@@ -670,9 +681,9 @@ void insInteractWithScene() {
         isDragDown = inInputMouseDown(MouseButton.Left);
 
         if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
-            float targetDelta = (inInputMouseScrollDelta()*0.05)*(1-clamp(targetScale, 0, 0.45));
-            targetScale = clamp(
-                targetScale+targetDelta, 
+            float targetDelta = (inInputMouseScrollDelta()*0.05)*(1-clamp(draggingItem.item.targetScale, 0, 0.45));
+            draggingItem.item.targetScale = clamp(
+                draggingItem.item.targetScale+targetDelta, 
                 0.25,
                 5
             );
@@ -699,27 +710,16 @@ void insInteractWithScene() {
                 inGetDeltaTime()
             );
         } else {
-
-            auto movingTarget = draggingItem.item;
-            Puppet movingPuppet = draggingPuppet;
-            while (movingTarget.attachedParent) {
-                movingPuppet = movingTarget.puppet;
-                movingTarget = movingTarget.attachedParent;
-                targetScale = draggingItem.item.puppet.transform.scale.x;
-                targetPos =  draggingItem.item.puppet.transform.translation.xy;
-                targetSize = draggingItem.size;
-            }
-
-            movingPuppet.transform.translation = dampen(
-                movingPuppet.transform.translation,
-                vec3(targetPos, 0),
+            movingTarget.puppet.transform.translation = dampen(
+                movingTarget.puppet.transform.translation,
+                vec3(movingTarget.targetPos, 0),
                 inGetDeltaTime()
             );
 
             // Dampen & clamp scaling
-            movingPuppet.transform.scale = dampen(
-                movingPuppet.transform.scale,
-                vec2(targetScale),
+            movingTarget.puppet.transform.scale = dampen(
+                movingTarget.puppet.transform.scale,
+                vec2(movingTarget.targetScale),
                 inGetDeltaTime()
             );
         }
