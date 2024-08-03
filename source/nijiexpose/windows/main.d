@@ -66,14 +66,14 @@ private:
 
             switch(filebase.extension.toLower) {                
                 case ".png", ".tga", ".jpeg", ".jpg":
-                    insSceneAddPuppet(arg, neLoadModelFromImage(arg));
+                    insScene.addPuppet(arg, neLoadModelFromImage(arg));
                     break;
 
                 case ".inp", ".inx":
                     import std.file : exists;
                     if (!exists(arg)) continue;
                     try {
-                        insSceneAddPuppet(arg, inLoadPuppet(arg));
+                        insScene.addPuppet(arg, inLoadPuppet(arg));
                     } catch(Exception ex) {
                         uiImDialog(__("Error"), "Could not load %s, %s".format(arg, ex.msg));
                     }
@@ -88,7 +88,7 @@ private:
 protected:
     override
     void onEarlyUpdate() {
-        insUpdateScene();
+        insScene.update();
         insSendFrame();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         inDrawScene(vec4(0, 0, width, height));
@@ -98,7 +98,7 @@ protected:
     void onUpdate() {
         if (!inInputIsnijiui()) {
             if (inInputMouseDoubleClicked(MouseButton.Left)) this.showUI = !showUI;
-            insInteractWithScene();
+            insScene.interact();
 
             if (getDraggedFiles().length > 0) {
                 loadModels(getDraggedFiles());
@@ -167,8 +167,8 @@ protected:
 
                     // Resets the tracking out range to be in the coordinate space of min..max
                     if (uiImMenuItem(__("Reset Tracking Out"))) {
-                        if (insSceneSelectedSceneItem()) {
-                            foreach(ref binding; insSceneSelectedSceneItem.bindings) {
+                        if (insScene.selectedSceneItem()) {
+                            foreach(ref binding; insScene.selectedSceneItem().bindings) {
                                 binding.outRangeToDefault();
                             }
                         }

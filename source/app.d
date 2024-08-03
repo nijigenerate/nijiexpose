@@ -43,7 +43,7 @@ void main(string[] args) {
     // Open window and init nijilive
     auto window = neCreateWindow(args[1..$]);
     
-    insSceneInit();
+    insScene.init();
     insInitFrameSending();
     inPostProcessingAddBasicLighting();
 
@@ -55,6 +55,6 @@ void main(string[] args) {
     insCleanupExpressions();
     insLuaUnload();
     insCleanupFrameSending();
-    insSceneCleanup();
+    insScene.cleanup();
     inSettingsSave();
 }
