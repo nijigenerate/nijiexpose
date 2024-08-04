@@ -27,6 +27,7 @@ import std.math.operations : isClose;
 import std.algorithm: sort, countUntil;
 import std.algorithm.iteration: map;
 import std.array;
+import std.path;
 
 class Scene {
     VirtualSpace space;
@@ -299,7 +300,7 @@ class Scene {
                 if (draggingItem) {
                     selectedPuppet = draggingItem.index;
                     insTrackingPanelRefresh();
-                    writefln("Selected %s", draggingItem.item.filePath);
+                    writefln("Selected %s", draggingItem.item.name);
                     movingTarget = draggingItem.item;
                     while (movingTarget.attachedParent) {
                         movingTarget = movingTarget.attachedParent;
@@ -389,21 +390,56 @@ class Scene {
                     }
                 }
             } else if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
-                if (draggingItem.item.attachedParent !is null && isDragDown) { // Ctrl + drag should detach attached children
+                int insertAfter(ref SceneItem[] items, SceneItem previous, SceneItem target) {
+                    int insertAfterAux(ref SceneItem[] items, SceneItem previous, SceneItem target, ref int baseIndex, bool rootOnly = false) {
+                        int result = -1;
+                        foreach (item; items) {
+                            if (item.attachedParent !is null && rootOnly)
+                                continue;
+                            if (item == target)
+                                continue;
+                            else {
+                                item.zSort = baseIndex++;
+                                int subResult = insertAfterAux(item.children, previous, target, baseIndex);
+                                result = max(subResult, result);
+                            }
+                            if (item == previous) {
+                                target.zSort = baseIndex;
+                                result = baseIndex ++;
+                                insertAfterAux(target.children, previous, target, baseIndex);
+                            }
+                        }
+                        return result;
+                    }
+                    int baseIndex = 0;
+                    auto result = insertAfterAux(items, previous, target, baseIndex, true);
+                    items.sort!((a,b)=>a.zSort < b.zSort);
+                    return result;
+                }
+                // Ctrl + drag should detach attached children
+                if (draggingItem.item.attachedParent !is null && isDragDown) { 
+                    auto prevParent = draggingItem.item.attachedParent;
                     draggingItem.item.detach();
+                    insertAfter(insScene.sceneItems, prevParent, draggingItem.item);
                     movingTarget = draggingItem.item;
                     draggingItem.item.updateTransform();
+                    import std.stdio;
+                    foreach (item; insScene.sceneItems) {
+                        if (item.attachedParent is null)
+                            writefln(item.dump);
+                    }
                 }
-                if (draggingItem && isDragDown && !inInputMouseDown(MouseButton.Left)) { // Drop the model
+                if (draggingItem && isDragDown && !inInputMouseDown(MouseButton.Left)) { 
+                    // Drop the model
                     ItemHitTest hitTest = doHitTestOnItem(draggingItem.item.puppet);
                     if (hitTest.item) {
                         if (draggingItem.item.attachTo(hitTest.item)) {
-                            insScene.sceneItems = insScene.sceneItems.removeByValue(draggingItem.item);
-                            long index = insScene.sceneItems.countUntil(hitTest.item);
-                            insScene.sceneItems.insertInPlace(index + 1, draggingItem.item);
-                            selectedPuppet = index;
+                            selectedPuppet = insertAfter(insScene.sceneItems, hitTest.item, draggingItem.item);
                             import std.stdio;
-                            writefln(" %s", insScene.sceneItems.map!(x=>x.filePath));
+                            foreach (item; insScene.sceneItems) {
+                                if (item.attachedParent is null)
+                                    writefln(item.dump);
+                            }
                         }
                     }
                 } else if (draggingItem && isDragDown) { // Dragging
@@ -507,6 +543,11 @@ class SceneItem {
     float targetScale = 0;
     vec2 targetSize   = vec2(0);
     SceneItem[] children;
+    float zSort = 0;
+    
+    string name() {
+        return baseName(filePath);
+    }
 
     void saveBindings() {
         puppet.extData["com.inochi2d.inochi-session.bindings"] = cast(ubyte[])serializeToJson(bindings);
@@ -646,8 +687,16 @@ class SceneItem {
     }
 
     bool attachTo(SceneItem parent) {
+        
         import std.stdio;
-        writefln("Attach %s, %s", parent.filePath, this.filePath);
+        writefln("Attach %s, %s", parent.name, this.name);
+        float getMinZSort(Node node) {
+            float minZSort = node.zSort;
+            foreach (child; node.children) {
+                minZSort = min(minZSort, getMinZSort(child));
+            }
+            return minZSort;
+        }
 
         auto movingTarget = parent;
         while (movingTarget.attachedParent) movingTarget = movingTarget.attachedParent;
@@ -655,9 +704,8 @@ class SceneItem {
         vec2 relScale = vec2(this.puppet.transform.scale.x / movingTarget.puppet.transform.scale.x,
                             this.puppet.transform.scale.y / movingTarget.puppet.transform.scale.y);
 
-        if (attachedParent !is null && parent != attachedParent) {
+        if (attachedParent !is null)
             attachedParent.children = attachedParent.children.removeByValue(this);
-        }
 
         auto drawables = parent.puppet.getRootParts().sort!((a, b)=> a.zSort < b.zSort).array;
         foreach (node; drawables) {
@@ -675,7 +723,9 @@ class SceneItem {
                 writefln("pos=%s, scale=%s", posInDrawable, targetScale);
                 writefln("AFTER: %s", node.name);
                 node.transformChanged();
-                this.puppetRoot.zSort = -1000;
+                writefln("minZSort = %f", getMinZSort(movingTarget.puppet.root)-1);
+                this.puppetRoot.setAbsZSort(getMinZSort(movingTarget.puppet.root) - 1);
+                writefln("zSort-->%f", this.puppetRoot.zSort);
                 this.puppetRoot.pinToMesh = true;
                 parent.puppet.rescanNodes();
                 this.attachedParent = parent;
@@ -688,17 +738,18 @@ class SceneItem {
 
     bool detach() {
         auto parent = attachedParent;
-        while (parent.attachedParent) parent = parent.attachedParent;
-        if (parent is null) return false;
+        auto root = parent;
+        while (root.attachedParent) root = root.attachedParent;
+        if (root is null) return false;
         import std.stdio;
 
         Transform curTransform = this.puppetRoot.transform;
-        curTransform.translation = (parent.puppet.transform.matrix * vec4(curTransform.translation, 1)).xyz;
-        curTransform.scale.x *= parent.puppet.transform.scale.x;
-        curTransform.scale.y *= parent.puppet.transform.scale.y;
-        curTransform.rotation.z += parent.puppet.transform.rotation.z;
+        curTransform.translation = (root.puppet.transform.matrix * vec4(curTransform.translation, 1)).xyz;
+        curTransform.scale.x *= root.puppet.transform.scale.x;
+        curTransform.scale.y *= root.puppet.transform.scale.y;
+        curTransform.rotation.z += root.puppet.transform.rotation.z;
 
-        writefln("Detach %s from %s, and restore to %s", this.puppetRoot, parent.filePath, this.filePath); 
+        writefln("Detach %s from %s, and restore to %s", this.puppetRoot, parent.name, this.name); 
 
         parent.children = parent.children.removeByValue(this);
         this.puppet.setRootNode(this.puppetRoot);
@@ -715,7 +766,7 @@ class SceneItem {
         parent.puppet.rescanNodes();
 
         void traverse(SceneItem item) {
-            writefln("  %s: updateTransform", item.filePath);
+            writefln("  %s: updateTransform", item.name);
             item.updateTransform();
             foreach (child; item.children) {
                 traverse(child);
@@ -756,7 +807,7 @@ class SceneItem {
         if (this.attachedParent is null) {
             this.puppet.draw();
         }
-
+        /* // Debug
         auto bounds = getBounds();
 
         float width = bounds.z-bounds.x;
@@ -777,7 +828,7 @@ class SceneItem {
         inDbgLineWidth(3);
         inDbgDrawLines(vec4(.5, .5, .5, 1));
         inDbgLineWidth(1);
-
+        */
         foreach(ref binding; this.bindings) {
             binding.lateUpdate();
         }
@@ -791,6 +842,19 @@ class SceneItem {
         this.targetScale = this.puppet.transform.scale.x;
         this.targetPos = this.startPos;
         this.targetSize = size;   
+    }
+
+    T opCast(T: string)() {
+        dump();
+    }
+
+    string dump(int index = 0) {
+        string result;
+        string indent;
+        foreach (i; 0..(index*2)) { indent ~= " "; }
+        result ~= "%s%s(%.2f)\n".format(indent, name, zSort);
+        foreach (child; children) result ~= child.dump(index + 1);
+        return result;
     }
 }
 
