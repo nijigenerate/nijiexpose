@@ -419,7 +419,7 @@ protected:
 
     override 
     void onUpdate() {
-        auto item = insSceneSelectedSceneItem();
+        auto item = insScene.selectedSceneItem();
         if (item) {
 
             if (uiImButton(__("\ue5d5"))) { //Refresh

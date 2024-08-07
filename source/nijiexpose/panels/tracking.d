@@ -48,8 +48,8 @@ void neTrackingPanelReset() {
 void insTrackingPanelRefresh() {
     trackingFilter = "";
     paramNames = null;    
-    if (insSceneSelectedSceneItem()) {
-        foreach(ref TrackingBinding binding; insSceneSelectedSceneItem().bindings) {
+    if (insScene.selectedSceneItem()) {
+        foreach(ref TrackingBinding binding; insScene.selectedSceneItem().bindings) {
             paramNames ~= binding.param.name.toStringz;
         }
     }
@@ -494,7 +494,7 @@ protected:
 
     override 
     void onUpdate() {
-        auto item = insSceneSelectedSceneItem();
+        auto item = insScene.selectedSceneItem();
         if (item) {
             if (indexableSourceNames.length == 0 || uiImButton(__("\ue5d5"))) {//Refresh
                 insScene.space.refresh();
