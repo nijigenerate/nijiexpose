@@ -76,9 +76,6 @@ jobs:
 
     - name: 'Build nijiexpose'
       run: |
-        # Build metadata (like version information and icons)
-        dub build --config=meta
-
         # Build the project, with its main file included, without unittests
         dub build --compiler=ldc2 --config=linux-nightly --debug=InExperimental
           

@@ -21,6 +21,9 @@ lflags "-rpath=$$ORIGIN" platform="linux"
 versions "GL_32" "USE_SDL2" "USE_GL" "SDL_2020" "USE_OpenGL3"
 stringImportPaths "res"
 
+preBuildCommands "sh update-gitver.sh nijiexpose INS"
+preBuildCommands "rc.exe /v build-aux\\windows\\nijiexpose.rc" platform="windows"
+
 // Uncomment following lines to enable JINS MEME Logger module.
 //versions "JML"
 //subConfiguration "facetrack-d" "jml"
@@ -35,15 +38,6 @@ configuration "barebones" {
 	dependency "dportals" version="~>0.1.0"
 }
 
-
-// Official build configurations.
-// Do not package your compilation of Inochi Creator with these configurations
-// unless you have prior permission from the nijigenerate Project.
-configuration "meta" {
-	targetType "none"
-	preGenerateCommands "dub run gitver -- --prefix INS --file source/nijiexpose/ver.d --mod nijiexpose.ver --appname \"nijiexpose\" --itchfile version.txt"
-	preGenerateCommands "rc.exe /v build-aux\\windows\\nijiexpose.rc" platform="windows"
-}
 
 configuration "linux-full" {
 	platforms "linux"
