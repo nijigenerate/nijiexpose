@@ -1,0 +1,58 @@
+id: io.github.nijigenerate.nijiexpose
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.ldc
+  - org.freedesktop.Sdk.Extension.llvm16
+command: nijiexpose
+finish-args:
+  - --device=dri          # OpenGL rendering (change for all if webcam support implemented)
+  - --socket=fallback-x11
+  - --share=ipc
+  - --share=network       # Needed to communicate with external trackers
+  - --socket=wayland
+
+modules:
+
+  # --- nijiexpose ---
+  - name: nijiexpose
+    buildsystem: simple
+    build-options:
+      build-args:
+        - "--share=network"
+      append-path: /usr/lib/sdk/ldc/bin
+      env:
+        DFLAGS: '-g --d-debug'
+    build-commands:
+      # Build translations
+      - chmod +x ./gentl.sh;
+        if [ $(find tl/ -name "*.po" 2>/dev/null | wc -l) == 0 ] ;
+        then
+          echo "No translations, skipping...";
+        else 
+          ./gentl.sh;
+          mv out/* otl/ ;
+        fi
+      - git clone https://github.com/inochi2d/i2d-imgui.git --recurse-submodules;
+        git clone https://github.com/nijigenerate/nijilive.git;
+        git clone https://github.com/nijigenerate/nijiui.git;
+        dub add-local i2d-imgui/ "0.8.0";
+        dub add-local nijilive/ "0.0.1";
+        dub add-local nijiui/ "0.0.1";
+
+        dub build --config=meta;
+        dub build --config=linux-nightly --debug=InExperimental
+      - install -Dm 755 ./out/nijiexpose /app/bin/nijiexpose
+
+      # Uncomment when session translations are actually a thing. 
+      #- install -Dm644 ./otl/*.mo /app/bin
+
+      # Metadata
+      - install -Dm644 ./build-aux/linux/flatpak/nightly/io.github.nijigenerate.nijiexpose.metainfo.xml /app/share/metainfo/io.github.nijigenerate.nijiexpose.metainfo.xml
+      - install -Dm644 ./build-aux/linux/flatpak/nightly/io.github.nijigenerate.nijiexpose.desktop /app/share/applications/io.github.nijigenerate.nijiexpose.desktop
+      - install -Dm644 ./res/icon_x256.png /app/share/icons/hicolor/256x256/apps/io.github.nijigenerate.nijiexpose.png
+    sources:
+      - type: dir
+        path: ../../../.. # The root of the nijigenerate repo
+

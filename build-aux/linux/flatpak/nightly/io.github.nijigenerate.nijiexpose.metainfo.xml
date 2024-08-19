@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>io.github.nijigenerate.nijiexpose</id>
+  <name>nijiexpose (Nightly)</name>
+  <summary>Tool for using nijilive puppets for streaming.</summary>
+  <developer_name>seagetty</developer_name>
+  <launchable type="desktop-id">io.github.nijigenerate.nijiexpose.desktop</launchable>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>BSD-2-Clause</project_license>
+  <description>
+    <p>nijilive is a framework for realtime 2D puppet animation which can be used for VTubing, 
+      game development and digital animation.</p>
+    <p>nijiexpose is a tool that lets you use your nijilive models for live streaming.</p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Title screen</caption>
+      <image type="source">https://user-images.githubusercontent.com/7032834/181119161-f83e8e57-2f9e-409f-90bd-1b1b9c047bcc.png</image>
+    </screenshot>
+  </screenshots>
+  <releases>
+    <release version="nightly">
+      <url>https://github.com/nijigenerate/nijiexpose/</url>
+      <description>
+         <p>This is a nightly build of nijiexpose!</p>
+         <p>nijiexpose may crash unexpectedly and you will likely encounter bugs.</p>
+         <p>Make sure to save and back up your work often!</p>
+      </description>
+    </release>
+  </releases>
+  <url type="homepage">https://github.com/nijigenerate/nijiexpose/</url>
+  <url type="bugtracker">https://github.com/nijigenerate/nijiexpose/issues</url>
+  <url type="help">https://docs.github.com/nijigenerate</url>
+  <url type="vcs-browser">https://github.com/nijigenerate/nijiexpose</url>
+  <url type="contribute">https://github.com/nijigenerate/nijiexpose</url>
+  <categories>
+    <category>Graphics</category>
+  </categories>
+  <recommends>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </recommends>
+  <content_rating type="oars-1.1"/>
+</component>
