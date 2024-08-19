@@ -44,6 +44,7 @@ modules:
         dub build --config=meta;
         dub build --config=linux-nightly --debug=InExperimental
       - install -Dm 755 ./out/nijiexpose /app/bin/nijiexpose
+      - install -Dm 755 ./out/cimgui.so /app/bin/cimgui.so
 
       # Uncomment when session translations are actually a thing. 
       #- install -Dm644 ./otl/*.mo /app/bin
