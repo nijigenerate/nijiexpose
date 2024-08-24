@@ -34,13 +34,13 @@ Plugin[] insPlugins;
     Initializes Lua support
 */
 void insLuaInit() {
-    version(linux){
-        LuaSupport support = loadLua("libluajit-5.1.so.2");
-        if (support == LuaSupport.noLibrary || support == LuaSupport.badLibrary) {
-            couldLoadLua = false;
-            insLogWarn("Could not load Lua support...");
-        } else insLogInfo("Lua support initialized.");
-    }
+    // LuaSupport support = loadLua();
+
+    // if (support == LuaSupport.noLibrary || support == LuaSupport.badLibrary) {
+    //     couldLoadLua = false;
+    //     insLogWarn("Could not load Lua support...");
+    // } else insLogInfo("Lua support initialized.");
+    insLogInfo("Lua support initialized. (Statically linked for now)");
 
     // Create Lua state
     state = new LuaState(luaL_newstate());
@@ -55,7 +55,6 @@ void insLuaInit() {
 
 void insLuaUnload() {
     lua_close(state.handle());
-    unloadLua();
     destroy(state);
 }
 
