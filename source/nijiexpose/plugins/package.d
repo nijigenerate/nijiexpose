@@ -55,7 +55,9 @@ void insLuaInit() {
 
 void insLuaUnload() {
     lua_close(state.handle());
-    unloadLua();
+    version(linux){
+        unloadLua();
+    }
     destroy(state);
 }
 
