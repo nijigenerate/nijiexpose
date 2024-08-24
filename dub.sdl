@@ -18,8 +18,6 @@ copyFiles "res/licenses/*"
 
 dflags "-mscrtlib=msvcrt" platform="windows-ldc"
 lflags "-rpath=$$ORIGIN" platform="linux"
-// Add supported arches that aren't x86_64 here, since lumars does not ship a static lua
-lflags "-llua-5.1" platform="linux-aarch64"
 
 versions "GL_32" "USE_SDL2" "USE_GL" "SDL_2020" "USE_OpenGL3"
 stringImportPaths "res"
@@ -55,6 +53,8 @@ configuration "linux-full" {
 	versions "InBranding"
 	
 	dependency "dportals" version="~>0.1.0"
+	subConfiguration "lumars" "lua51-dynamic"
+	versions "LUA_51"
 }
 
 configuration "osx-full" {
@@ -88,6 +88,8 @@ configuration "linux-nightly" {
 	versions "InNightly"
 	
 	dependency "dportals" version="~>0.1.0"
+	subConfiguration "lumars" "lua51-dynamic"
+	versions "LUA_51"
 }
 
 // macOS nightly build
