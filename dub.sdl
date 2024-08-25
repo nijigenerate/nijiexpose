@@ -84,7 +84,7 @@ configuration "linux-nightly" {
 
 	platforms "linux"
 	targetType "executable"
-	subConfiguration "i2d-imgui" "static_dynamicCRT"
+//	subConfiguration "i2d-imgui" "static_dynamicCRT"
 	versions "InNightly"
 	
 	dependency "dportals" version="~>0.1.0"
