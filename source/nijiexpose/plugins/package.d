@@ -14,9 +14,9 @@ import lumars;
 import nijiexpose.log;
 import std.file;
 import std.path;
+import std.exception;
 
 private {
-    bool couldLoadLua = true;
     LuaState* state;
     LuaTable apiTable;
 
@@ -36,10 +36,14 @@ Plugin[] insPlugins;
 void insLuaInit() {
     version(linux){
         LuaSupport support = loadLua("libluajit-5.1.so.2");
-        if (support == LuaSupport.noLibrary || support == LuaSupport.badLibrary) {
-            couldLoadLua = false;
-            insLogWarn("Could not load Lua support...");
-        } else insLogInfo("Lua support initialized.");
+        if(support == LuaSupport.noLibrary){
+            support = loadLua();
+        }
+        enforce(support != LuaSupport.noLibrary, "Could not find Lua support...!");
+        enforce(support != LuaSupport.badLibrary, "Bad Lua library found!");
+        insLogInfo("Lua support initialized.");
+    } else {
+        insLogInfo("Lua support initialized. (Statically linked)");
     }
 
     // Create Lua state
@@ -112,13 +116,6 @@ void insEnumeratePlugins() {
     }
 
     insSavePluginState();
-}
-
-/**
-    Gets whether Lua support is loaded.
-*/
-bool insHasLua() {
-    return couldLoadLua;
 }
 
 /**
