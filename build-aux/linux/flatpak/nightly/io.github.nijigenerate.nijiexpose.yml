@@ -14,6 +14,15 @@ finish-args:
   - --socket=wayland
 
 modules:
+  - name: "luajit"
+    no-autogen: true
+    sources:
+      - type: "archive"
+        url: "https://github.com/LuaJIT/LuaJIT/archive/refs/tags/v2.1.0-beta3.tar.gz"
+        sha256: 409f7fe570d3c16558e594421c47bdd130238323c9d6fd6c83dedd2aaeb082a8
+      - type: "shell"
+        commands:
+          - sed -i 's|/usr/local|/app|' ./Makefile
 
   # --- nijiexpose ---
   - name: nijiexpose
