@@ -89,6 +89,21 @@ private:
         }
     }
 
+    /**
+        this function show hints to help users to configure the adaptor correctly
+    */
+    void adaptorHint(ref Adaptor source) {
+        /**
+            for port binding information, we should refer to `facetrack-d/source/ft/adaptors/*.d`
+        */
+
+        string portHint = "";
+        if (auto vts = cast(IFMAdaptor) source)
+            portHint = _("iFacialMocap Adpator would listen on udp port 49983");
+        if (portHint.length > 0)
+            uiImLabel(portHint ~ "\n" ~ _("Make sure the port is not blocked by firewall."));
+    }
+
     void adaptorSelect(size_t i, ref Adaptor source, const(char)* adaptorName) {
         if (uiImBeginComboBox("ADAPTOR_COMBO", adaptorName)) {
             if (uiImSelectable("VTubeStudio")) {
@@ -271,6 +286,8 @@ public:
                                                     options[source][option] = optionString.toStringz.fromStringz;
                                                 }
                                             }
+
+                                            adaptorHint(source);
 
                                             if (uiImButton(__("Save Changes"))) {
                                                 try {
