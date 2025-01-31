@@ -41,7 +41,7 @@ jobs:
         fi
 
     - name: Make Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: translations
         path: otl/*
@@ -112,7 +112,7 @@ jobs:
         
     - name: Download translations
       continue-on-error: true
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: translations
         path: out/i18n/
