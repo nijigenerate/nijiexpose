@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build-resources:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     
     steps:
     - uses: actions/checkout@v3
@@ -48,7 +48,7 @@ jobs:
         retention-days: 1
 
   linux-zip:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
@@ -74,6 +74,14 @@ jobs:
         dub add-local nijilive/ "0.0.1"
         git clone https://github.com/nijigenerate/nijiui.git
         dub add-local nijiui/ "0.0.1"
+
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: '3.31'
+    
+    - name: CMake version
+      run: cmake --version
 
     - name: 'Build nijiexpose'
       run: |
@@ -125,6 +133,14 @@ jobs:
         dub add-local nijilive/ "0.0.1"
         git clone https://github.com/nijigenerate/nijiui.git
         dub add-local nijiui/ "0.0.1"
+
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: '3.31'
+    
+    - name: CMake version
+      run: cmake --version
 
     - name: 'Build nijiexpose'
       run: |
