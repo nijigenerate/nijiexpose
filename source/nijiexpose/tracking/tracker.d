@@ -82,7 +82,7 @@ public:
     SerdeException deserializeFromFghj(Fghj data) {
         if (!data["enabled"].isEmpty) data["enabled"].deserializeValue(enabled);
         if (!data["flipped"].isEmpty) data["flipped"].deserializeValue(flipped);
-        if (!data["showWindow"].isEmpty) data["flipped"].deserializeValue(flipped);
+        if (!data["showWindow"].isEmpty) data["showWindow"].deserializeValue(flipped);
         if (!data["device"].isEmpty) data["device"].deserializeValue(device);
         if (!data["hostname"].isEmpty) data["hostname"].deserializeValue(hostname);
         if (!data["port"].isEmpty) data["port"].deserializeValue(port);
