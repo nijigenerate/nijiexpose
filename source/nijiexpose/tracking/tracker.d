@@ -52,8 +52,8 @@ public:
     }
 
     ~this() {
-        import std.stdio;
-        writefln("Terminate all");
+        debug(subprocess) import std.stdio;
+        debug(subprocess) writefln("Terminate all");
         if (process !is null) process.terminate();
         if (queryProcess !is null) queryProcess.terminate();
         process = null;

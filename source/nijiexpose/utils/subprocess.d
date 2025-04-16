@@ -132,7 +132,7 @@ version(Windows) {
             auto fullCmd = [executable] ~ args;
             pipes = pipeProcess(fullCmd);
             isRunning = true;
-            writefln("exec %s", fullCmd, args);
+            debug(subprocess) writefln("exec %s", fullCmd, args);
             if (readOutput) {
                 int fd = pipes.stdout.fileno;
                 auto flags = fcntl(fd, F_GETFL, 0);

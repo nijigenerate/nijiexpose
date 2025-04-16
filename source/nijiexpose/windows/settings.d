@@ -146,10 +146,8 @@ public:
         if (uiImButton(__("OK"), vec2(64, 0))) {
                 import std.stdio;
             if (ngTracker.enabled) {
-                writefln("start tracker");
                 ngTracker.restart();
             } else {
-                writefln("stop tracker");
                 ngTracker.terminate();
             }
             neSetMeasureFPS(prevMeasureFPS);
