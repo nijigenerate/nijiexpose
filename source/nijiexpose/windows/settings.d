@@ -12,6 +12,7 @@ import i18n;
 import std.string;
 import bindbc.imgui;
 import ft;
+import std.algorithm;
 
 import std.algorithm.mutation;
 
@@ -82,7 +83,8 @@ public:
                                 uiImLabel(_("Camera device"));
                                 uiImSameLine();
                                 auto deviceList = tracker.listDevices();
-                                string currentDeviceName = (tracker.device < deviceList.length)? deviceList[tracker.device].name: _("Select device...");
+                                long currentDeviceId = deviceList.countUntil!(x=>x.id == tracker.device)();
+                                string currentDeviceName = (currentDeviceId >= 0)? deviceList[currentDeviceId].name: _("Select device...");
                                 if (igBeginCombo("##device", currentDeviceName.toStringz ,ImGuiComboFlags.None)) {
                                     if (deviceList !is null) {
                                         foreach (device; deviceList) {
