@@ -31,7 +31,7 @@ public:
     bool enabled = false;
     bool flipped = true;
     bool showWindow = false;
-    string hostname = "localhost";
+    string hostname = "127.0.0.1";
     uint port = 39540;
     int device =-1;
     string trackerPath;
@@ -110,7 +110,6 @@ public:
         }
         if (queryProcess is null) {
             queryProcess = new PythonProcess!true(trackerPath, ["--list-devices"]);
-//            queryProcess = new SubProcess!true("echo", ["[{\"id\": 0,\"name\": \"ELECOM 1MP Webcam: ELECOM 1MP W (usb-0000:05:00.3-2):\"}]"]);
             queryProcess.start();
         } else {
             if (!queryProcess.running) {

@@ -7,17 +7,29 @@ import std.stdio;
 version(Windows) {
     import core.sys.windows.windows;
     import std.utf : toUTF16z;
+    import std.string : format, splitLines;
+    import std.array : appender;
+    import std.exception : enforce;
+    import std.algorithm : map, joiner;
 
     class SubProcess(bool readOutput = true) {
-        protected string executable;
-        protected string[] args;
-        protected int exitCode = -1;
-        protected bool isRunning = false;
-        protected PROCESS_INFORMATION pi;
+    protected:
+        string executable;
+        string[] args;
+        int exitCode = -1;
+        bool isRunning = false;
+        PROCESS_INFORMATION pi;
+        STARTUPINFOW si = void;
 
-        HANDLE hStdOutRead, hStdOutWrite;
-        File stdoutFile;
+        HANDLE hStdOutRead;
+        HANDLE hStdOutWrite;
+        HANDLE hStdErrorWrite;
+        HANDLE hStdErrorRead;
 
+        char[4096] buffer;
+        string[] stdoutOutput;
+
+    public:
         this(string executable, string[] args = []) {
             this.executable = executable;
             this.args = args.dup;
@@ -27,24 +39,23 @@ version(Windows) {
             SECURITY_ATTRIBUTES sa;
             sa.nLength = SECURITY_ATTRIBUTES.sizeof;
             sa.bInheritHandle = TRUE;
+            sa.lpSecurityDescriptor = null;
 
             // Create stdout pipe
-            if (!CreatePipe(&hStdOutRead, &hStdOutWrite, &sa, 0))
-                return false;
-            SetHandleInformation(hStdOutRead, HANDLE_FLAG_INHERIT, 0);
+            enforce(CreatePipe(&hStdOutRead, &hStdOutWrite, &sa, 0), "Failed to create stdout pipe");
+            enforce(CreatePipe(&hStdErrorRead, &hStdErrorWrite, &sa, 0), "Failed to create stdout pipe");
+            enforce(SetHandleInformation(hStdOutRead, HANDLE_FLAG_INHERIT, 0), "Failed to set pipe handle info");
 
-            auto fullCmd = format(`"%s"%s`,
-                executable,
-                args.length > 0 ? " " ~ args.join(" ") : ""
-            );
+            auto quotedArgs = args.map!(a => `"` ~ a ~ `"`).join(" ");
+            auto fullCmd = format(`"%s"%s`, executable, args.length > 0 ? " " ~ quotedArgs : "");
             auto wideCmd = fullCmd.toUTF16z;
 
-            STARTUPINFOW si = void;
+            debug(subprocess) { writefln("cmd: %s", fullCmd); }
             si.cb = STARTUPINFOW.sizeof;
             si.dwFlags = STARTF_USESTDHANDLES;
             si.hStdOutput = hStdOutWrite;
-            si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
-            si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+            si.hStdError  = hStdErrorWrite;
+            si.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
 
             DWORD flags = CREATE_NO_WINDOW;
 
@@ -57,26 +68,49 @@ version(Windows) {
                 null, null,
                 &si, &pi
             );
+            Sleep(100);
 
-            CloseHandle(hStdOutWrite); // parent no longer writes
-
-            if (success == FALSE)
+            if (!success)
                 return false;
 
-            stdoutFile = File(hStdOutRead, "rb");
             isRunning = true;
+            CloseHandle(hStdOutWrite);
+            CloseHandle(hStdErrorWrite);
+
             return true;
         }
 
         void update() {
+            bool stopping = false;
             if (isRunning) {
                 DWORD code;
                 if (GetExitCodeProcess(pi.hProcess, &code) && code != STILL_ACTIVE) {
                     exitCode = cast(int)code;
-                    CloseHandle(pi.hProcess);
-                    CloseHandle(pi.hThread);
                     isRunning = false;
+                    stopping = true;
+                    debug(subprocess) writefln("result = %d", exitCode);
                 }
+            }
+
+            static if (readOutput) {
+                DWORD bytesAvailable = 0;
+                while (PeekNamedPipe(hStdOutRead, null, 0, null, &bytesAvailable, null) && bytesAvailable > 0) {
+                    DWORD bytesRead = 0;
+                    if (ReadFile(hStdOutRead, buffer.ptr, cast(DWORD)buffer.length, &bytesRead, null)) {
+                        auto chunk = buffer[0 .. bytesRead].idup;
+                        auto lines = chunk.splitLines();
+                        stdoutOutput ~= lines;
+                    } else {
+                        break;
+                    }
+                }
+                debug (subprocess) if (stopping) writefln("stdoutOutput=%s", stdoutOutput);
+            }
+
+            if (stopping) {
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+                CloseHandle(hStdOutRead);
             }
         }
 
@@ -86,6 +120,7 @@ version(Windows) {
                 WaitForSingleObject(pi.hProcess, INFINITE);
                 CloseHandle(pi.hProcess);
                 CloseHandle(pi.hThread);
+                CloseHandle(hStdOutRead);
                 isRunning = false;
             }
         }
@@ -98,9 +133,10 @@ version(Windows) {
         int getExitCode() const { return exitCode; }
         bool running() const { return isRunning; }
 
-        File stdoutHandle() { return stdoutFile; }
+        static if (readOutput) {
+            string[] stdout() { return stdoutOutput; } 
+        }
     }
-
 } else {
     import std.process : pipeProcess, wait, tryWait, kill, ProcessPipes;
     import core.sys.posix.signal : SIGTERM;
@@ -194,7 +230,7 @@ class PythonProcess(bool readOutput = true) : SubProcess!readOutput {
 
     static string detectPython() {
         version(Windows) {
-            return "pythonw"; // Assume python is in PATH
+            return "python.exe"; // Assume python is in PATH
         } else {
             import std.process : executeShell;
             try {
