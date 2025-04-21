@@ -46,11 +46,11 @@ version(Windows) {
             enforce(CreatePipe(&hStdErrorRead, &hStdErrorWrite, &sa, 0), "Failed to create stdout pipe");
             enforce(SetHandleInformation(hStdOutRead, HANDLE_FLAG_INHERIT, 0), "Failed to set pipe handle info");
 
-            auto quotedArgs = args.map!(a => `"` ~ a ~ `"`).join(" ");
+            auto quotedArgs = args.map!(a => `"` ~ a.fromStringz ~ `"`).join(" ");
             auto fullCmd = format(`"%s"%s`, executable, args.length > 0 ? " " ~ quotedArgs : "");
             auto wideCmd = fullCmd.toUTF16z;
 
-            debug(subprocess) { writefln("cmd: %s", fullCmd); }
+            debug(subprocess) { writefln("cmd: [%s]", fullCmd); }
             si.cb = STARTUPINFOW.sizeof;
             si.dwFlags = STARTF_USESTDHANDLES;
             si.hStdOutput = hStdOutWrite;

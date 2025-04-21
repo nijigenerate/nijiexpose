@@ -8,6 +8,7 @@ import std.exception;
 import std.conv;
 import std.array;
 import std.file;
+import std.string;
 
 
 class Tracker {
@@ -109,7 +110,9 @@ public:
             return deviceList;
         }
         if (queryProcess is null) {
-            queryProcess = new PythonProcess!true(trackerPath, ["--list-devices"]);
+//            queryProcess = new PythonProcess!true("C:/Users/sigetch/src/nijigenerate/nijiexpose/nijitrack/nijitrack.py", ["--list-devices"]);
+//            queryProcess = new PythonProcess!true(trackerPath, ["--list-devices"]);
+            queryProcess = new PythonProcess!true(trackerPath.fromStringz, ["--list-devices"]);
             queryProcess.start();
         } else {
             if (!queryProcess.running) {
