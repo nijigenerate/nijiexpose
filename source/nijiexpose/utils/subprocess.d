@@ -220,24 +220,61 @@ version(Windows) {
         static if (readOutput) {
             string[] stdout() { return stdoutOutput; }
         }
+
+        int execute() {
+            if (!start()) {
+                return -1; // Should be determined
+            }
+            while (running()) {
+                update();
+                Thread.sleep(msecs(10));
+            }
+            return getExitCode();
+        }
     }
 }
 
 class PythonProcess(bool readOutput = true) : SubProcess!readOutput {
-    this(string scriptPath, string[] scriptArgs = []) {
-        super(detectPython(), [scriptPath] ~ scriptArgs);
+    static systemPythonPath = null;
+    string pythonPath = null;
+    this(string scriptPath = null, string[] scriptArgs = [], string pythonPath = null) {
+        if (pythonPath !is null) { 
+            this.pythonPath = pythonPath;
+        } else if (systemPythonPath !is null) {
+            this.pythonPath = systemPythonPath;
+        } else {
+            systemPythonPath = detectPython();
+            this.pythonPath = systemPythonPath;
+        }
+        super(this.pythonPath, ((scriptPath !is null)? [scriptPath]:[]) ~ scriptArgs);
+    }
+
+    bool start() {
+        if (pythonPath is null) return false;
+        return super.start();
     }
 
     static string detectPython() {
+        auto queryCommands = ["python", "python3", "py"];
         version(Windows) {
-            return "python.exe"; // Assume python is in PATH
+            foreach (cmd; queryCommands) {
+                auto queryProc = new SubProcess([cmd, ["--version"]]);
+                if (queryProc.execute() == 0) {
+                    return cmd;
+                }
+            }
+            return null;
         } else {
             import std.process : executeShell;
-            try {
-                auto res = executeShell("which python3");
-                if (res.status == 0) return res.output.stripRight("\n");
-            } catch (Throwable) {}
-            return "python";
+            foreach (cmd; queryCommands) {
+                try {
+                    auto res = executeShell("which "~cmd);
+                    if (res.status == 0) return res.output.stripRight("\n");
+                } catch (Throwable) {}
+            }
+            return null;
         }
     }
+
+    
 }
