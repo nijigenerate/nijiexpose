@@ -197,22 +197,19 @@ private:
                 eBinding.expr.expression = buf.toStringz.fromStringz;
             }
 
+            if (eBinding.expr.lastError.length > 0) {
+                uiImLabelColored("\ue000", vec4(1, 0.4, 0.4, 1));
+                uiImTooltip(eBinding.expr.lastError);
+                uiImSameLine();
+            }
+            if (outVal < 0 || outVal > 1) {
+                uiImLabelColored("\ue002", vec4(0.5, 0.5, 0.2, 1));
+                uiImTooltip(_("Value out of range, clamped to 0..1 range."));
+                uiImSameLine();
+            }
             uiImLabel(_("Output (%s)").format(outVal));
             uiImIndent();
                 uiImProgress(outVal);
-            
-
-                uiImPushTextWrapPos();
-                    if (eBinding.expr.lastError.length > 0) {
-                        uiImLabelColored(eBinding.expr.lastError, vec4(1, 0.4, 0.4, 1));
-                        uiImNewLine();
-                    }
-
-                    if (outVal < 0 || outVal > 1) {
-                        uiImLabelColored(_("Value out of range, clamped to 0..1 range."), vec4(0.95, 0.88, 0.62, 1));
-                        uiImNewLine();
-                    }
-                uiImPopTextWrapPos();
             uiImUnindent();
         }
     }
@@ -390,16 +387,14 @@ private:
                 }
             }
 
+            if (eBinding.outVal < 0 || eBinding.outVal > 1) {
+                uiImLabelColored("\ue002", vec4(0.5, 0.5, 0.2, 1));
+                uiImTooltip(_("Value out of range, clamped to 0..1 range."));
+                uiImSameLine();
+            }
             uiImLabel(_("Output (%s)").format(eBinding.outVal));
             uiImIndent();
-                uiImProgress(eBinding.outVal);
-            
-                uiImPushTextWrapPos();
-                    if (eBinding.outVal < 0 || eBinding.outVal > 1) {
-                        uiImLabelColored(_("Value out of range, clamped to 0..1 range."), vec4(0.95, 0.88, 0.62, 1));
-                        uiImNewLine();
-                    }
-                uiImPopTextWrapPos();
+                uiImProgress(eBinding.outVal);            
             uiImUnindent();
         }
     }
@@ -477,16 +472,14 @@ private:
                 }
             }
 
+            if (cBinding.outVal < 0 || cBinding.outVal > 1) {
+                uiImLabelColored("\ue002", vec4(0.5, 0.5, 0.2, 1));
+                uiImTooltip(_("Value out of range, clamped to 0..1 range."));
+                uiImSameLine();
+            }
             uiImLabel(_("Output (%s)").format(cBinding.outVal));
             uiImIndent();
-                uiImProgress(cBinding.binding.param.mapAxis(cBinding.binding.axis, cBinding.outVal), vec2(-float.min_normal, 0), "");
-            
-                uiImPushTextWrapPos();
-                    if (cBinding.outVal < 0 || cBinding.outVal > 1) {
-                        uiImLabelColored(_("Value out of range, clamped to 0..1 range."), vec4(0.95, 0.88, 0.62, 1));
-                        uiImNewLine();
-                    }
-                uiImPopTextWrapPos();
+                uiImProgress(cBinding.binding.param.mapAxis(cBinding.binding.axis, cBinding.outVal), vec2(-float.min_normal, 0), "");            
             uiImUnindent();
         }
     }
