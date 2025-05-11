@@ -202,14 +202,14 @@ private:
                 uiImTooltip(eBinding.expr.lastError);
                 uiImSameLine();
             }
-            if (outVal < 0 || outVal > 1) {
+            if (eBinding.outVal < 0 || eBinding.outVal > 1) {
                 uiImLabelColored("\ue002", vec4(0.5, 0.5, 0.2, 1));
                 uiImTooltip(_("Value out of range, clamped to 0..1 range."));
                 uiImSameLine();
             }
-            uiImLabel(_("Output (%s)").format(outVal));
+            uiImLabel(_("Output (%s)").format(eBinding.outVal));
             uiImIndent();
-                uiImProgress(outVal);
+                uiImProgress(eBinding.outVal);
             uiImUnindent();
         }
     }
@@ -473,7 +473,7 @@ private:
             }
 
             if (cBinding.outVal < 0 || cBinding.outVal > 1) {
-                uiImLabelColored("\ue002", vec4(0.5, 0.5, 0.2, 1));
+                uiImLabelColored("\ue002", vec4(0.8, 0.7, 0.2, 1));
                 uiImTooltip(_("Value out of range, clamped to 0..1 range."));
                 uiImSameLine();
             }
