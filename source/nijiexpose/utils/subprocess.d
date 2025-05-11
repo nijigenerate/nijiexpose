@@ -3,6 +3,8 @@ module nijiexpose.utils.subprocess;
 import std.string;
 import std.array;
 import std.stdio;
+import core.thread.osthread;
+import core.time;
 
 version(Windows) {
     import core.sys.windows.windows;
@@ -227,7 +229,7 @@ version(Windows) {
             }
             while (running()) {
                 update();
-                Thread.sleep(msecs(10));
+                Thread.sleep(dur!"msecs"(10));
             }
             return getExitCode();
         }
@@ -235,7 +237,7 @@ version(Windows) {
 }
 
 class PythonProcess(bool readOutput = true) : SubProcess!readOutput {
-    static systemPythonPath = null;
+    static string systemPythonPath = null;
     string pythonPath = null;
     this(string scriptPath = null, string[] scriptArgs = [], string pythonPath = null) {
         if (pythonPath !is null) { 
@@ -249,6 +251,7 @@ class PythonProcess(bool readOutput = true) : SubProcess!readOutput {
         super(this.pythonPath, ((scriptPath !is null)? [scriptPath]:[]) ~ scriptArgs);
     }
 
+    override
     bool start() {
         if (pythonPath is null) return false;
         return super.start();
