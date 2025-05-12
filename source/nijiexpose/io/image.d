@@ -17,8 +17,6 @@ Puppet neLoadModelFromImage(string filename) {
             }
         }
     }
-    import std.stdio;
-    writefln("%s: %d, %d, %d, %d", filename, minX, minY, maxX, maxY);
     ubyte[] data;
     data.length = (maxX - minX + 1) * (maxY - minY + 1) * tex.channels;
     for (int y = minY; y <= maxY; y ++) {

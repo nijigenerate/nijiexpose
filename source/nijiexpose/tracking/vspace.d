@@ -13,6 +13,7 @@ import std.string;
 import inmath;
 public import ft.data : Bone;
 public import ft;
+public import nijiexpose.tracking.ext;
 import nijiui.core.settings;
 import nijiui.core.utils;
 import fghj;
@@ -267,7 +268,7 @@ public:
                         xdata["appName"] = "nijiexpose";
                         if (type == "VMC Receiver") xdata["address"] = "0.0.0.0";
                         if (type == "Phiz OSC Receiver") xdata["address"] = "0.0.0.0";
-                        adaptor = ftCreateAdaptor(type);
+                        adaptor = neCreateAdaptor(type);
                         if(adaptor is null) continue;
                         adaptor.setOptions(xdata);
 
@@ -279,7 +280,7 @@ public:
                         xdata["appName"] = "nijiexpose";
                         if (type == "VMC Receiver") xdata["address"] = "0.0.0.0";
                         if (type == "Phiz OSC Receiver") xdata["address"] = "0.0.0.0";
-                        adaptor = ftCreateAdaptor(type);
+                        adaptor = neCreateAdaptor(type);
                         if(adaptor is null) continue;
                         adaptor.setOptions(xdata);
                     

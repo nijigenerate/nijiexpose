@@ -95,8 +95,6 @@ class Scene {
         inSceneAmbientLight.vector = ambientLight;
 
         float[4] bgColor = inSettingsGet!(float[4])("bgColor", [0.5, 0.5, 0.5, 0]);
-        import std.stdio;
-        writefln("bgColor: %s", bgColor);
         inSetClearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3]);
     }
 
@@ -301,7 +299,6 @@ class Scene {
                 if (draggingItem) {
                     selectedPuppet = draggingItem.index;
                     insTrackingPanelRefresh();
-                    writefln("Selected %s", draggingItem.item.name);
                     movingTarget = draggingItem.item;
                     while (movingTarget.attachedParent) {
                         movingTarget = movingTarget.attachedParent;
@@ -310,7 +307,6 @@ class Scene {
                 } else {
                     selectedPuppet = -1;
                     insTrackingPanelRefresh();
-                    writefln("Unselect item");
                     movingTarget = null;
                 }
                 inSetUpdateBounds(false);
@@ -424,11 +420,6 @@ class Scene {
                     insertAfter(insScene.sceneItems, prevParent, draggingItem.item);
                     movingTarget = draggingItem.item;
                     draggingItem.item.updateTransform();
-                    import std.stdio;
-                    foreach (item; insScene.sceneItems) {
-                        if (item.attachedParent is null)
-                            writefln(item.dump);
-                    }
                 }
                 if (draggingItem && isDragDown && !inInputMouseDown(MouseButton.Left)) { 
                     // Drop the model
@@ -436,11 +427,6 @@ class Scene {
                     if (hitTest.item) {
                         if (draggingItem.item.attachTo(hitTest.item)) {
                             selectedPuppet = insertAfter(insScene.sceneItems, hitTest.item, draggingItem.item);
-                            import std.stdio;
-                            foreach (item; insScene.sceneItems) {
-                                if (item.attachedParent is null)
-                                    writefln(item.dump);
-                            }
                         }
                     }
                 } else if (draggingItem && isDragDown) { // Dragging
@@ -689,8 +675,6 @@ class SceneItem {
 
     bool attachTo(SceneItem parent) {
         
-        import std.stdio;
-        writefln("Attach %s, %s", parent.name, this.name);
         float getMinZSort(Node node) {
             float minZSort = node.zSort;
             foreach (child; node.children) {
@@ -718,15 +702,10 @@ class SceneItem {
             if (triangle) {
                 this.puppetRoot.reparent(node, 0);
                 node.transformChanged();
-                writefln("BEFORE: %s", node.name);
                 this.puppetRoot.localTransform.translation = posInDrawable;
                 this.puppetRoot.localTransform.scale = targetScale;
-                writefln("pos=%s, scale=%s", posInDrawable, targetScale);
-                writefln("AFTER: %s", node.name);
                 node.transformChanged();
-                writefln("minZSort = %f", getMinZSort(movingTarget.puppet.root)-1);
                 this.puppetRoot.setAbsZSort(getMinZSort(movingTarget.puppet.root) - 1);
-                writefln("zSort-->%f", this.puppetRoot.zSort);
                 this.puppetRoot.pinToMesh = true;
                 parent.puppet.rescanNodes();
                 this.attachedParent = parent;
@@ -750,8 +729,6 @@ class SceneItem {
         curTransform.scale.y *= root.puppet.transform.scale.y;
         curTransform.rotation.z += root.puppet.transform.rotation.z;
 
-        writefln("Detach %s from %s, and restore to %s", this.puppetRoot, parent.name, this.name); 
-
         parent.children = parent.children.removeByValue(this);
         this.puppet.setRootNode(this.puppetRoot);
         this.puppet.transform = curTransform;
@@ -767,7 +744,6 @@ class SceneItem {
         parent.puppet.rescanNodes();
 
         void traverse(SceneItem item) {
-            writefln("  %s: updateTransform", item.name);
             item.updateTransform();
             foreach (child; item.children) {
                 traverse(child);

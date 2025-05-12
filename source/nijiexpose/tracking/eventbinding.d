@@ -113,7 +113,7 @@ public:
                 }
             }
             if (item.id !in keyMap) continue;
-            if (igIsKeyDown(keyMap[item.id.toUpper()])) {
+            if (igIsKeyDown(keyMap[item.id.toUpper()]) || neIsEventOn(item.id[0])) {
                 src = item.value;
                 valSet = true;
                 break;
