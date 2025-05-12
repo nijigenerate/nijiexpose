@@ -153,13 +153,15 @@ version(Windows) {
         int exitCode = -1;
         ProcessPipes pipes;
         static if (readOutput) {
-            string[] stdoutOutput;
             enum BUF_SIZE = 4096;
             char[BUF_SIZE] buffer;
         }
 
     public:
         bool isRunning = false;
+        static if (readOutput) {
+            string[] stdoutOutput;
+        }
 
         this(string executable, string[] args = []) {
             this.executable = executable;

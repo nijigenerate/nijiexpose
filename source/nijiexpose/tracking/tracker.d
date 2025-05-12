@@ -9,13 +9,20 @@ import std.conv;
 import std.array;
 import std.file;
 import std.string;
+import std.path;
+import std.zip;
+import requests;
 
 
 class Tracker {
 protected:
 
     DeviceInfo[] parseDeviceList(JSONValue jval) {
-        enforce(jval.type == JSONType.ARRAY, "Expected JSON array");
+        if(jval.type != JSONType.ARRAY) {
+            import std.stdio;
+            writefln("Expected JSON Array. but get type of %s", jval.type);
+            return [];
+        }
 
         DeviceInfo[] devices;
         foreach (item; jval.array) {
@@ -36,6 +43,8 @@ public:
     uint port = 39540;
     int device =-1;
     string trackerPath;
+    string trackerScriptName = "nijitrack.py";
+    static enum ScriptDownloadSource = "https://github.com/nijigenerate/nijitrack/archive/refs/heads/main.zip";
 
     bool initialized = false;
 
@@ -49,7 +58,7 @@ public:
     DeviceInfo[] deviceList = null;
 
     this () {
-        this.trackerPath = thisExePath() ~ "/nijitrack/nijitrack.py";
+        this.trackerPath = buildPath(thisExePath(), "nijitrack");
     }
 
     ~this() {
@@ -59,6 +68,10 @@ public:
         if (queryProcess !is null) queryProcess.terminate();
         process = null;
         queryProcess = null;
+    }
+
+    string scriptPath() {
+        return buildPath(trackerPath.fromStringz, trackerScriptName);
     }
 
     void serialize(S)(ref S serializer) {
@@ -110,7 +123,7 @@ public:
             return deviceList;
         }
         if (queryProcess is null) {
-            queryProcess = new PythonProcess!true(trackerPath.fromStringz, ["--list-devices"]);
+            queryProcess = new PythonProcess!true(scriptPath, ["--list-devices"]);
             queryProcess.start();
         } else {
             if (!queryProcess.running) {
@@ -130,7 +143,7 @@ public:
         string[] args = ["--device", device.to!string, "--osc-host", hostname, "--osc-port", port.to!string];
         if (showWindow) args ~= ["--show", "--show-video", "--show-wire"];
         if (flipped) args ~= ["--flip"];
-        process = new PythonProcess!false(trackerPath, args);
+        process = new PythonProcess!false(scriptPath, args);
         process.start();
     }
 
@@ -139,13 +152,51 @@ public:
         process = null;
     }
 
+    SubProcess!true install() {
+        import std.stdio: writefln;
+        trackerPath = trackerPath.fromStringz;
+        if (trackerPath is null) return null;
+        auto data = getContent(ScriptDownloadSource).data;
+        writefln("data length=%d", data.length);
+        auto zip = new ZipArchive(data);
+        foreach (name, member; zip.directory) {
+            auto parts = pathSplitter(name).array;
+
+            if (parts.length <= 1) continue;
+
+            auto relativePath = buildPath(parts[1 .. $]);
+
+            if (relativePath.length == 0 || relativePath.endsWith("/")) continue;
+
+            auto destPath = buildPath(trackerPath, relativePath);
+            mkdirRecurse(dirName(destPath));
+            zip.expand(member);
+            write(destPath, member.expandedData);
+            writefln("Wrote %s", destPath);
+        }
+        auto installProcess = new PythonProcess!true(null, ["-m", "pip", "install", trackerPath]);
+        installProcess.start();
+        while (installProcess.running()) {
+            installProcess.update();
+            import std.stdio;
+            if (installProcess.stdoutOutput.length > 0)
+                std.stdio.writeln(installProcess.stdoutOutput.join("\n"));
+            installProcess.stdoutOutput.length = 0;
+        }
+        return installProcess;
+    }
+
+    void setup() {
+
+    }
+
 }
 
 private {
     Tracker tracker;
 }
 
-ref Tracker ngTracker() {
+ref Tracker neTracker() {
     if (tracker is null) {
         tracker = new Tracker();
         inSettingsGet!Tracker("tracker", tracker);
@@ -154,6 +205,6 @@ ref Tracker ngTracker() {
 }
 
 void neInitTracker() {
-    if (ngTracker.enabled)
-        ngTracker.restart();
+    if (neTracker.enabled)
+        neTracker.restart();
 }

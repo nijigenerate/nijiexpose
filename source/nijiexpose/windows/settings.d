@@ -13,6 +13,8 @@ import std.string;
 import bindbc.imgui;
 import ft;
 import std.algorithm;
+import std.file;
+import nijiexpose.utils.subprocess;
 
 import std.algorithm.mutation;
 
@@ -21,6 +23,8 @@ private:
     bool prevMeasureFPS;
 public:
     SelectedMode selected = SelectedMode.Tracking;
+    string pythonPath = null;
+    bool pythonPathTested = false;
 
     override
     void onBeginUpdate() {
@@ -73,49 +77,68 @@ public:
             case SelectedMode.Tracking:
                 if (uiImHeader(__("Tracking"), true)) {
                     uiImIndent();
-                        auto tracker = ngTracker();
+                        auto tracker = neTracker();
                         if (uiImCheckbox(__("Enable tracking"), tracker.enabled)) {
                             inSettingsSet("tracker", tracker);
                         }
                         if (tracker.enabled) {
                             tracker.update();
                             if (uiImBeginCategory("##tracker")) {
-                                uiImLabel(_("Camera device"));
+                                uiImLabel(_("Python path"));
                                 uiImSameLine();
-                                auto deviceList = tracker.listDevices();
-                                long currentDeviceId = deviceList.countUntil!(x=>x.id == tracker.device)();
-                                string currentDeviceName = (currentDeviceId >= 0)? deviceList[currentDeviceId].name: _("Select device...");
-                                if (igBeginCombo("##device", currentDeviceName.toStringz ,ImGuiComboFlags.None)) {
-                                    if (deviceList !is null) {
-                                        foreach (device; deviceList) {
-                                            if (uiImSelectable(device.name.toStringz, device.id == tracker.device)) {
-                                                tracker.device = device.id;
-                                                inSettingsSet("tracker", tracker);
-                                            }
-                                        }
-                                    }
-                                    igEndCombo();
+                                if (!pythonPathTested) {
+                                    pythonPath = PythonProcess!false.detectPython();
+                                    pythonPathTested = true;
+                                }
+                                if (pythonPath is null) {
+                                    uiImLabelColored(_("Python is not detected. Please install python first."), vec4(0.9, 0.5, 0.5, 1));
+                                } else {
+                                    uiImLabel(pythonPath);
                                 }
                                 uiImLabel(_("Tracker executable path"));
                                 uiImSameLine();
                                 if (uiImInputText("##trackerPath", tracker.trackerPath)) {
                                     inSettingsSet("tracker", tracker);
                                 }
-                                uiImLabel(_("Host name"));
-                                uiImSameLine();
-                                if (uiImInputText("##host", tracker.hostname)) {
-                                    inSettingsSet("tracker", tracker);
-                                }
-                                uiImLabel(_("Port number"));
-                                uiImSameLine();
-                                if (igInputInt("##PortNumber", cast(int*)&tracker.port)) {
-                                    inSettingsSet("tracker", tracker);
-                                }
-                                if (uiImCheckbox(__("Flip input"), tracker.flipped)) {
-                                    inSettingsSet("tracker", tracker);
-                                }
-                                if (uiImCheckbox(__("Show camera tracking window"), tracker.showWindow)) {
-                                    inSettingsSet("tracker", tracker);
+                                if (!tracker.scriptPath.exists) {
+                                    uiImLabelColored(_("Specified path doesn't contains %s").format(tracker.trackerScriptName), vec4(0.95, 0.5, 0.5, 1));
+                                    uiImSameLine();
+                                    if (uiImButton(__("Install"))) {
+                                        tracker.install();
+                                    }
+                                } else {
+                                    uiImLabel(_("Camera device"));
+                                    uiImSameLine();
+                                    auto deviceList = tracker.listDevices();
+                                    long currentDeviceId = deviceList.countUntil!(x=>x.id == tracker.device)();
+                                    string currentDeviceName = (currentDeviceId >= 0)? deviceList[currentDeviceId].name: _("Select device...");
+                                    if (igBeginCombo("##device", currentDeviceName.toStringz ,ImGuiComboFlags.None)) {
+                                        if (deviceList !is null) {
+                                            foreach (device; deviceList) {
+                                                if (uiImSelectable(device.name.toStringz, device.id == tracker.device)) {
+                                                    tracker.device = device.id;
+                                                    inSettingsSet("tracker", tracker);
+                                                }
+                                            }
+                                        }
+                                        igEndCombo();
+                                    }
+                                    uiImLabel(_("Host name"));
+                                    uiImSameLine();
+                                    if (uiImInputText("##host", tracker.hostname)) {
+                                        inSettingsSet("tracker", tracker);
+                                    }
+                                    uiImLabel(_("Port number"));
+                                    uiImSameLine();
+                                    if (igInputInt("##PortNumber", cast(int*)&tracker.port)) {
+                                        inSettingsSet("tracker", tracker);
+                                    }
+                                    if (uiImCheckbox(__("Flip input"), tracker.flipped)) {
+                                        inSettingsSet("tracker", tracker);
+                                    }
+                                    if (uiImCheckbox(__("Show camera tracking window"), tracker.showWindow)) {
+                                        inSettingsSet("tracker", tracker);
+                                    }
                                 }
                             }
                             uiImEndCategory();
@@ -147,10 +170,10 @@ public:
         uiImSameLine(0, 0);
         if (uiImButton(__("OK"), vec2(64, 0))) {
                 import std.stdio;
-            if (ngTracker.enabled) {
-                ngTracker.restart();
+            if (neTracker.enabled) {
+                neTracker.restart();
             } else {
-                ngTracker.terminate();
+                neTracker.terminate();
             }
             neSetMeasureFPS(prevMeasureFPS);
             this.close();
