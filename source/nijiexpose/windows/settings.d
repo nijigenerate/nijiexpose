@@ -101,7 +101,7 @@ public:
                                     inSettingsSet("tracker", tracker);
                                 }
                                 if (!tracker.scriptPath.exists) {
-                                    uiImLabelColored(_("Specified path doesn't contains %s").format(tracker.trackerScriptName), vec4(0.95, 0.5, 0.5, 1));
+                                    uiImLabelColored(_("Specified path doesn't contain %s").format(tracker.trackerScriptName), vec4(0.95, 0.5, 0.5, 1));
                                     uiImSameLine();
                                     if (uiImButton(__("Install"))) {
                                         tracker.install();
