@@ -11,8 +11,8 @@ import std.file;
 import std.string;
 import std.path;
 import std.zip;
-import requests;
-
+import vibe.http.client;
+import vibe.stream.operations;
 
 class Tracker {
 protected:
@@ -156,7 +156,25 @@ public:
         import std.stdio: writefln;
         trackerPath = trackerPath.fromStringz;
         if (trackerPath is null) return null;
-        auto data = getContent(ScriptDownloadSource).data;
+
+        string url = ScriptDownloadSource;
+        ubyte[] data;
+        for (int redirect = 0; redirect <= 5; ++redirect) {
+            auto res = requestHTTP(url);
+            if (res.statusCode >= 300 && res.statusCode < 400) {
+                auto loc = res.headers.get("Location");
+                if (loc.length == 0) {
+                    throw new Exception("Redirect (HTTP 302) received but no Location header.");
+                }
+                writefln("Redirecting to: ", loc);
+                url = loc;
+                continue;
+            } else if (res.statusCode != 200) {
+                throw new Exception("HTTP error: " ~ to!string(res.statusCode));
+            } else {
+                data = res.bodyReader.readAll();
+            }
+        }
         writefln("data length=%d", data.length);
         auto zip = new ZipArchive(data);
         foreach (name, member; zip.directory) {

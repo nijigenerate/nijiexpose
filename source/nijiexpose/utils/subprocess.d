@@ -28,10 +28,14 @@ version(Windows) {
         HANDLE hStdErrorWrite;
         HANDLE hStdErrorRead;
 
-        char[4096] buffer;
-        string[] stdoutOutput;
+        static if (readOutput) {
+            char[4096] buffer;
+        }
 
     public:
+        static if (readOutput) {
+            string[] stdoutOutput;
+        }
         this(string executable, string[] args = []) {
             this.executable = executable;
             this.args = args.dup;
@@ -137,6 +141,17 @@ version(Windows) {
 
         static if (readOutput) {
             string[] stdout() { return stdoutOutput; } 
+        }
+
+        int execute() {
+            if (!start()) {
+                return -1; // Should be determined
+            }
+            while (running()) {
+                update();
+                Thread.sleep(dur!"msecs"(10));
+            }
+            return getExitCode();
         }
     }
 } else {
@@ -263,7 +278,7 @@ class PythonProcess(bool readOutput = true) : SubProcess!readOutput {
         auto queryCommands = ["python", "python3", "py"];
         version(Windows) {
             foreach (cmd; queryCommands) {
-                auto queryProc = new SubProcess([cmd, ["--version"]]);
+                auto queryProc = new SubProcess!true(cmd, ["--version"]);
                 if (queryProc.execute() == 0) {
                     return cmd;
                 }
