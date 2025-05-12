@@ -19,8 +19,6 @@ protected:
 
     DeviceInfo[] parseDeviceList(JSONValue jval) {
         if(jval.type != JSONType.ARRAY) {
-            import std.stdio;
-            writefln("Expected JSON Array. but get type of %s", jval.type);
             return [];
         }
 

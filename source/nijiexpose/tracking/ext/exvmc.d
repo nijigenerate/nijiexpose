@@ -166,7 +166,6 @@ public:
                         }
                         break;
                     default: 
-                        writefln(msg.addressPattern[2].toString);
                         break;
                 }
             }
