@@ -230,6 +230,8 @@ jobs:
 
     - name: "Clone dependencies & set versions"
       run: |
+        git clone https://github.com/nijigenerate/ng-facetrack-d.git
+        dub add-local ng-facetrack-d/ "0.8.0"
         git clone https://github.com/inochi2d/i2d-imgui.git --recurse-submodules
         dub add-local i2d-imgui/ "0.8.0"
         git clone https://github.com/nijigenerate/nijilive.git
