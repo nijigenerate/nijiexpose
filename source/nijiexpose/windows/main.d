@@ -7,11 +7,14 @@
 */
 module nijiexpose.windows.main;
 import nijiexpose.windows;
+import nijiexpose.windows.utils;
 import nijiexpose.scene;
 import nijiexpose.log;
 import nijiexpose.framesend;
 import nijiexpose.plugins;
 import nijiexpose.io;
+import nijiexpose.io.image;
+import nijiexpose.tracking.tracker;
 import nijiui;
 import nijiui.widgets;
 import nijiui.toolwindow;
@@ -24,8 +27,6 @@ import nijiui.utils.link;
 import std.format;
 import nijiexpose.ver;
 import bindbc.opengl;
-import nijiexpose.windows.utils;
-import nijiexpose.io.image;
 import std.path;
 import std.string;
 
@@ -217,6 +218,11 @@ protected:
                 uiImSeperator();
                 uiImDummy(vec2(4, 0));
                 uiImLabel(_("Double-click to show/hide UI"));
+                uiImDummy(vec2(-30, 0));
+                uiImSameLine();
+                if (neTracker.running) {
+                    uiImLabelColored("\ue8f4", vec4(0.70f, 0.25f, 0.00f, 1.00f));
+                }
 
             uiImEndMainMenuBar();
         }
