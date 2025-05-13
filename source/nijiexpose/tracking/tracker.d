@@ -59,15 +59,6 @@ public:
         this.trackerPath = buildPath(thisExePath(), "nijitrack");
     }
 
-    ~this() {
-        debug(subprocess) import std.stdio;
-        debug(subprocess) writefln("Terminate all");
-        if (process !is null) process.terminate();
-        if (queryProcess !is null) queryProcess.terminate();
-        process = null;
-        queryProcess = null;
-    }
-
     string scriptPath() {
         return buildPath(trackerPath.fromStringz, trackerScriptName);
     }
@@ -147,7 +138,10 @@ public:
 
     void terminate() {
         if (process !is null && process.running) process.terminate();
+        if (queryProcess !is null && queryProcess.running) queryProcess.terminate();
+
         process = null;
+        queryProcess = null;
     }
 
     SubProcess!true install() {
@@ -202,10 +196,6 @@ public:
         return installProcess;
     }
 
-    void setup() {
-
-    }
-
 }
 
 private {
@@ -223,4 +213,10 @@ ref Tracker neTracker() {
 void neInitTracker() {
     if (neTracker.enabled)
         neTracker.restart();
+}
+
+void neShutdownTracker() {
+    if (neTracker.running) {
+        neTracker.terminate();
+    }
 }

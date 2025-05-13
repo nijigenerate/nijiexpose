@@ -60,4 +60,5 @@ void main(string[] args) {
     insCleanupFrameSending();
     insScene.cleanup();
     inSettingsSave();
+    neShutdownTracker();
 }
