@@ -122,12 +122,12 @@ version(Windows) {
 
         void terminate() {
             if (isRunning) {
+                isRunning = false;
                 TerminateProcess(pi.hProcess, 1);
                 WaitForSingleObject(pi.hProcess, INFINITE);
                 CloseHandle(pi.hProcess);
                 CloseHandle(pi.hThread);
                 CloseHandle(hStdOutRead);
-                isRunning = false;
             }
         }
 
@@ -222,9 +222,9 @@ version(Windows) {
 
         void terminate() {
             if (isRunning) {
+                isRunning = false;
                 kill(pipes.pid, SIGTERM); // ← 正規の方法
                 wait(pipes.pid);
-                isRunning = false;
             }
         }
 
