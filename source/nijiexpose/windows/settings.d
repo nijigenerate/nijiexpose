@@ -91,7 +91,7 @@ public:
                                     pythonPathTested = true;
                                 }
                                 if (pythonPath is null) {
-                                    uiImLabelColored(_("Python is not detected. Please install python first."), vec4(0.9, 0.5, 0.5, 1));
+                                    uiImLabelColored(_("Python is not detected. Please install python (<=3.12) first."), vec4(0.9, 0.5, 0.5, 1));
                                 } else {
                                     uiImLabel(pythonPath);
                                 }
@@ -105,6 +105,20 @@ public:
                                     uiImSameLine();
                                     if (uiImButton(__("Install"))) {
                                         tracker.install();
+                                    }
+                                } else if (tracker.installProcess !is null) {
+                                    tracker.installProcess.update();
+                                    auto outputText = tracker.installProcess.stdoutOutput.join("\n");
+                                    vec2 avail2 = uiImAvailableSpace();
+                                    vec2 logAreaSize = vec2(avail2.x, avail2.y - 50);
+                                    if (uiImBeginChild("##log_area", logAreaSize, true)) {
+                                        igTextUnformatted(outputText.toStringz);
+                                        uiImEndChild();
+                                    }
+                                    if (!tracker.installProcess.running()) {
+                                        if (uiImButton(__("OK"))) {
+                                            tracker.installProcess = null;
+                                        }
                                     }
                                 } else {
                                     uiImLabel(_("Camera device"));

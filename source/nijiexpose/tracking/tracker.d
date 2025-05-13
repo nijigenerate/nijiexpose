@@ -1,6 +1,7 @@
 module nijiexpose.tracking.tracker;
 
 import nijiexpose.utils.subprocess;
+import nijiexpose.log;
 import nijiui;
 import fghj;
 import std.json;
@@ -48,6 +49,7 @@ public:
 
     SubProcess!false process = null;
     SubProcess!true queryProcess = null;
+    SubProcess!true installProcess = null;
 
     struct DeviceInfo {
         int id;
@@ -139,6 +141,7 @@ public:
     void terminate() {
         if (process !is null && process.running) process.terminate();
         if (queryProcess !is null && queryProcess.running) queryProcess.terminate();
+        if (installProcess !is null && installProcess.running) installProcess.terminate();
 
         process = null;
         queryProcess = null;
@@ -152,13 +155,14 @@ public:
         string url = ScriptDownloadSource;
         ubyte[] data;
         for (int redirect = 0; redirect <= 5; ++redirect) {
+            insLogInfo("Download %s".format(url));
             auto res = requestHTTP(url);
             if (res.statusCode >= 300 && res.statusCode < 400) {
                 auto loc = res.headers.get("Location");
                 if (loc.length == 0) {
                     throw new Exception("Redirect (HTTP 302) received but no Location header.");
                 }
-                writefln("Redirecting to: ", loc);
+                insLogInfo("Redirecting to: %s".format(loc));
                 url = loc;
                 continue;
             } else if (res.statusCode != 200) {
@@ -167,7 +171,6 @@ public:
                 data = res.bodyReader.readAll();
             }
         }
-        writefln("data length=%d", data.length);
         auto zip = new ZipArchive(data);
         foreach (name, member; zip.directory) {
             auto parts = pathSplitter(name).array;
@@ -182,17 +185,10 @@ public:
             mkdirRecurse(dirName(destPath));
             zip.expand(member);
             write(destPath, member.expandedData);
-            writefln("Wrote %s", destPath);
+            insLogInfo("Wrote %s".format(destPath));
         }
-        auto installProcess = new PythonProcess!true(null, ["-m", "pip", "install", trackerPath]);
+        installProcess = new PythonProcess!true(null, ["-m", "pip", "install", trackerPath]);
         installProcess.start();
-        while (installProcess.running()) {
-            installProcess.update();
-            import std.stdio;
-            if (installProcess.stdoutOutput.length > 0)
-                std.stdio.writeln(installProcess.stdoutOutput.join("\n"));
-            installProcess.stdoutOutput.length = 0;
-        }
         return installProcess;
     }
 
