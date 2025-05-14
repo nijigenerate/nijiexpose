@@ -269,7 +269,8 @@ jobs:
 
         # Cleanup and bundle
         echo "Cleaning up..."
-        rm "out/nijiexpose.app/Contents/MacOS/nijiexpose-x86_64" "out/nijiexpose.app/Contents/MacOS/nijiexpose-arm64"
+        #rm "out/nijiexpose.app/Contents/MacOS/nijiexpose-x86_64" "out/nijiexpose.app/Contents/MacOS/nijiexpose-arm64"
+        rm "out/nijiexpose.app/Contents/MacOS/nijiexpose-arm64"
         ./build-aux/osx/osxbundle.sh
 
     - name: 'Build DMG'
