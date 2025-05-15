@@ -152,10 +152,10 @@ public:
 
         string url = ScriptDownloadSource;
         ubyte[] data;
-        version(macos) {
-            auto downloadProcess = new SubProcess!(true, true)("curl", ["-O", url]);
-            downloadProcess.execute();
-            data = downloadProcess.stdoutOutput;            
+        version(OSX) {
+            auto downloadProcess = new SubProcess!(true, true)("curl", ["-o", "-", "-L", url]);
+            int ret = downloadProcess.execute();
+            data = downloadProcess.stdoutOutput;
         } else {
             import vibe.http.client;
             import vibe.stream.operations;

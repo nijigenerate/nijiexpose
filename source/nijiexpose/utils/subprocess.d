@@ -99,7 +99,6 @@ version(Windows) {
                     exitCode = cast(int)code;
                     isRunning = false;
                     stopping = true;
-                    debug(subprocess) writefln("result = %d", exitCode);
                 }
             }
 
@@ -201,6 +200,7 @@ version(Windows) {
             auto fullCmd = [executable] ~ args;
             pipes = pipeProcess(fullCmd);
             isRunning = true;
+            import std.stdio;
             debug(subprocess) writefln("exec %s", fullCmd, args);
             static if (readOutput) {
                 int fd = pipes.stdout.fileno;
@@ -220,7 +220,6 @@ version(Windows) {
                 while (true) {
                     int fd = stdoutHandle.fileno;
                     int bytesRead = cast(int)read(fd, buffer.ptr, BUF_SIZE);
-//                    writefln("read=%d, exitCode=%d", bytesRead, exitCode);
                     if (bytesRead > 0) {
                         auto data = buffer[0 .. bytesRead].idup;
                         static if (rawData) {
