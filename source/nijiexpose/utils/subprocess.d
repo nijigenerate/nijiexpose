@@ -14,7 +14,7 @@ version(Windows) {
     import std.exception : enforce;
     import std.algorithm : map, joiner;
 
-    class SubProcess(bool readOutput = true) {
+    class SubProcess(bool readOutput = true, bool rawData = false) {
     protected:
         string executable;
         string[] args;
@@ -34,7 +34,12 @@ version(Windows) {
 
     public:
         static if (readOutput) {
-            string[] stdoutOutput;
+            static if (rawData) {
+                alias StdOutData = ubyte[];
+            } else {
+                alias StdOutData = string[];
+            }
+            StdOutData stdoutOutput;
         }
         this(string executable, string[] args = []) {
             this.executable = executable;
@@ -104,8 +109,12 @@ version(Windows) {
                     DWORD bytesRead = 0;
                     if (ReadFile(hStdOutRead, buffer.ptr, cast(DWORD)buffer.length, &bytesRead, null)) {
                         auto chunk = buffer[0 .. bytesRead].idup;
-                        auto lines = chunk.splitLines();
-                        stdoutOutput ~= lines;
+                        if (rawData) {
+                            stdoutOutput ~= chunk;
+                        } else {
+                            auto lines = chunk.splitLines();
+                            stdoutOutput ~= lines;
+                        }
                     } else {
                         break;
                     }
@@ -140,7 +149,7 @@ version(Windows) {
         bool running() const { return isRunning; }
 
         static if (readOutput) {
-            string[] stdout() { return stdoutOutput; } 
+            StdOutData stdout() { return stdoutOutput; } 
         }
 
         int execute() {
@@ -161,7 +170,7 @@ version(Windows) {
     import core.sys.posix.unistd : read;
     import core.stdc.errno : errno, EAGAIN;
 
-    class SubProcess(bool readOutput = true) {
+    class SubProcess(bool readOutput = true, bool rawData = false) {
     protected:
         string executable;
         string[] args;
@@ -175,7 +184,12 @@ version(Windows) {
     public:
         bool isRunning = false;
         static if (readOutput) {
-            string[] stdoutOutput;
+            static if (rawData) {
+                alias StdOutData = ubyte[];
+            } else {
+                alias StdOutData = string[];
+            }
+            StdOutData stdoutOutput;
         }
 
         this(string executable, string[] args = []) {
@@ -188,7 +202,7 @@ version(Windows) {
             pipes = pipeProcess(fullCmd);
             isRunning = true;
             debug(subprocess) writefln("exec %s", fullCmd, args);
-            if (readOutput) {
+            static if (readOutput) {
                 int fd = pipes.stdout.fileno;
                 auto flags = fcntl(fd, F_GETFL, 0);
                 fcntl(fd, F_SETFL, flags | O_NONBLOCK);
@@ -209,8 +223,12 @@ version(Windows) {
 //                    writefln("read=%d, exitCode=%d", bytesRead, exitCode);
                     if (bytesRead > 0) {
                         auto data = buffer[0 .. bytesRead].idup;
-                        auto lines = data.splitLines();
-                        stdoutOutput ~= lines;
+                        static if (rawData) {
+                            stdoutOutput ~= data;
+                        } else {
+                            auto lines = data.splitLines();
+                            stdoutOutput ~= lines;
+                        }
                     } else if (bytesRead == -1 && errno == EAGAIN) {
                         break;
                     } else {
@@ -237,7 +255,7 @@ version(Windows) {
         bool running() const { return isRunning; }
         File stdoutHandle() { return pipes.stdout; }
         static if (readOutput) {
-            string[] stdout() { return stdoutOutput; }
+            StdOutData stdout() { return stdoutOutput; }
         }
 
         int execute() {

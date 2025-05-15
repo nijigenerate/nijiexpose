@@ -12,8 +12,6 @@ import std.file;
 import std.string;
 import std.path;
 import std.zip;
-import vibe.http.client;
-import vibe.stream.operations;
 
 class Tracker {
 protected:
@@ -154,21 +152,29 @@ public:
 
         string url = ScriptDownloadSource;
         ubyte[] data;
-        for (int redirect = 0; redirect <= 5; ++redirect) {
-            insLogInfo("Download %s".format(url));
-            auto res = requestHTTP(url);
-            if (res.statusCode >= 300 && res.statusCode < 400) {
-                auto loc = res.headers.get("Location");
-                if (loc.length == 0) {
-                    throw new Exception("Redirect (HTTP 302) received but no Location header.");
+        version(macos) {
+            auto downloadProcess = new SubProcess!(true, true)("curl", ["-O", url]);
+            downloadProcess.execute();
+            data = downloadProcess.stdoutOutput;            
+        } else {
+            import vibe.http.client;
+            import vibe.stream.operations;
+            for (int redirect = 0; redirect <= 5; ++redirect) {
+                insLogInfo("Download %s".format(url));
+                auto res = requestHTTP(url);
+                if (res.statusCode >= 300 && res.statusCode < 400) {
+                    auto loc = res.headers.get("Location");
+                    if (loc.length == 0) {
+                        throw new Exception("Redirect (HTTP 302) received but no Location header.");
+                    }
+                    insLogInfo("Redirecting to: %s".format(loc));
+                    url = loc;
+                    continue;
+                } else if (res.statusCode != 200) {
+                    throw new Exception("HTTP error: " ~ to!string(res.statusCode));
+                } else {
+                    data = res.bodyReader.readAll();
                 }
-                insLogInfo("Redirecting to: %s".format(loc));
-                url = loc;
-                continue;
-            } else if (res.statusCode != 200) {
-                throw new Exception("HTTP error: " ~ to!string(res.statusCode));
-            } else {
-                data = res.bodyReader.readAll();
             }
         }
         auto zip = new ZipArchive(data);
