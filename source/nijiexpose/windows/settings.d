@@ -186,6 +186,7 @@ public:
                 import std.stdio;
             if (neTracker.enabled) {
                 neTracker.restart();
+                neTracker.setupVSpace();
             } else {
                 neTracker.terminate();
             }

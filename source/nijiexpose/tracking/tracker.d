@@ -2,6 +2,11 @@ module nijiexpose.tracking.tracker;
 
 import nijiexpose.utils.subprocess;
 import nijiexpose.log;
+import nijiexpose.scene;
+import nijiexpose.tracking.ext.exvmc;
+import nijiexpose.tracking.vspace;
+import ft.adaptor;
+import ft.data;
 import nijiui;
 import fghj;
 import std.json;
@@ -196,6 +201,24 @@ public:
         installProcess = new PythonProcess!true(null, ["-m", "pip", "install", trackerPath]);
         installProcess.start();
         return installProcess;
+    }
+
+    void setupVSpace() {
+        auto space = insScene().space;
+        foreach (zone; space.getZones()) {
+            foreach (source; zone.sources) {
+                if (source.getAdaptorName() == "VMC Receiver") {
+                    if (source.getOptions()["port"] == "39540") return;
+                }
+            }
+        }
+        VirtualSpaceZone zone = new VirtualSpaceZone("Default");
+        insScene.space.addZone(zone);
+        zone.sources.length ++;
+        auto source = new ExVMCAdaptor();
+        source.setOptions(["port": "39540"]);
+        source.start();
+        zone.sources[$-1] = source;
     }
 
 }
