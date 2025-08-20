@@ -265,7 +265,7 @@ public:
     }
 
     void serialize(S)(ref S serializer) {
-        auto state = serializer.objectBegin;
+        auto state = serializer.structBegin;
             serializer.putKey("name");
             serializer.putValue(name);
             serializer.putKey("loop");
@@ -317,7 +317,7 @@ public:
                 default: break;
             }
 
-        serializer.objectEnd(state);
+        serializer.structEnd(state);
     }
 
     SerdeException deserializeFromFghj(Fghj data) {

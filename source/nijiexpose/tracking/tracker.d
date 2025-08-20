@@ -69,7 +69,7 @@ public:
     }
 
     void serialize(S)(ref S serializer) {
-        auto state = serializer.objectBegin;
+        auto state = serializer.structBegin;
             serializer.putKey("enabled");
             serializer.putValue(enabled);
             serializer.putKey("flipped");
@@ -84,7 +84,7 @@ public:
             serializer.putValue(port);
             serializer.putKey("trackerPath");
             serializer.putValue(trackerPath);
-        serializer.objectEnd(state);
+        serializer.structEnd(state);
     }
     
     SerdeException deserializeFromFghj(Fghj data) {

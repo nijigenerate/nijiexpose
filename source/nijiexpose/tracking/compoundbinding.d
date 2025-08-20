@@ -85,18 +85,18 @@ public:
         serializer.putKey("method");
         serializer.serializeValue(method);
         serializer.putKey("binding_map");
-        auto state = serializer.arrayBegin;
+        auto state = serializer.listBegin;
             foreach (item; bindingMap) {
                 serializer.elemBegin;
-                auto state2 = serializer.objectBegin();
+                auto state2 = serializer.structBegin();
                 serializer.putKey("type");
                 serializer.serializeValue(item.type);
                 serializer.putKey("weight");
                 serializer.serializeValue(item.weight);
                 item.delegated.serializeSelf(serializer);
-                serializer.objectEnd(state2);
+                serializer.structEnd(state2);
             }
-        serializer.arrayEnd(state);
+        serializer.listEnd(state);
     }
     
     override

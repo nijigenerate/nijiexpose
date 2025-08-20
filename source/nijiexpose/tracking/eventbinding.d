@@ -65,19 +65,19 @@ public:
         serializer.putKey("dampenLevel");
         serializer.putValue(dampenLevel);
         serializer.putKey("value_map");
-        auto state = serializer.arrayBegin;
+        auto state = serializer.listBegin;
             foreach (item; valueMap) {
                 serializer.elemBegin;
-                auto state2 = serializer.objectBegin();
+                auto state2 = serializer.structBegin();
                 serializer.putKey("type");
                 serializer.serializeValue(item.type);
                 serializer.putKey("id");
                 serializer.putValue(item.id);
                 serializer.putKey("value");
                 serializer.putValue(item.value);
-                serializer.objectEnd(state2);
+                serializer.structEnd(state2);
             }
-        serializer.arrayEnd(state);
+        serializer.listEnd(state);
     }
     
     override

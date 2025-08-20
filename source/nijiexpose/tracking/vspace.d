@@ -78,16 +78,16 @@ public:
 
     void serialize(S)(ref S serializer) {
         insLogInfo("Saving Virtual Space...");
-        auto state = serializer.objectBegin;
+        auto state = serializer.structBegin;
             serializer.putKey("zones");
-            auto arrstate = serializer.arrayBegin();
+            auto arrstate = serializer.listBegin();
                 foreach(ref zone; zones) {
                     insLogInfo("Saving Zone %s...", zone.name);
                     serializer.elemBegin();
                     serializer.serializeValue(zone);
                 }
-            serializer.arrayEnd(arrstate);
-        serializer.objectEnd(state);
+            serializer.listEnd(arrstate);
+        serializer.structEnd(state);
     }
 
     SerdeException deserializeFromFghj(Fghj data) {
@@ -229,27 +229,27 @@ public:
 
     
     void serialize(S)(ref S serializer) {
-        auto state = serializer.objectBegin;
+        auto state = serializer.structBegin;
             serializer.putKey("name");
             serializer.putValue(name);
             serializer.putKey("sources");
-            auto arrstate = serializer.arrayBegin();
+            auto arrstate = serializer.listBegin();
                 foreach(ref Adaptor source; sources) {
                     if (!source) continue;
 
                     serializer.elemBegin();
 
-                    auto sstate = serializer.objectBegin;
+                    auto sstate = serializer.structBegin;
                         serializer.putKey("type");
                         serializer.putValue(source.getAdaptorName());
                         if (source.getOptions !is null) {
                             serializer.putKey("options");
                             serializer.serializeValue(source.getOptions());
                         }
-                    serializer.objectEnd(sstate);
+                    serializer.structEnd(sstate);
                 }
-            serializer.arrayEnd(arrstate);
-        serializer.objectEnd(state);
+            serializer.listEnd(arrstate);
+        serializer.structEnd(state);
     }
     
     SerdeException deserializeFromFghj(Fghj data) {
