@@ -61,7 +61,7 @@ public:
     DeviceInfo[] deviceList = null;
 
     this () {
-        this.trackerPath = buildPath(thisExePath(), "nijitrack");
+        this.trackerPath = buildPath(thisExePath().dirName, "nijitrack");
     }
 
     string scriptPath() {
