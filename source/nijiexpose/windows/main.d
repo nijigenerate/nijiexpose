@@ -162,6 +162,13 @@ protected:
                     if (uiImMenuItem(__("Settings"))) {
                         inPushToolWindow(new SettingWindow());
                     }
+
+                    // Opens the directory where configuration resides in the user's file browser.
+                    if (uiImMenuItem(__("Open Configuration Folder"), null, false, true)) {
+                        import std.process;
+                        // FIXME: uiOpenLink not working on osxfinder, so we use browse instead
+                        browse(inGetAppConfigPath());
+                    }
                     uiImEndMenu();
                 }
 
