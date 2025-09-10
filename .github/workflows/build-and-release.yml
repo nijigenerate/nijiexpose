@@ -153,7 +153,7 @@ jobs:
           files: out/nijiexpose-win32-x86_64.zip
 
     - name: Make Artifact of ZIP
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-win32
         path: |
@@ -275,7 +275,7 @@ jobs:
         path: '*'
 
     - name: Make Artifact of ZIP
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-osx
         path: |
