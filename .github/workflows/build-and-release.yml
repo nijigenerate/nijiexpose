@@ -232,6 +232,9 @@ jobs:
         dub add-local nijilive/ "0.0.1"
         git clone https://github.com/nijigenerate/nijiui.git
         dub add-local nijiui/ "0.0.1"
+        cd nijilive
+        git checkout -b v0.9
+        cd ../i2d-imgui
         cd i2d-imgui
         git checkout c6a78f4a7510fd31a86998b7ceedfc2916ecfae0
         git submodule update --recursive
