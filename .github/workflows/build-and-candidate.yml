@@ -37,14 +37,15 @@ jobs:
         git clone https://github.com/nijigenerate/ng-facetrack-d.git
         dub add-local ng-facetrack-d/ "0.8.0"
         git clone https://github.com/inochi2d/i2d-imgui.git --recurse-submodules
+        cd i2d-imgui
+        git checkout c6a78f4a7510fd31a86998b7ceedfc2916ecfae0
+        git submodule update --recursive
+        cd ..
         dub add-local i2d-imgui/ "0.8.0"
         git clone https://github.com/nijigenerate/nijilive.git
         dub add-local nijilive/ "0.0.1"
         git clone https://github.com/nijigenerate/nijiui.git
         dub add-local nijiui/ "0.0.1"
-        cd i2d-imgui
-        git checkout c6a78f4a7510fd31a86998b7ceedfc2916ecfae0
-        git submodule update --recursive
 
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v2
@@ -90,14 +91,15 @@ jobs:
         git clone https://github.com/nijigenerate/ng-facetrack-d.git
         dub add-local ng-facetrack-d/ "0.8.0"
         git clone https://github.com/inochi2d/i2d-imgui.git --recurse-submodules
+        cd i2d-imgui
+        git checkout c6a78f4a7510fd31a86998b7ceedfc2916ecfae0
+        git submodule update --recursive
+        cd ..
         dub add-local i2d-imgui/ "0.8.0"
         git clone https://github.com/nijigenerate/nijilive.git
         dub add-local nijilive/ "0.0.1"
         git clone https://github.com/nijigenerate/nijiui.git
         dub add-local nijiui/ "0.0.1"
-        cd i2d-imgui
-        git checkout c6a78f4a7510fd31a86998b7ceedfc2916ecfae0
-        git submodule update --recursive
 
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v2
@@ -187,14 +189,15 @@ jobs:
         git clone https://github.com/nijigenerate/ng-facetrack-d.git
         dub add-local ng-facetrack-d/ "0.8.0"
         git clone https://github.com/inochi2d/i2d-imgui.git --recurse-submodules
+        cd i2d-imgui
+        git checkout c6a78f4a7510fd31a86998b7ceedfc2916ecfae0
+        git submodule update --recursive
+        cd ..
         dub add-local i2d-imgui/ "0.8.0"
         git clone https://github.com/nijigenerate/nijilive.git
         dub add-local nijilive/ "0.0.1"
         git clone https://github.com/nijigenerate/nijiui.git
         dub add-local nijiui/ "0.0.1"
-        cd i2d-imgui
-        git checkout c6a78f4a7510fd31a86998b7ceedfc2916ecfae0
-        git submodule update --recursive
 
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v2
