@@ -15,6 +15,7 @@ import ft;
 import std.algorithm;
 import std.file;
 import nijiexpose.utils.subprocess;
+import nijilive.core.nodes.common : nlIsTripleBufferFallbackEnabled, nlSetTripleBufferFallback;
 
 import std.algorithm.mutation;
 
@@ -172,6 +173,16 @@ public:
                         }
                         uiImSameLine();
                         uiImLabel(_("Frame rate: %.2f fps".format(neGetFPS())));
+                    uiImUnindent();
+                }
+                if (uiImHeader(__("Triple buffer fallback"), true)) {
+                    uiImIndent();
+                        bool tripleFallback = inSettingsGet!bool("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
+                        if (uiImCheckbox(__("Enable triple buffer fallback"), tripleFallback)) {
+                            inSettingsSet("TripleBufferFallback", tripleFallback);
+                            nlSetTripleBufferFallback(tripleFallback);
+                        }
+                        uiImLabel(_("Use when advanced blend is unavailable or causes issues."));
                     uiImUnindent();
                 }
                 break;
