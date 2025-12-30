@@ -20,6 +20,8 @@ import nijiexpose.framesend;
 import nijiexpose.tracking.expr;
 import nijiexpose.tracking.tracker;
 import std.process;
+import nijilive.core.nodes.common : nlSetTripleBufferFallback, nlIsTripleBufferFallbackEnabled;
+import nijiui.core.settings : inSettingsGet;
 
 void main(string[] args) {
     insLogInfo("nijiexpose %s, args=%s", INS_VERSION, args[1..$]);
@@ -49,6 +51,9 @@ void main(string[] args) {
     insScene.init();
     insInitFrameSending();
     inPostProcessingAddBasicLighting();
+    // Apply triple buffer fallback setting from config.
+    bool tripleFallback = inSettingsGet!bool("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
+    nlSetTripleBufferFallback(tripleFallback);
 
     // Draw window
     while(window.isAlive) {

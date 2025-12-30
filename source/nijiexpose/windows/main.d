@@ -21,6 +21,7 @@ import nijiui.toolwindow;
 import nijiui.panel;
 import nijiui.input;
 import nijilive;
+import nijilive.core.render.backends.opengl.runtime : oglDrawScene;
 import ft;
 import i18n;
 import nijiui.utils.link;
@@ -93,7 +94,7 @@ protected:
         insScene.update();
         insSendFrame();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        inDrawScene(vec4(0, 0, width, height));
+        oglDrawScene(vec4(0, 0, width, height));
     }
 
     override

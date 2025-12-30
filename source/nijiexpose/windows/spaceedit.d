@@ -17,6 +17,7 @@ import i18n;
 import std.string;
 import bindbc.imgui;
 import ft;
+static import std.utf;
 
 import std.algorithm.mutation;
 
