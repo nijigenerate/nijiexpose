@@ -73,7 +73,11 @@ void insSendFrame() {
         inGetViewport(w, h);
 
         version(Windows) {
-            if (spHandle) spSendTexture(spHandle, inGetRenderImage(), GL_TEXTURE_2D, w, h, true, inGetFramebuffer());
+            if (spHandle) {
+                auto textureId = cast(uint)inGetRenderImage();
+                auto framebufferId = cast(uint)inGetFramebuffer();
+                spSendTexture(spHandle, textureId, GL_TEXTURE_2D, w, h, true, framebufferId);
+            }
         }
     }
 }
