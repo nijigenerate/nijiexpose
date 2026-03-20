@@ -51,12 +51,12 @@ void neSetStyle() {
     style.Colors[ImGuiCol.HeaderActive] = ImVec4(0.90f, 0.90f, 0.90f, 1.00f);
 
     // スクロールバーの背景色をバックグラウンドと同じ色に設定
-    style.Colors[ImGuiCol.ScrollbarBg] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
+    style.Colors[ImGuiCol.ScrollbarBg] = ImVec4(0.95f, 0.94f, 0.92f, 0.90f);
 
     // スクロールバーの色を黄色に変更
-    style.Colors[ImGuiCol.ScrollbarGrab] = ImVec4(1.00f, 0.92f, 0.23f, 1.00f);
-    style.Colors[ImGuiCol.ScrollbarGrabHovered] = ImVec4(1.00f, 0.82f, 0.13f, 1.00f);
-    style.Colors[ImGuiCol.ScrollbarGrabActive] = ImVec4(1.00f, 0.72f, 0.03f, 1.00f);
+    style.Colors[ImGuiCol.ScrollbarGrab] = ImVec4(0.67f, 0.63f, 0.59f, 0.95f);
+    style.Colors[ImGuiCol.ScrollbarGrabHovered] = ImVec4(0.58f, 0.53f, 0.48f, 0.98f);
+    style.Colors[ImGuiCol.ScrollbarGrabActive] = ImVec4(0.48f, 0.42f, 0.37f, 1.00f);
 
     // 他のスタイルパラメータを設定
     style.FrameRounding = 4.0f;

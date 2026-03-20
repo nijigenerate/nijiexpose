@@ -21,6 +21,7 @@ import nijiexpose.panels.tracking : insTrackingPanelRefresh;
 import nijiexpose.log;
 import nijiexpose.plugins;
 import nijiexpose.render.spritebatch;
+import nijiexpose.windows.main : neGetTrashTargetRect;
 import bindbc.opengl;
 import bindbc.imgui : igIsKeyDown, ImGuiKey;
 import std.string: format;
@@ -122,42 +123,7 @@ class Scene {
         // Update virtual spaces
         this.space.update();
 
-        // Render the waifu trashcan outside of the main FB
-        glEnable(GL_BLEND);
-        glDisable(GL_DEPTH_TEST);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
         trashcanVisibility = dampen(trashcanVisibility, isDragDown ? 0.85 : 0, deltaTime(), 1);
-        {
-            float trashcanScale = 1f;
-            float sizeOffset = 0f;
-
-
-            if (isMouseOverDelete) {
-                float scalePercent = (sin(currentTime()*2)+1)/2;
-                trashcanScale += 0.15*scalePercent;
-                sizeOffset = ((trashcanSize*trashcanScale)-trashcanSize)/2;
-            }
-
-            AppBatch.draw(
-                trashcanTexture,
-                rect(
-                    TRASHCAN_DISPLACEMENT-sizeOffset, 
-                    viewportHeight-(trashcanSize+TRASHCAN_DISPLACEMENT+sizeOffset),
-                    trashcanSize*trashcanScale, 
-                    trashcanSize*trashcanScale
-                ),
-                rect.init,
-                vec2(0),
-                0,
-                SpriteFlip.None,
-                vec4(1, 1, 1, trashcanVisibility)
-            );
-            AppBatch.flush();
-            glFlush();
-        }
-        glDisable(GL_BLEND);
 
         inBeginScene();
 
@@ -254,8 +220,12 @@ class Scene {
 
         int width, height;
         inGetViewport(width, height);
-        
-        deleteArea = rect(0, height-(TRASHCAN_DISPLACEMENT+trashcanSize), trashcanSize+TRASHCAN_DISPLACEMENT, trashcanSize+TRASHCAN_DISPLACEMENT);
+        float trashX;
+        float trashY;
+        float trashW;
+        float trashH;
+        neGetTrashTargetRect(trashX, trashY, trashW, trashH);
+        deleteArea = rect(trashX, trashY, trashW, trashH);
         isMouseOverDelete = deleteArea.intersects(inInputMousePosition());
 
         import std.stdio : writeln;
