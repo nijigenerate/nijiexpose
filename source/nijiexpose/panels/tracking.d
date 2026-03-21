@@ -61,6 +61,113 @@ private:
     TrackingSource[] sources;
     int outVal;
 
+    struct BindingCardState {
+        ImDrawList* drawList;
+        ImVec2 startPos;
+        ImVec2 headerBottom;
+        float width;
+        bool open;
+    }
+
+    BindingCardState[] bindingCardStack;
+
+    string bindingCardTitle(CompoundTrackingBinding.BindingMap item) {
+        final switch (item.type) {
+        case BindingType.RatioBinding:
+            if (auto ratio = cast(RatioTrackingBinding)item.delegated) {
+                if (ratio.sourceDisplayName.length > 0) return ratio.sourceDisplayName;
+            }
+            return _("Ratio Binding");
+        case BindingType.ExpressionBinding:
+            return _("Expression Binding");
+        case BindingType.EventBinding:
+            return _("Event Binding");
+        case BindingType.CompoundBinding:
+            return _("Compound Binding");
+        case BindingType.External:
+            return _("External Binding");
+        }
+    }
+
+    bool beginBindingCard(string title) {
+        auto drawList = igGetWindowDrawList();
+        ImDrawList_ChannelsSplit(drawList, 2);
+        ImDrawList_ChannelsSetCurrent(drawList, 1);
+
+        ImVec2 startPos;
+        igGetCursorScreenPos(&startPos);
+        float width = uiImAvailableSpace().x;
+        bool open = uiImHeader(title.toStringz, true);
+
+        ImVec2 headerBottom;
+        igGetCursorScreenPos(&headerBottom);
+
+        if (open) {
+            uiImIndent();
+            uiImDummy(vec2(0, 2));
+        }
+
+        bindingCardStack ~= BindingCardState(drawList, startPos, headerBottom, width, open);
+        return open;
+    }
+
+    void endBindingCard() {
+        if (bindingCardStack.length == 0) return;
+
+        auto state = bindingCardStack[$ - 1];
+        bindingCardStack.length -= 1;
+
+        if (state.open) {
+            uiImDummy(vec2(0, 2));
+            uiImUnindent();
+        }
+
+        ImVec2 endPos;
+        igGetCursorScreenPos(&endPos);
+
+        auto style = igGetStyle();
+        auto drawList = state.drawList;
+        auto frameBg = style.Colors[ImGuiCol.FrameBg];
+        auto border = ImVec4(0.0f, 0.0f, 0.0f, 0.14f);
+        auto shadow = ImVec4(0.0f, 0.0f, 0.0f, 0.06f);
+
+        ImDrawList_ChannelsSetCurrent(drawList, 0);
+        ImDrawList_AddRectFilled(
+            drawList,
+            state.startPos,
+            ImVec2(state.startPos.x + state.width, endPos.y - 2.0f),
+            igGetColorU32(ImVec4(frameBg.x, frameBg.y, frameBg.z, 0.94f)),
+            6.0f
+        );
+        ImDrawList_AddRect(
+            drawList,
+            state.startPos,
+            ImVec2(state.startPos.x + state.width, endPos.y - 2.0f),
+            igGetColorU32(border),
+            6.0f
+        );
+        if (state.open) {
+            ImDrawList_AddLine(
+                drawList,
+                ImVec2(state.startPos.x + 4.0f, state.headerBottom.y),
+                ImVec2(state.startPos.x + state.width - 4.0f, state.headerBottom.y),
+                igGetColorU32(ImVec4(border.x, border.y, border.z, 0.10f)),
+                1.0f
+            );
+        }
+        ImDrawList_AddRectFilled(
+            drawList,
+            ImVec2(state.startPos.x, endPos.y - 3.0f),
+            ImVec2(state.startPos.x + state.width, endPos.y - 1.0f),
+            igGetColorU32(shadow),
+            6.0f
+        );
+        ImDrawList_ChannelsSetCurrent(drawList, 1);
+        ImDrawList_ChannelsMerge(drawList);
+
+        uiImDummy(vec2(0, 4));
+    }
+
     // Refreshes the list of tracking sources
     void refresh(ref TrackingBinding[] trackingBindings) {
         auto blendshapes = insScene.space.getAllBlendshapeNames();
@@ -429,9 +536,7 @@ private:
             int indexToRemove = -1;
             foreach (idx, item; cBinding.bindingMap) {
                 uiImPush(cast(int)idx + 1);
-                uiImIndent();
-                // call for every binding.
-                    if (uiImBeginCategory("#%d".format(idx).toStringz)) {
+                if (beginBindingCard(bindingCardTitle(item))) {
                         settingsPopup(&cBinding.bindingMap[idx]);
                         igSameLine();
                         float weight = item.weight;
@@ -458,9 +563,8 @@ private:
                             default:
                                 break;
                         }
-                    }
-                    uiImEndCategory();
-                uiImUnindent();
+                }
+                endBindingCard();
                 uiImPop();
             }
             if (indexToRemove >= 0) {

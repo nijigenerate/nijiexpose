@@ -71,9 +71,7 @@ class Scene {
 
     void init() {
         insScene.space = insLoadVSpace();
-        auto tex = ShallowTexture(cast(ubyte[])import("tex/ui-delete.png"));
-        inTexPremultiply(tex.data);
-        trashcanTexture = new Texture(tex);
+        ShallowTexture tex;
         AppBatch = new SpriteBatch();
 
         insScene.bgPath = inSettingsGet!string("bgPath");
@@ -121,43 +119,6 @@ class Scene {
 
         // Update virtual spaces
         this.space.update();
-
-        // Render the waifu trashcan outside of the main FB
-        glEnable(GL_BLEND);
-        glDisable(GL_DEPTH_TEST);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        trashcanVisibility = dampen(trashcanVisibility, isDragDown ? 0.85 : 0, deltaTime(), 1);
-        {
-            float trashcanScale = 1f;
-            float sizeOffset = 0f;
-
-
-            if (isMouseOverDelete) {
-                float scalePercent = (sin(currentTime()*2)+1)/2;
-                trashcanScale += 0.15*scalePercent;
-                sizeOffset = ((trashcanSize*trashcanScale)-trashcanSize)/2;
-            }
-
-            AppBatch.draw(
-                trashcanTexture,
-                rect(
-                    TRASHCAN_DISPLACEMENT-sizeOffset, 
-                    viewportHeight-(trashcanSize+TRASHCAN_DISPLACEMENT+sizeOffset),
-                    trashcanSize*trashcanScale, 
-                    trashcanSize*trashcanScale
-                ),
-                rect.init,
-                vec2(0),
-                0,
-                SpriteFlip.None,
-                vec4(1, 1, 1, trashcanVisibility)
-            );
-            AppBatch.flush();
-            glFlush();
-        }
-        glDisable(GL_BLEND);
 
         inBeginScene();
 
@@ -247,6 +208,22 @@ class Scene {
         return this.sceneItems[selectedPuppet];
     }
 
+    bool deleteSelectedSceneItem() {
+        if (selectedPuppet < 0 || selectedPuppet >= this.sceneItems.length) {
+            return false;
+        }
+
+        import std.algorithm.mutation : remove;
+        this.sceneItems = this.sceneItems.remove(selectedPuppet);
+        selectedPuppet = -1;
+        draggingItem = ItemHitTest.init;
+        movingTarget = null;
+        hasDonePuppetSelect = false;
+        isDragDown = false;
+        insTrackingPanelRefresh();
+        return true;
+    }
+
     void interact() {
 
         // Skip doing stuff is mouse drag begin in the UI
@@ -254,10 +231,6 @@ class Scene {
 
         int width, height;
         inGetViewport(width, height);
-        
-        deleteArea = rect(0, height-(TRASHCAN_DISPLACEMENT+trashcanSize), trashcanSize+TRASHCAN_DISPLACEMENT, trashcanSize+TRASHCAN_DISPLACEMENT);
-        isMouseOverDelete = deleteArea.intersects(inInputMousePosition());
-
         import std.stdio : writeln;
         inCamera = inGetCamera();
         vec2 mousePos = inInputMousePosition();
@@ -372,21 +345,7 @@ class Scene {
                 (inCamera.position.y+camPosClampY)*inCamera.scale.y
             );
             // Apply Movement + Scaling
-            if (isMouseOverDelete) {
-
-                // If the mouse was let go
-                if (isDragDown && !inInputMouseDown(MouseButton.Left)) {
-                    if (selectedPuppet >= 0 && selectedPuppet < insScene.sceneItems.length) {
-                        
-                        import std.algorithm.mutation : remove;
-                        insScene.sceneItems = insScene.sceneItems.remove(selectedPuppet);
-                        draggingItem.item = null;
-                        selectedPuppet = -1;
-                        isDragDown = false;
-                        return;
-                    }
-                }
-            } else if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
+            if (igIsKeyDown(ImGuiKey.LeftCtrl) || igIsKeyDown(ImGuiKey.RightCtrl)) {
                 int insertAfter(ref SceneItem[] items, SceneItem previous, SceneItem target) {
                     int insertAfterAux(ref SceneItem[] items, SceneItem previous, SceneItem target, ref int baseIndex, bool rootOnly = false) {
                         int result = -1;
@@ -447,40 +406,19 @@ class Scene {
             }
             
 
-            if (isDragDown && isMouseOverDelete) {
-                
-
-                draggingItem.item.puppet.transform.translation = dampen(
-                    draggingItem.item.puppet.transform.translation,
-                    vec3(
-                        (inCamera.position.x+(-cameraCenter.x)+128), 
-                        (inCamera.position.y+(cameraCenter.y)-128), 
-                        0
-                    ),
+            if (movingTarget !is null) {
+                movingTarget.puppet.transform.translation = dampen(
+                    movingTarget.puppet.transform.translation,
+                    vec3(movingTarget.targetPos, 0),
                     inGetDeltaTime()
                 );
 
                 // Dampen & clamp scaling
-                draggingItem.item.puppet.transform.scale = dampen(
-                    draggingItem.item.puppet.transform.scale,
-                    vec2(0.025),
+                movingTarget.puppet.transform.scale = dampen(
+                    movingTarget.puppet.transform.scale,
+                    vec2(movingTarget.targetScale),
                     inGetDeltaTime()
                 );
-            } else {
-                if (movingTarget !is null) {
-                    movingTarget.puppet.transform.translation = dampen(
-                        movingTarget.puppet.transform.translation,
-                        vec3(movingTarget.targetPos, 0),
-                        inGetDeltaTime()
-                    );
-
-                    // Dampen & clamp scaling
-                    movingTarget.puppet.transform.scale = dampen(
-                        movingTarget.puppet.transform.scale,
-                        vec2(movingTarget.targetScale),
-                        inGetDeltaTime()
-                    );
-                }
             }
         } else isDragDown = false;
     }
@@ -506,13 +444,6 @@ private {
 
     bool isDragDown = false;
     Camera inCamera;
-
-    enum TRASHCAN_DISPLACEMENT = 16;
-    float trashcanVisibility = 0;
-    float trashcanSize = 64;
-    Texture trashcanTexture;
-    rect deleteArea;
-    bool isMouseOverDelete;
 
 }
 
