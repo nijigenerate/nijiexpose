@@ -7,6 +7,7 @@
 */
 module nijiexpose.windows.spaceedit;
 import nijiexpose.scene;
+import nijiexpose.tracking.tracker : neTracker;
 import nijiexpose.tracking.vspace;
 import nijiexpose.panels.tracking;
 import nijiexpose.log;
@@ -25,6 +26,15 @@ class SpaceEditor : ToolWindow {
 private:
     VirtualSpaceZone editingZone;
     string newZoneName;
+    void applyChanges() {
+        insScene.space.refresh();
+        insSaveVSpace(insScene.space);
+        neTrackingPanelReset();
+        insTrackingPanelRefresh();
+        if (neTracker.enabled) {
+            neTracker.setupVSpace();
+        }
+    }
 
     void addZone() {
         if (newZoneName.length == 0) {
@@ -324,16 +334,10 @@ public:
         }
         uiImEndChild();
 
-        uiImDummy(vec2(-132, 0));
+        uiImDummy(vec2(-64, 0));
         uiImSameLine(0, 0);
-        if (uiImButton(__("Cancel"), vec2(64, 0))) {
-            this.close();
-        }
-        uiImSameLine(0, 4);
-        if (uiImButton(__("Save"), vec2(64, 0))) {
-            insSaveVSpace(insScene.space);
-            neTrackingPanelReset();
-            this.close();
+        if (uiImButton(__("Apply"), vec2(64, 0))) {
+            applyChanges();
         }
     }
 

@@ -22,6 +22,50 @@ import std.algorithm.mutation;
 class SettingWindow : ToolWindow {
 private:
     bool prevMeasureFPS;
+    Tracker trackerDraft;
+    bool trackerDraftLoaded = false;
+    int throttlingDraft = 1;
+    bool tripleFallbackDraft = false;
+
+    void copyTrackerState(ref Tracker dst, ref Tracker src) {
+        dst.enabled = src.enabled;
+        dst.flipped = src.flipped;
+        dst.showWindow = src.showWindow;
+        dst.hostname = src.hostname;
+        dst.port = src.port;
+        dst.device = src.device;
+        dst.trackerPath = src.trackerPath;
+    }
+
+    void ensureDraftLoaded() {
+        if (trackerDraftLoaded) return;
+        auto tracker = neTracker();
+        if (trackerDraft is null) {
+            trackerDraft = new Tracker();
+        }
+        copyTrackerState(trackerDraft, tracker);
+        throttlingDraft = inSettingsGet!int("throttlingRate", 1);
+        tripleFallbackDraft = inSettingsGet!bool("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
+        trackerDraftLoaded = true;
+    }
+
+    void applySettings() {
+        ensureDraftLoaded();
+        auto tracker = neTracker();
+        copyTrackerState(tracker, trackerDraft);
+        inSettingsSet("tracker", tracker);
+        inSettingsSet("throttlingRate", throttlingDraft);
+        neWindowSetThrottlingRate(throttlingDraft);
+        inSettingsSet("TripleBufferFallback", tripleFallbackDraft);
+        nlSetTripleBufferFallback(tripleFallbackDraft);
+        inSettingsSave();
+        if (tracker.enabled) {
+            tracker.restart();
+            tracker.setupVSpace();
+        } else {
+            tracker.terminate();
+        }
+    }
 public:
     SelectedMode selected = SelectedMode.Tracking;
     string pythonPath = null;
@@ -53,6 +97,7 @@ public:
 
     override
     void onUpdate() {
+        ensureDraftLoaded();
         vec2 avail = uiImAvailableSpace();
         float lhs = 196;
         float rhs = avail.x-lhs;
@@ -78,10 +123,8 @@ public:
             case SelectedMode.Tracking:
                 if (uiImHeader(__("Tracking"), true)) {
                     uiImIndent();
-                        auto tracker = neTracker();
-                        if (uiImCheckbox(__("Enable tracking"), tracker.enabled)) {
-                            inSettingsSet("tracker", tracker);
-                        }
+                        auto tracker = trackerDraft;
+                        uiImCheckbox(__("Enable tracking"), tracker.enabled);
                         if (tracker.enabled) {
                             tracker.update();
                             if (uiImBeginCategory("##tracker")) {
@@ -98,9 +141,7 @@ public:
                                 }
                                 uiImLabel(_("Tracker executable path"));
                                 uiImSameLine();
-                                if (uiImInputText("##trackerPath", tracker.trackerPath)) {
-                                    inSettingsSet("tracker", tracker);
-                                }
+                                uiImInputText("##trackerPath", tracker.trackerPath);
                                 if (!tracker.scriptPath.exists) {
                                     uiImLabelColored(_("Specified path doesn't contain %s").format(tracker.trackerScriptName), vec4(0.95, 0.5, 0.5, 1));
                                     uiImSameLine();
@@ -132,7 +173,6 @@ public:
                                             foreach (device; deviceList) {
                                                 if (uiImSelectable(device.name.toStringz, device.id == tracker.device)) {
                                                     tracker.device = device.id;
-                                                    inSettingsSet("tracker", tracker);
                                                 }
                                             }
                                         }
@@ -140,20 +180,12 @@ public:
                                     }
                                     uiImLabel(_("Host name"));
                                     uiImSameLine();
-                                    if (uiImInputText("##host", tracker.hostname)) {
-                                        inSettingsSet("tracker", tracker);
-                                    }
+                                    uiImInputText("##host", tracker.hostname);
                                     uiImLabel(_("Port number"));
                                     uiImSameLine();
-                                    if (igInputInt("##PortNumber", cast(int*)&tracker.port)) {
-                                        inSettingsSet("tracker", tracker);
-                                    }
-                                    if (uiImCheckbox(__("Flip input"), tracker.flipped)) {
-                                        inSettingsSet("tracker", tracker);
-                                    }
-                                    if (uiImCheckbox(__("Show camera tracking window"), tracker.showWindow)) {
-                                        inSettingsSet("tracker", tracker);
-                                    }
+                                    igInputInt("##PortNumber", cast(int*)&tracker.port);
+                                    uiImCheckbox(__("Flip input"), tracker.flipped);
+                                    uiImCheckbox(__("Show camera tracking window"), tracker.showWindow);
                                 }
                             }
                             uiImEndCategory();
@@ -166,22 +198,14 @@ public:
                     uiImIndent();
                         uiImLabel("%s (%s)".format(_("Throtting interval"), _("Experimental")));
 
-                        int throttling = inSettingsGet!int("throttlingRate", 1);
-                        if (igSliderInt("##THROTTLING", &throttling, 0, 6)) {
-                            inSettingsSet("throttlingRate", throttling);
-                            neWindowSetThrottlingRate(throttling);
-                        }
+                        igSliderInt("##THROTTLING", &throttlingDraft, 0, 6);
                         uiImSameLine();
                         uiImLabel(_("Frame rate: %.2f fps".format(neGetFPS())));
                     uiImUnindent();
                 }
                 if (uiImHeader(__("Triple buffer fallback"), true)) {
                     uiImIndent();
-                        bool tripleFallback = inSettingsGet!bool("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
-                        if (uiImCheckbox(__("Enable triple buffer fallback"), tripleFallback)) {
-                            inSettingsSet("TripleBufferFallback", tripleFallback);
-                            nlSetTripleBufferFallback(tripleFallback);
-                        }
+                        uiImCheckbox(__("Enable triple buffer fallback"), tripleFallbackDraft);
                         uiImLabel(_("Use when advanced blend is unavailable or causes issues."));
                     uiImUnindent();
                 }
@@ -193,17 +217,15 @@ public:
 
         uiImDummy(vec2(-64, 0));
         uiImSameLine(0, 0);
-        if (uiImButton(__("OK"), vec2(64, 0))) {
-                import std.stdio;
-            if (neTracker.enabled) {
-                neTracker.restart();
-                neTracker.setupVSpace();
-            } else {
-                neTracker.terminate();
-            }
-            neSetMeasureFPS(prevMeasureFPS);
-            this.close();
+        if (uiImButton(__("Apply"), vec2(64, 0))) {
+            applySettings();
         }
+    }
+
+    override
+    void onClose() {
+        trackerDraftLoaded = false;
+        neSetMeasureFPS(prevMeasureFPS);
     }
 
 
