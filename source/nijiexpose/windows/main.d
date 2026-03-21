@@ -31,6 +31,7 @@ import nijiexpose.ver;
 import bindbc.opengl;
 import bindbc.imgui;
 import std.algorithm.comparison : min, max;
+import std.exception : enforce;
 import std.path;
 import std.string;
 
@@ -71,7 +72,7 @@ private {
 
     enum vec4 RAIL_BG = vec4(0.97f, 0.98f, 0.99f, 0.84f);
     enum vec4 RAIL_BORDER = vec4(0.12f, 0.16f, 0.23f, 0.10f);
-    enum vec4 OVERLAY_BG = vec4(0.97f, 0.98f, 0.99f, 0.62f);
+    enum vec4 OVERLAY_BG = vec4(0.97f, 0.98f, 0.99f, 0.72f);
     enum vec4 OVERLAY_BORDER = vec4(0.12f, 0.16f, 0.23f, 0.10f);
     enum vec4 ACCENT = vec4(0.70f, 0.25f, 0.00f, 1.00f);
     enum vec4 ACCENT_SOFT = vec4(0.70f, 0.25f, 0.00f, 0.14f);
@@ -82,6 +83,9 @@ private {
     enum float OUTER_GAP = 18.0f;
     enum float RAIL_TOP = 18.0f;
     enum float RAIL_BOTTOM = 18.0f;
+    enum float NAV_ICON_SCALE = 1.18f;
+    enum float NAV_LABEL_SCALE = 1.08f;
+    enum float NAV_CLOSE_SCALE = 1.10f;
 
     struct InochiWindowSettings {
         int width;
@@ -122,6 +126,16 @@ private:
     version (InBranding) Texture logo;
     SettingWindow settingWindow;
     SpaceEditor spaceEditor;
+    GLuint overlayBlurTextureA = 0;
+    GLuint overlayBlurTextureB = 0;
+    GLuint overlayBlurFboA = 0;
+    GLuint overlayBlurFboB = 0;
+    GLuint overlayBlurProgram = 0;
+    GLuint overlayBlurVao = 0;
+    GLint overlayBlurSourceLocation = -1;
+    GLint overlayBlurTexelStepLocation = -1;
+    int overlayBlurWidth = 0;
+    int overlayBlurHeight = 0;
     ActivePanelId activePanel = ActivePanelId.Scene;
     bool navExpanded = false;
     bool overlayOpen = true;
@@ -219,6 +233,297 @@ private:
         return id == ActivePanelId.Tracking;
     }
 
+    void destroyOverlayBlurResources() {
+        if (overlayBlurProgram != 0) {
+            glDeleteProgram(overlayBlurProgram);
+            overlayBlurProgram = 0;
+        }
+        if (overlayBlurVao != 0) {
+            glDeleteVertexArrays(1, &overlayBlurVao);
+            overlayBlurVao = 0;
+        }
+        if (overlayBlurFboA != 0) {
+            glDeleteFramebuffers(1, &overlayBlurFboA);
+            overlayBlurFboA = 0;
+        }
+        if (overlayBlurFboB != 0) {
+            glDeleteFramebuffers(1, &overlayBlurFboB);
+            overlayBlurFboB = 0;
+        }
+        if (overlayBlurTextureA != 0) {
+            glDeleteTextures(1, &overlayBlurTextureA);
+            overlayBlurTextureA = 0;
+        }
+        if (overlayBlurTextureB != 0) {
+            glDeleteTextures(1, &overlayBlurTextureB);
+            overlayBlurTextureB = 0;
+        }
+        overlayBlurWidth = 0;
+        overlayBlurHeight = 0;
+        overlayBlurSourceLocation = -1;
+        overlayBlurTexelStepLocation = -1;
+    }
+
+    GLuint compileOverlayBlurShader(GLenum stage, string source) {
+        GLuint shader = glCreateShader(stage);
+        auto ptr = source.ptr;
+        glShaderSource(shader, 1, &ptr, null);
+        glCompileShader(shader);
+
+        GLint status = GL_FALSE;
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+        if (status == GL_TRUE) {
+            return shader;
+        }
+
+        GLint length = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+        string message = "unknown";
+        if (length > 0) {
+            char[] buffer = new char[length];
+            glGetShaderInfoLog(shader, length, null, buffer.ptr);
+            message = cast(string)buffer;
+        }
+
+        glDeleteShader(shader);
+        throw new Exception("Failed to compile overlay blur shader: " ~ message);
+    }
+
+    GLuint linkOverlayBlurProgram(GLuint vertexShader, GLuint fragmentShader) {
+        GLuint program = glCreateProgram();
+        glAttachShader(program, vertexShader);
+        glAttachShader(program, fragmentShader);
+        glLinkProgram(program);
+
+        GLint status = GL_FALSE;
+        glGetProgramiv(program, GL_LINK_STATUS, &status);
+        if (status == GL_TRUE) {
+            return program;
+        }
+
+        GLint length = 0;
+        glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+        string message = "unknown";
+        if (length > 0) {
+            char[] buffer = new char[length];
+            glGetProgramInfoLog(program, length, null, buffer.ptr);
+            message = cast(string)buffer;
+        }
+
+        glDeleteProgram(program);
+        throw new Exception("Failed to link overlay blur shader program: " ~ message);
+    }
+
+    void ensureOverlayBlurProgram() {
+        if (overlayBlurProgram != 0 && overlayBlurVao != 0) return;
+
+        enum string vertSource = q{
+            #version 330 core
+            out vec2 vUV;
+            const vec2 POSITIONS[3] = vec2[](
+                vec2(-1.0, -1.0),
+                vec2( 3.0, -1.0),
+                vec2(-1.0,  3.0)
+            );
+            const vec2 UVS[3] = vec2[](
+                vec2(0.0, 0.0),
+                vec2(2.0, 0.0),
+                vec2(0.0, 2.0)
+            );
+            void main() {
+                gl_Position = vec4(POSITIONS[gl_VertexID], 0.0, 1.0);
+                vUV = UVS[gl_VertexID];
+            }
+        };
+        enum string fragSource = q{
+            #version 330 core
+            in vec2 vUV;
+            out vec4 fragColor;
+            uniform sampler2D uSource;
+            uniform vec2 uTexelStep;
+            vec4 sampleAt(vec2 uv) {
+                return texture(uSource, clamp(uv, vec2(0.0), vec2(1.0)));
+            }
+            void main() {
+                vec4 color = sampleAt(vUV) * 0.2270270270;
+                color += sampleAt(vUV + uTexelStep * 1.3846153846) * 0.3162162162;
+                color += sampleAt(vUV - uTexelStep * 1.3846153846) * 0.3162162162;
+                color += sampleAt(vUV + uTexelStep * 3.2307692308) * 0.0702702703;
+                color += sampleAt(vUV - uTexelStep * 3.2307692308) * 0.0702702703;
+                fragColor = color;
+            }
+        };
+
+        GLuint vertShader = compileOverlayBlurShader(GL_VERTEX_SHADER, vertSource);
+        GLuint fragShader = compileOverlayBlurShader(GL_FRAGMENT_SHADER, fragSource);
+        overlayBlurProgram = linkOverlayBlurProgram(vertShader, fragShader);
+        glDeleteShader(vertShader);
+        glDeleteShader(fragShader);
+
+        overlayBlurSourceLocation = glGetUniformLocation(overlayBlurProgram, "uSource");
+        overlayBlurTexelStepLocation = glGetUniformLocation(overlayBlurProgram, "uTexelStep");
+
+        glGenVertexArrays(1, &overlayBlurVao);
+    }
+
+    GLuint createOverlayBlurTexture(int texWidth, int texHeight) {
+        GLuint texture = 0;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        return texture;
+    }
+
+    GLuint createOverlayBlurFramebuffer(GLuint texture) {
+        GLuint fbo = 0;
+        glGenFramebuffers(1, &fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+        enforce(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE,
+            "Failed to create overlay blur framebuffer");
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        return fbo;
+    }
+
+    void ensureOverlayBlurResources(int blurW, int blurH) {
+        ensureOverlayBlurProgram();
+        if (overlayBlurWidth == blurW && overlayBlurHeight == blurH
+            && overlayBlurTextureA != 0 && overlayBlurTextureB != 0
+            && overlayBlurFboA != 0 && overlayBlurFboB != 0) {
+            return;
+        }
+
+        if (overlayBlurFboA != 0) glDeleteFramebuffers(1, &overlayBlurFboA);
+        if (overlayBlurFboB != 0) glDeleteFramebuffers(1, &overlayBlurFboB);
+        if (overlayBlurTextureA != 0) glDeleteTextures(1, &overlayBlurTextureA);
+        if (overlayBlurTextureB != 0) glDeleteTextures(1, &overlayBlurTextureB);
+
+        overlayBlurWidth = blurW;
+        overlayBlurHeight = blurH;
+        overlayBlurTextureA = createOverlayBlurTexture(blurW, blurH);
+        overlayBlurTextureB = createOverlayBlurTexture(blurW, blurH);
+        overlayBlurFboA = createOverlayBlurFramebuffer(overlayBlurTextureA);
+        overlayBlurFboB = createOverlayBlurFramebuffer(overlayBlurTextureB);
+    }
+
+    void runOverlayBlurPass(GLuint sourceTexture, GLuint targetFbo, float texelStepX, float texelStepY) {
+        glBindFramebuffer(GL_FRAMEBUFFER, targetFbo);
+        glViewport(0, 0, overlayBlurWidth, overlayBlurHeight);
+        glUseProgram(overlayBlurProgram);
+        glUniform1i(overlayBlurSourceLocation, 0);
+        glUniform2f(overlayBlurTexelStepLocation, texelStepX, texelStepY);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, sourceTexture);
+        glBindVertexArray(overlayBlurVao);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
+
+    void updateOverlayBlurTexture() {
+        if (!showUI || !overlayOpen || width <= 0 || height <= 0) return;
+
+        immutable int blurW = max(1, width / 4);
+        immutable int blurH = max(1, height / 4);
+        ensureOverlayBlurResources(blurW, blurH);
+
+        GLint previousReadFbo = 0;
+        GLint previousDrawFbo = 0;
+        GLint previousProgram = 0;
+        GLint previousVao = 0;
+        GLint previousTexture = 0;
+        GLint previousActiveTexture = 0;
+        GLint[4] previousViewport;
+        bool wasBlendEnabled = glIsEnabled(GL_BLEND) == GL_TRUE;
+        bool wasDepthEnabled = glIsEnabled(GL_DEPTH_TEST) == GL_TRUE;
+        bool wasScissorEnabled = glIsEnabled(GL_SCISSOR_TEST) == GL_TRUE;
+        bool wasCullEnabled = glIsEnabled(GL_CULL_FACE) == GL_TRUE;
+
+        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previousReadFbo);
+        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previousDrawFbo);
+        glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgram);
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVao);
+        glGetIntegerv(GL_ACTIVE_TEXTURE, &previousActiveTexture);
+        glActiveTexture(GL_TEXTURE0);
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTexture);
+        glGetIntegerv(GL_VIEWPORT, previousViewport.ptr);
+
+        glDisable(GL_BLEND);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_CULL_FACE);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, overlayBlurFboA);
+        glBlitFramebuffer(0, 0, width, height, 0, 0, blurW, blurH, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+        immutable float texelX = 1.0f / cast(float)blurW;
+        immutable float texelY = 1.0f / cast(float)blurH;
+        runOverlayBlurPass(overlayBlurTextureA, overlayBlurFboB, texelX * 2.2f, 0.0f);
+        runOverlayBlurPass(overlayBlurTextureB, overlayBlurFboA, 0.0f, texelY * 2.2f);
+        runOverlayBlurPass(overlayBlurTextureA, overlayBlurFboB, texelX * 3.6f, 0.0f);
+        runOverlayBlurPass(overlayBlurTextureB, overlayBlurFboA, 0.0f, texelY * 3.6f);
+
+        glBindTexture(GL_TEXTURE_2D, cast(GLuint)previousTexture);
+        glActiveTexture(cast(GLenum)previousActiveTexture);
+        glBindVertexArray(cast(GLuint)previousVao);
+        glUseProgram(cast(GLuint)previousProgram);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, cast(GLuint)previousReadFbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, cast(GLuint)previousDrawFbo);
+        glViewport(previousViewport[0], previousViewport[1], previousViewport[2], previousViewport[3]);
+
+        if (wasBlendEnabled) glEnable(GL_BLEND); else glDisable(GL_BLEND);
+        if (wasDepthEnabled) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+        if (wasScissorEnabled) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+        if (wasCullEnabled) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
+    }
+
+    void drawBlurBackdrop(float x, float y, float w, float h, float rounding) {
+        if (overlayBlurTextureA == 0 || overlayBlurWidth <= 0 || overlayBlurHeight <= 0) return;
+
+        auto bgDrawList = igGetBackgroundDrawList_Nil();
+        auto textureId = cast(ImTextureID)overlayBlurTextureA;
+        float u0 = x / cast(float)width;
+        float v0 = 1.0f - (y / cast(float)height);
+        float u1 = (x + w) / cast(float)width;
+        float v1 = 1.0f - ((y + h) / cast(float)height);
+
+        ImDrawList_AddImageRounded(
+            bgDrawList,
+            textureId,
+            ImVec2(x, y),
+            ImVec2(x + w, y + h),
+            ImVec2(u0, v0),
+            ImVec2(u1, v1),
+            igColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.88f)),
+            rounding
+        );
+
+        immutable float inset = 2.0f;
+        ImDrawList_AddImageRounded(
+            bgDrawList,
+            textureId,
+            ImVec2(x + inset, y + inset),
+            ImVec2(x + w - inset, y + h - inset),
+            ImVec2(u0, v0),
+            ImVec2(u1, v1),
+            igColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.45f)),
+            max(0.0f, rounding - 2.0f)
+        );
+    }
+
+    string iconFor(ActivePanelId id) {
+        foreach (item; NAV_ITEMS) {
+            if (item.id == id) {
+                return item.icon;
+            }
+        }
+        return "\ue2c8";
+    }
+
     bool drawNavEntry(string id, string icon, string label, bool selected, bool compact) {
         ImVec2 pos;
         igGetCursorScreenPos(&pos);
@@ -240,19 +545,27 @@ private:
 
         vec4 iconColor = selected ? ACCENT : vec4(0.70f, 0.25f, 0.00f, 0.90f);
         iconColor = withAlpha(iconColor, visualAlpha);
+        auto font = igGetFont();
+        float baseFontSize = igGetFontSize();
+        float iconFontSize = baseFontSize * NAV_ICON_SCALE;
         ImVec2 iconSize;
         igCalcTextSize(&iconSize, icon.toStringz);
+        iconSize.x *= NAV_ICON_SCALE;
+        iconSize.y *= NAV_ICON_SCALE;
         ImVec2 iconPos = ImVec2(minPos.x + 22.0f - (iconSize.x * 0.5f), minPos.y + ((height - iconSize.y) * 0.5f));
-        ImDrawList_AddText(drawList, iconPos, igColorConvertFloat4ToU32(ImVec4(iconColor.x, iconColor.y, iconColor.z, iconColor.w)), icon.toStringz);
+        ImDrawList_AddText(drawList, font, iconFontSize, iconPos, igColorConvertFloat4ToU32(ImVec4(iconColor.x, iconColor.y, iconColor.z, iconColor.w)), icon.toStringz);
 
         if (!compact && navExpanded) {
             vec4 labelColor = selected ? vec4(0.45f, 0.18f, 0.00f, 1.00f) : vec4(0.12f, 0.16f, 0.23f, 0.90f);
             labelColor = withAlpha(labelColor, visualAlpha);
+            float labelFontSize = baseFontSize * NAV_LABEL_SCALE;
             ImVec2 labelSize;
             auto translated = _(label);
             igCalcTextSize(&labelSize, translated.toStringz);
+            labelSize.x *= NAV_LABEL_SCALE;
+            labelSize.y *= NAV_LABEL_SCALE;
             ImVec2 labelPos = ImVec2(minPos.x + 48.0f, minPos.y + ((height - labelSize.y) * 0.5f));
-            ImDrawList_AddText(drawList, labelPos, igColorConvertFloat4ToU32(ImVec4(labelColor.x, labelColor.y, labelColor.z, labelColor.w)), translated.toStringz);
+            ImDrawList_AddText(drawList, font, labelFontSize, labelPos, igColorConvertFloat4ToU32(ImVec4(labelColor.x, labelColor.y, labelColor.z, labelColor.w)), translated.toStringz);
         }
 
         if (hovered) {
@@ -278,10 +591,14 @@ private:
             );
         }
         iconColor = withAlpha(iconColor, visualAlpha);
+        auto font = igGetFont();
+        float iconFontSize = igGetFontSize() * NAV_ICON_SCALE;
         ImVec2 iconSize;
         igCalcTextSize(&iconSize, icon.toStringz);
+        iconSize.x *= NAV_ICON_SCALE;
+        iconSize.y *= NAV_ICON_SCALE;
         ImVec2 iconPos = ImVec2(pos.x + ((size - iconSize.x) * 0.5f), pos.y + ((size - iconSize.y) * 0.5f));
-        ImDrawList_AddText(drawList, iconPos, igColorConvertFloat4ToU32(ImVec4(iconColor.x, iconColor.y, iconColor.z, iconColor.w)), icon.toStringz);
+        ImDrawList_AddText(drawList, font, iconFontSize, iconPos, igColorConvertFloat4ToU32(ImVec4(iconColor.x, iconColor.y, iconColor.z, iconColor.w)), icon.toStringz);
         return clicked;
     }
 
@@ -455,6 +772,7 @@ private:
         }
 
         {
+            drawBlurBackdrop(overlayX, overlayY, overlayW, overlayH, 18.0f);
             auto bgDrawList = igGetBackgroundDrawList_Nil();
             ImVec2 shadowMin = ImVec2(overlayX, overlayY);
             ImVec2 shadowMax = ImVec2(overlayX + overlayW, overlayY + overlayH);
@@ -477,7 +795,7 @@ private:
         igPushStyleColor(ImGuiCol.WindowBg, ImVec4(OVERLAY_BG.x, OVERLAY_BG.y, OVERLAY_BG.z, OVERLAY_BG.w));
         igPushStyleColor(ImGuiCol.Border, ImVec4(OVERLAY_BORDER.x, OVERLAY_BORDER.y, OVERLAY_BORDER.z, OVERLAY_BORDER.w));
         igPushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.0f);
-        igPushStyleVar(ImGuiStyleVar.WindowPadding, ImVec2(16, 14));
+        igPushStyleVar(ImGuiStyleVar.WindowPadding, parameterOverlay ? ImVec2(0, 0) : ImVec2(16, 14));
         igPushStyleVar(ImGuiStyleVar.WindowRounding, 13.0f);
         scope(exit) {
             igPopStyleVar(3);
@@ -503,11 +821,25 @@ private:
         }
 
         if (igBegin(windowTitle.toStringz, null, flags)) {
+            if (parameterOverlay) {
+                igSetCursorPos(ImVec2(16, 14));
+            }
             igPushStyleVar(ImGuiStyleVar.FramePadding, ImVec2(8, 6));
             scope(exit) igPopStyleVar();
 
             ImVec2 headerStart;
             igGetCursorScreenPos(&headerStart);
+            auto drawList = igGetWindowDrawList();
+            auto font = igGetFont();
+            float headerIconSize = igGetFontSize() * NAV_ICON_SCALE;
+            string headerIcon = iconFor(activePanel);
+            ImVec2 iconSize;
+            igCalcTextSize(&iconSize, headerIcon.toStringz);
+            iconSize.x *= NAV_ICON_SCALE;
+            iconSize.y *= NAV_ICON_SCALE;
+            ImVec2 iconPos = ImVec2(headerStart.x, headerStart.y + max(0.0f, (20.0f - iconSize.y) * 0.5f));
+            ImDrawList_AddText(drawList, font, headerIconSize, iconPos, igColorConvertFloat4ToU32(ImVec4(ACCENT.x, ACCENT.y, ACCENT.z, ACCENT.w)), headerIcon.toStringz);
+            igSetCursorScreenPos(ImVec2(headerStart.x + 30.0f, headerStart.y));
             uiImLabelColored(title, ACCENT);
             ImVec2 closePos = ImVec2(overlayX + overlayW - 44.0f, headerStart.y);
             if (drawIconOnlyEntry("overlay_close", "\ue5cd", closePos, 28.0f, vec4(0.12f, 0.16f, 0.23f, 0.90f), true)) {
@@ -517,6 +849,9 @@ private:
             igSetCursorScreenPos(ImVec2(headerStart.x, headerStart.y + 28.0f));
 
             uiImSeperator();
+            if (parameterOverlay) {
+                igSetCursorPosX(0);
+            }
             if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, 0), false)) {
                 if (active !is null) {
                     active.updateEmbedded();
@@ -561,6 +896,7 @@ protected:
         insSendFrame();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         oglDrawScene(vec4(0, 0, width, height));
+        updateOverlayBlurTexture();
     }
 
     override
@@ -591,6 +927,7 @@ protected:
 
     override
     void onClosed() {
+        destroyOverlayBlurResources();
     }
 public:
 
