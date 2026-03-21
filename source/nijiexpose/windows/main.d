@@ -111,15 +111,6 @@ void neWindowSetThrottlingRate(int rate) {
     }
 }
 
-private __gshared rect gTrashTargetRect;
-
-void neGetTrashTargetRect(out float x, out float y, out float w, out float h) {
-    x = gTrashTargetRect.x;
-    y = gTrashTargetRect.y;
-    w = gTrashTargetRect.width;
-    h = gTrashTargetRect.height;
-}
-
 class nijiexposeWindow : InApplicationWindow {
 private:
     Adaptor adaptor;
@@ -614,25 +605,25 @@ private:
         }
     }
 
-    void drawTrashTarget(bool compact) {
-        immutable float size = 44.0f;
+    void drawTrashButton(bool compact) {
+        bool clicked;
         if (!compact) {
             ImVec2 winPos;
             igGetWindowPos(&winPos);
             ImVec2 winSize;
             igGetWindowSize(&winSize);
-            immutable float slotX = winPos.x + 10.0f;
-            immutable float slotY = winPos.y + winSize.y - size - 10.0f;
-            immutable float slotW = winSize.x - 20.0f;
-            immutable float slotH = size;
-            ImVec2 pos = ImVec2(slotX + ((slotW - size) * 0.5f), slotY);
-            drawIconOnlyEntry("trash_target", "\ue872", pos, size, vec4(0.70f, 0.25f, 0.00f, 0.90f), true);
-            gTrashTargetRect = rect(slotX, slotY, slotW, slotH);
+            immutable float slotSize = 44.0f;
+            immutable float slotX = winPos.x + ((winSize.x - slotSize) * 0.5f);
+            immutable float slotY = winPos.y + winSize.y - slotSize - 10.0f;
+            clicked = drawIconOnlyEntry("trash_button", "\ue872", ImVec2(slotX, slotY), slotSize, vec4(0.70f, 0.25f, 0.00f, 0.90f), true);
         } else {
             ImVec2 pos;
             igGetCursorScreenPos(&pos);
-            drawIconOnlyEntry("trash_target", "\ue872", pos, size, vec4(0.70f, 0.25f, 0.00f, 0.90f), true);
-            gTrashTargetRect = rect(pos.x, pos.y, size, size);
+            clicked = drawIconOnlyEntry("trash_button", "\ue872", pos, 44.0f, vec4(0.70f, 0.25f, 0.00f, 0.90f), true);
+        }
+
+        if (clicked) {
+            insScene.deleteSelectedSceneItem();
         }
     }
 
@@ -723,9 +714,9 @@ private:
 
             if (compact) {
                 uiImSameLine();
-                drawTrashTarget(true);
+                drawTrashButton(true);
             } else {
-                drawTrashTarget(false);
+                drawTrashButton(false);
             }
         }
         igEnd();
