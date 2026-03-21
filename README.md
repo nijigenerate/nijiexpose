@@ -1,6 +1,6 @@
 # <div align="center"><img src="https://github.com/nijigenerate/nijiexpose/blob/main/res/logo.png" width="384" alt="nijigenerate"></div>
 
-![image](https://github.com/nijigenerate/nijiexpose/assets/449741/5aaf1ea8-a1c4-4408-9823-fc6c4872ca2b)
+<img width="2560" height="1392" alt="image" src="https://github.com/user-attachments/assets/739561a1-d785-4290-a2f0-c763b3fcde0b" />
 
 model by [seagetch](https://twitter.com/seagetch)_
 
