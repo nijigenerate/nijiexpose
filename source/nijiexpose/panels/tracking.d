@@ -70,6 +70,7 @@ private:
     }
 
     BindingCardState[] bindingCardStack;
+    BindingCardState[] bindingGroupStack;
 
     string bindingCardTitle(CompoundTrackingBinding.BindingMap item) {
         final switch (item.type) {
@@ -128,30 +129,30 @@ private:
         auto style = igGetStyle();
         auto drawList = state.drawList;
         auto frameBg = style.Colors[ImGuiCol.FrameBg];
-        auto border = ImVec4(0.0f, 0.0f, 0.0f, 0.14f);
-        auto shadow = ImVec4(0.0f, 0.0f, 0.0f, 0.06f);
+        auto border = ImVec4(0.0f, 0.0f, 0.0f, 0.10f);
+        auto shadow = ImVec4(0.0f, 0.0f, 0.0f, 0.035f);
 
         ImDrawList_ChannelsSetCurrent(drawList, 0);
         ImDrawList_AddRectFilled(
             drawList,
             state.startPos,
             ImVec2(state.startPos.x + state.width, endPos.y - 2.0f),
-            igGetColorU32(ImVec4(frameBg.x, frameBg.y, frameBg.z, 0.94f)),
-            6.0f
+            igGetColorU32(ImVec4(frameBg.x, frameBg.y, frameBg.z, 0.55f)),
+            8.0f
         );
         ImDrawList_AddRect(
             drawList,
             state.startPos,
             ImVec2(state.startPos.x + state.width, endPos.y - 2.0f),
             igGetColorU32(border),
-            6.0f
+            8.0f
         );
         if (state.open) {
             ImDrawList_AddLine(
                 drawList,
-                ImVec2(state.startPos.x + 4.0f, state.headerBottom.y),
-                ImVec2(state.startPos.x + state.width - 4.0f, state.headerBottom.y),
-                igGetColorU32(ImVec4(border.x, border.y, border.z, 0.10f)),
+                ImVec2(state.startPos.x + 8.0f, state.headerBottom.y),
+                ImVec2(state.startPos.x + state.width - 8.0f, state.headerBottom.y),
+                igGetColorU32(ImVec4(border.x, border.y, border.z, 0.16f)),
                 1.0f
             );
         }
@@ -160,12 +161,68 @@ private:
             ImVec2(state.startPos.x, endPos.y - 3.0f),
             ImVec2(state.startPos.x + state.width, endPos.y - 1.0f),
             igGetColorU32(shadow),
-            6.0f
+            8.0f
         );
         ImDrawList_ChannelsSetCurrent(drawList, 1);
         ImDrawList_ChannelsMerge(drawList);
 
-        uiImDummy(vec2(0, 4));
+        uiImDummy(vec2(0, 8));
+    }
+
+    bool beginBindingGroup(string title) {
+        auto drawList = igGetWindowDrawList();
+        ImVec2 startPos;
+        igGetCursorScreenPos(&startPos);
+        float width = uiImAvailableSpace().x;
+        bool open = uiImHeader(title.toStringz, true);
+
+        ImVec2 headerBottom;
+        igGetCursorScreenPos(&headerBottom);
+
+        if (open) {
+            uiImIndent();
+            uiImDummy(vec2(0, 2));
+        }
+
+        bindingGroupStack ~= BindingCardState(drawList, startPos, headerBottom, width, open);
+        return open;
+    }
+
+    void endBindingGroup() {
+        if (bindingGroupStack.length == 0) return;
+
+        auto state = bindingGroupStack[$ - 1];
+        bindingGroupStack.length -= 1;
+
+        if (state.open) {
+            uiImDummy(vec2(0, 2));
+            uiImUnindent();
+        }
+
+        ImVec2 endPos;
+        igGetCursorScreenPos(&endPos);
+
+        if (state.open) {
+            auto drawList = state.drawList;
+            auto border = ImVec4(0.0f, 0.0f, 0.0f, 0.10f);
+            auto shadow = ImVec4(0.0f, 0.0f, 0.0f, 0.035f);
+            ImDrawList_AddRect(
+                drawList,
+                ImVec2(state.startPos.x, state.headerBottom.y + 2.0f),
+                ImVec2(state.startPos.x + state.width, endPos.y - 2.0f),
+                igGetColorU32(border),
+                8.0f
+            );
+            ImDrawList_AddRectFilled(
+                drawList,
+                ImVec2(state.startPos.x, endPos.y - 3.0f),
+                ImVec2(state.startPos.x + state.width, endPos.y - 1.0f),
+                igGetColorU32(shadow),
+                8.0f
+            );
+        }
+
+        uiImDummy(vec2(0, 8));
     }
 
     // Refreshes the list of tracking sources
@@ -536,7 +593,7 @@ private:
             int indexToRemove = -1;
             foreach (idx, item; cBinding.bindingMap) {
                 uiImPush(cast(int)idx + 1);
-                if (beginBindingCard(bindingCardTitle(item))) {
+                if (uiImBeginCategory(bindingCardTitle(item).toStringz)) {
                         settingsPopup(&cBinding.bindingMap[idx]);
                         igSameLine();
                         float weight = item.weight;
@@ -564,7 +621,7 @@ private:
                                 break;
                         }
                 }
-                endBindingCard();
+                uiImEndCategory();
                 uiImPop();
             }
             if (indexToRemove >= 0) {
@@ -613,34 +670,33 @@ protected:
 
             foreach(i, ref TrackingBinding binding; item.bindings) {
                 uiImPush(&binding);
-                    if (uiImHeader(binding.name.toStringz, true)) {
-                        uiImIndent();
-                            switch(binding.type) {
+                    if (uiImBeginCategory(binding.name.toStringz)) {
+                        switch(binding.type) {
 
-                                case BindingType.RatioBinding:
-                                    ratioBinding(i, binding.delegated);
-                                    break;
+                            case BindingType.RatioBinding:
+                                ratioBinding(i, binding.delegated);
+                                break;
 
-                                case BindingType.ExpressionBinding:
-                                    exprBinding(i, binding.delegated);
-                                    break;
+                            case BindingType.ExpressionBinding:
+                                exprBinding(i, binding.delegated);
+                                break;
 
-                                case BindingType.EventBinding:
-                                    eventBinding(i, binding.delegated);
-                                    break;
+                            case BindingType.EventBinding:
+                                eventBinding(i, binding.delegated);
+                                break;
 
-                                case BindingType.CompoundBinding:
-                                    compoundBinding(i, binding.delegated);
-                                    break;
+                            case BindingType.CompoundBinding:
+                                compoundBinding(i, binding.delegated);
+                                break;
 
-                                // External bindings
-                                default: 
-                                    settingsPopup(binding);
-                                    uiImLabel(_("No settings available."));
-                                    break;
-                            }
-                        uiImUnindent();
+                            // External bindings
+                            default: 
+                                settingsPopup(binding);
+                                uiImLabel(_("No settings available."));
+                                break;
+                        }
                     }
+                    uiImEndCategory();
                 uiImPop();
             }
         } else uiImLabel(_("No puppet selected"));

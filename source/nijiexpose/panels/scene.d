@@ -52,14 +52,10 @@ private:
 
 protected:
 
-    override 
-    void onUpdate() {
-
-        
+public:
+    void renderSceneSettingsContent() {
         uiImLabelColored(_("Post Processing"), vec4(0.8, 0.3, 0.3, 1));
         uiImSeperator();
-
-        
         uiImIndent();
             if (uiImCheckbox(__("Enabled###POST_PROCESSING"), insScene.shouldPostProcess)) {
                 inSettingsSet!(bool)("shouldPostProcess", insScene.shouldPostProcess);
@@ -159,6 +155,11 @@ protected:
                 this.loadBackground(null);
             }
         }
+    }
+
+    override 
+    void onUpdate() {
+        renderSceneSettingsContent();
     }
 
 public:

@@ -47,6 +47,14 @@ private:
         refreshOptionsList();
     }
 
+    void ensureEditingZone() {
+        if (editingZone !is null) return;
+        auto zones = insScene.space.getZones();
+        if (zones.length > 0) {
+            switchZone(zones[0]);
+        }
+    }
+
     void refreshOptionsList() {
         options.clear();
         if (editingZone is null) return;
@@ -303,6 +311,149 @@ public:
             if (uiImButton(__("Apply"), vec2(64, 0))) {
                 applyChanges();
             }
+        }
+    }
+
+    void renderEmbeddedSection() {
+        ensureEditingZone();
+
+        auto zones = insScene.space.getZones();
+        if (uiImBeginCategory(_("Zone").toStringz, UiImCategoryFlags.NoCollapse)) {
+            int zoneToDelete = -1;
+            foreach (idx, zone; zones) {
+                uiImPush(cast(int)idx);
+                    vec2 avail = uiImAvailableSpace();
+                    float rowWidth = max(0.0f, avail.x - 38.0f);
+                    bool selected = zone == editingZone;
+                    if (igSelectable(zone.name.toStringz, selected, ImGuiSelectableFlags.None, ImVec2(rowWidth, 0))) {
+                        switchZone(zone);
+                    }
+                    uiImSameLine();
+                    if (uiImButton(__("\ue872"), vec2(28, 0))) {
+                        zoneToDelete = cast(int)idx;
+                    }
+                uiImPop();
+            }
+
+            if (zoneToDelete >= 0) {
+                auto zonesNow = insScene.space.getZones();
+                bool deletedSelected = editingZone is zonesNow[zoneToDelete];
+                foreach (ref source; zonesNow[zoneToDelete].sources) {
+                    if (source) source.stop();
+                }
+                insScene.space.removeZoneAt(cast(size_t)zoneToDelete);
+                if (deletedSelected) {
+                    editingZone = null;
+                }
+                ensureEditingZone();
+                refreshOptionsList();
+                uiImEndCategory();
+                return;
+            }
+
+            string pendingZoneName = newZoneName.dup;
+            vec2 avail = uiImAvailableSpace();
+            if (uiImInputText("##EMBEDDED_ZONE_NAME", max(0.0f, avail.x - 38.0f), pendingZoneName)) {
+                try {
+                    newZoneName = pendingZoneName.toStringz.fromStringz;
+                } catch (std.utf.UTFException e) {}
+            }
+            uiImSameLine();
+            if (uiImButton(__("\ue145"), vec2(28, 0))) {
+                addZone();
+                ensureEditingZone();
+            }
+
+            if (editingZone is null) {
+                uiImLabel(_("No zone selected for editing..."));
+                uiImEndCategory();
+                return;
+            }
+            uiImEndCategory();
+        }
+
+        foreach (i; 0 .. editingZone.sources.length) {
+            if (i >= editingZone.sources.length) continue;
+
+            uiImPush(cast(int)i);
+                auto source = editingZone.sources[i];
+                const(char)* adaptorName = source is null ? __("Unset") : source.getAdaptorName().toStringz;
+
+                if (source is null) {
+                    if (uiImBeginCategory(adaptorName)) {
+                        adaptorMenu(i);
+                        ImVec2 headerStart;
+                        igGetItemRectMin(&headerStart);
+                        ImVec2 headerEnd;
+                        igGetItemRectMax(&headerEnd);
+                        float deleteX = headerEnd.x - 32.0f;
+                        float iconY = headerStart.y + 1.0f;
+                        igSetCursorScreenPos(ImVec2(deleteX, iconY));
+                        if (uiImButton(__("\ue872"), vec2(28, 0))) {
+                            adaptorDelete(i);
+                            uiImEndCategory();
+                            uiImPop();
+                            continue;
+                        }
+                        adaptorSelect(i, source, adaptorName);
+                    }
+                    uiImEndCategory();
+                } else {
+                    if (uiImBeginCategory(adaptorName)) {
+                        adaptorMenu(i);
+                        ImVec2 headerStart;
+                        igGetItemRectMin(&headerStart);
+                        ImVec2 headerEnd;
+                        igGetItemRectMax(&headerEnd);
+                        float iconY = headerStart.y + 1.0f;
+                        float deleteX = headerEnd.x - 32.0f;
+                        float saveX = deleteX - 32.0f;
+
+                        igSetCursorScreenPos(ImVec2(saveX, iconY));
+                        if (uiImButton(__("\ue161"), vec2(28, 0))) {
+                            try {
+                                source.setOptions(options[source]);
+                                source.stop();
+                                source.start();
+                            } catch (Exception ex) {
+                                uiImDialog(__("Error"), ex.msg);
+                            }
+                        }
+                        igSetCursorScreenPos(ImVec2(deleteX, iconY));
+                        if (uiImButton(__("\ue872"), vec2(28, 0))) {
+                            adaptorDelete(i);
+                            uiImEndCategory();
+                            uiImPop();
+                            continue;
+                        }
+
+                        vec2 avail = uiImAvailableSpace();
+                        adaptorSelect(i, source, adaptorName);
+                        igNewLine();
+
+                        foreach (option; source.getOptionNames()) {
+                            if (option == "appName") continue;
+                            if (option == "address") continue;
+
+                            if (option !in options[source]) options[source][option] = "";
+                            uiImLabel(option);
+                            string optionString = options[source][option].dup;
+                            if (uiImInputText(option, avail.x / 2, optionString)) {
+                                options[source][option] = optionString.toStringz.fromStringz;
+                            }
+                        }
+
+                        adaptorHint(source);
+                    }
+                    uiImEndCategory();
+                }
+            uiImPop();
+        }
+
+        vec2 avail = uiImAvailableSpace();
+        if (uiImButton(__("Add Source"), vec2(min(avail.x, 220.0f), 28))) {
+            editingZone.sources.length++;
+            refreshOptionsList();
         }
     }
 

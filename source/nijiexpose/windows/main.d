@@ -14,6 +14,7 @@ import nijiexpose.framesend;
 import nijiexpose.plugins;
 import nijiexpose.io;
 import nijiexpose.io.image;
+import nijiexpose.panels.scene : ScenePanel;
 import nijiexpose.tracking.tracker;
 import nijiui;
 import nijiui.widgets;
@@ -535,6 +536,17 @@ private:
         }
     }
 
+    void drawOverlayBackdrop(float alphaScale = 1.0f) {
+        if (alphaScale <= 0.0f) return;
+        auto bgDrawList = igGetBackgroundDrawList_Nil();
+        ImDrawList_AddRectFilled(
+            bgDrawList,
+            ImVec2(0.0f, 0.0f),
+            ImVec2(cast(float)width, cast(float)height),
+            igColorConvertFloat4ToU32(ImVec4(0.58f, 0.64f, 0.72f, 0.10f * alphaScale))
+        );
+    }
+
     string iconFor(ActivePanelId id) {
         foreach (item; NAV_ITEMS) {
             if (item.id == id) {
@@ -780,14 +792,15 @@ private:
         }
 
         {
-            drawBlurBackdrop(overlayX, overlayY, overlayW, overlayH, 18.0f);
-            drawSoftWindowShadow(overlayX, overlayY, overlayW, overlayH, 18.0f);
+            drawOverlayBackdrop(1.0f);
+            drawBlurBackdrop(overlayX, overlayY, overlayW, overlayH, 13.0f);
+            drawSoftWindowShadow(overlayX, overlayY, overlayW, overlayH, 13.0f);
         }
 
         igPushStyleColor(ImGuiCol.WindowBg, ImVec4(OVERLAY_BG.x, OVERLAY_BG.y, OVERLAY_BG.z, OVERLAY_BG.w));
         igPushStyleColor(ImGuiCol.Border, ImVec4(OVERLAY_BORDER.x, OVERLAY_BORDER.y, OVERLAY_BORDER.z, OVERLAY_BORDER.w));
         igPushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.0f);
-        igPushStyleVar(ImGuiStyleVar.WindowPadding, parameterOverlay ? ImVec2(0, 0) : ImVec2(16, 14));
+        igPushStyleVar(ImGuiStyleVar.WindowPadding, parameterOverlay ? ImVec2(0, 0) : ImVec2(18, 16));
         igPushStyleVar(ImGuiStyleVar.WindowRounding, 13.0f);
         scope(exit) {
             igPopStyleVar(3);
@@ -833,35 +846,49 @@ private:
             ImDrawList_AddText(drawList, font, headerIconSize, iconPos, igColorConvertFloat4ToU32(ImVec4(ACCENT.x, ACCENT.y, ACCENT.z, ACCENT.w)), headerIcon.toStringz);
             igSetCursorScreenPos(ImVec2(headerStart.x + 30.0f, headerStart.y));
             uiImLabel(title);
-            ImVec2 closePos = ImVec2(overlayX + overlayW - 44.0f, headerStart.y);
+            ImVec2 closePos = ImVec2(overlayX + overlayW - 42.0f, headerStart.y - 2.0f);
             if (drawIconOnlyEntry("overlay_close", "\ue5cd", closePos, 28.0f, vec4(0.12f, 0.16f, 0.23f, 0.90f), false)) {
                 overlayOpen = false;
                 inSettingsSet("ui.overlayOpen", overlayOpen);
             }
-            igSetCursorScreenPos(ImVec2(headerStart.x, headerStart.y + 28.0f));
+            igSetCursorScreenPos(ImVec2(headerStart.x, headerStart.y + 32.0f));
 
             if (parameterOverlay) {
                 igSetCursorPosX(0);
             }
             igPushStyleColor(ImGuiCol.ChildBg, ImVec4(0, 0, 0, 0));
             igPushStyleVar(ImGuiStyleVar.ChildBorderSize, 0.0f);
+            igPushStyleVar(ImGuiStyleVar.ItemSpacing, parameterOverlay ? ImVec2(8, 6) : ImVec2(8, 8));
             scope(exit) {
+                igPopStyleVar();
                 igPopStyleVar();
                 igPopStyleColor();
             }
             immutable bool hasOverlayFooter = customTracking || customView;
-            immutable float overlayFooterHeight = hasOverlayFooter ? 46.0f : 0.0f;
+            immutable float overlayFooterHeight = hasOverlayFooter ? 48.0f : 0.0f;
             if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, -overlayFooterHeight), false)) {
                 if (customTracking) {
-                    settingWindow.renderTrackingSettingsSection();
+                    uiImLabel(_("Tracking Settings"));
+                    igDummy(ImVec2(0, 4));
+                    settingWindow.renderTrackingSettingsContent(true);
                     uiImSeperator();
-                    spaceEditor.renderEditorSection(false);
+                    uiImNewLine();
+                    uiImLabel(_("Virtual Space"));
+                    igDummy(ImVec2(0, 4));
+                    spaceEditor.renderEmbeddedSection();
                 } else if (customView) {
-                    if (active !is null) {
+                    uiImLabel(_("Scene Settings"));
+                    igDummy(ImVec2(0, 4));
+                    if (auto scenePanel = cast(ScenePanel)active) {
+                        scenePanel.renderSceneSettingsContent();
+                    } else if (active !is null) {
                         active.updateEmbedded();
                     }
                     uiImSeperator();
-                    settingWindow.renderRenderingSettingsSection();
+                    uiImNewLine();
+                    uiImLabel(_("Rendering"));
+                    igDummy(ImVec2(0, 4));
+                    settingWindow.renderRenderingSettingsContent(true);
                 } else if (active !is null) {
                     active.updateEmbedded();
                 } else {
@@ -870,7 +897,7 @@ private:
             }
             uiImEndChild();
             if (hasOverlayFooter) {
-                igDummy(ImVec2(0, 6));
+                igDummy(ImVec2(0, 4));
                 igSetCursorPosX(max(0.0f, uiImAvailableSpace().x - 72.0f));
                 if (uiImButton(__("Apply"), vec2(64, 0))) {
                     if (customTracking) {
