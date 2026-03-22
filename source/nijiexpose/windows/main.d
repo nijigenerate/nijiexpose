@@ -506,6 +506,25 @@ private:
         );
     }
 
+    void drawSoftWindowShadow(float x, float y, float w, float h, float rounding, float alphaScale = 1.0f) {
+        if (w <= 0 || h <= 0 || alphaScale <= 0.0f) return;
+
+        auto bgDrawList = igGetBackgroundDrawList_Nil();
+        immutable float[] spreads = [24.0f, 18.0f, 13.0f, 9.0f, 6.0f, 3.0f];
+        immutable float[] weights = [0.005f, 0.008f, 0.011f, 0.016f, 0.023f, 0.032f];
+
+        foreach (index, spread; spreads) {
+            float layerAlpha = weights[index] * alphaScale;
+            ImDrawList_AddRectFilled(
+                bgDrawList,
+                ImVec2(x - spread, y - spread),
+                ImVec2(x + w + spread, y + h + spread),
+                igColorConvertFloat4ToU32(ImVec4(SHADOW_NEAR.x, SHADOW_NEAR.y, SHADOW_NEAR.z, layerAlpha)),
+                rounding + spread
+            );
+        }
+    }
+
     string iconFor(ActivePanelId id) {
         foreach (item; NAV_ITEMS) {
             if (item.id == id) {
@@ -651,21 +670,7 @@ private:
         float railH = compact ? 0.0f : cast(float)height - (RAIL_TOP + RAIL_BOTTOM);
 
         if (!compact) {
-            auto bgDrawList = igGetBackgroundDrawList_Nil();
-            ImDrawList_AddRectFilled(
-                bgDrawList,
-                ImVec2(railX + 6.0f, railY + 8.0f),
-                ImVec2(railX + railW + 6.0f, railY + railH + 8.0f),
-                igColorConvertFloat4ToU32(ImVec4(SHADOW_FAR.x, SHADOW_FAR.y, SHADOW_FAR.z, shadowFarAlpha)),
-                24.0f
-            );
-            ImDrawList_AddRectFilled(
-                bgDrawList,
-                ImVec2(railX + 2.0f, railY + 3.0f),
-                ImVec2(railX + railW + 2.0f, railY + railH + 3.0f),
-                igColorConvertFloat4ToU32(ImVec4(SHADOW_NEAR.x, SHADOW_NEAR.y, SHADOW_NEAR.z, shadowNearAlpha)),
-                24.0f
-            );
+            drawSoftWindowShadow(railX, railY, railW, railH, 24.0f, visualAlpha);
         }
 
         igPushStyleColor(ImGuiCol.WindowBg, ImVec4(RAIL_BG.x, RAIL_BG.y, RAIL_BG.z, railAlpha));
@@ -764,23 +769,7 @@ private:
 
         {
             drawBlurBackdrop(overlayX, overlayY, overlayW, overlayH, 18.0f);
-            auto bgDrawList = igGetBackgroundDrawList_Nil();
-            ImVec2 shadowMin = ImVec2(overlayX, overlayY);
-            ImVec2 shadowMax = ImVec2(overlayX + overlayW, overlayY + overlayH);
-            ImDrawList_AddRectFilled(
-                bgDrawList,
-                ImVec2(shadowMin.x + 6.0f, shadowMin.y + 8.0f),
-                ImVec2(shadowMax.x + 6.0f, shadowMax.y + 8.0f),
-                igColorConvertFloat4ToU32(ImVec4(SHADOW_FAR.x, SHADOW_FAR.y, SHADOW_FAR.z, SHADOW_FAR.w)),
-                18.0f
-            );
-            ImDrawList_AddRectFilled(
-                bgDrawList,
-                ImVec2(shadowMin.x + 2.0f, shadowMin.y + 3.0f),
-                ImVec2(shadowMax.x + 2.0f, shadowMax.y + 3.0f),
-                igColorConvertFloat4ToU32(ImVec4(SHADOW_NEAR.x, SHADOW_NEAR.y, SHADOW_NEAR.z, SHADOW_NEAR.w)),
-                15.0f
-            );
+            drawSoftWindowShadow(overlayX, overlayY, overlayW, overlayH, 18.0f);
         }
 
         igPushStyleColor(ImGuiCol.WindowBg, ImVec4(OVERLAY_BG.x, OVERLAY_BG.y, OVERLAY_BG.z, OVERLAY_BG.w));
