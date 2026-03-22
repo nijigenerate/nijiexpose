@@ -14,6 +14,7 @@ import nijiexpose.framesend;
 import nijiexpose.plugins;
 import nijiexpose.io;
 import nijiexpose.io.image;
+import nijiexpose.panels.scene : ScenePanel;
 import nijiexpose.tracking.tracker;
 import nijiui;
 import nijiui.widgets;
@@ -44,13 +45,12 @@ private {
     }
 
     enum ActivePanelId {
-        Scene,
+        Parameters,
         Tracking,
+        View,
         Animations,
         Blendshapes,
         Plugins,
-        Settings,
-        VirtualSpace,
     }
 
     struct NavItem {
@@ -61,13 +61,12 @@ private {
     }
 
     immutable NavItem[] NAV_ITEMS = [
-        NavItem(ActivePanelId.Tracking, "Tracking", "\ue429", "Parameters"),
-        NavItem(ActivePanelId.Scene, "Scene Settings", "\ue8f4", "View"),
+        NavItem(ActivePanelId.Parameters, "Tracking", "\ue429", "Parameters"),
+        NavItem(ActivePanelId.Tracking, "", "\ue3b4", "Tracking"),
+        NavItem(ActivePanelId.View, "Scene Settings", "\ue8f4", "View"),
         NavItem(ActivePanelId.Animations, "Animations", "\ue037", "Animations"),
-        NavItem(ActivePanelId.Blendshapes, "Blendshapes", "\ue3b4", "Blends"),
+        NavItem(ActivePanelId.Blendshapes, "Blendshapes", "\ue3f4", "Blends"),
         NavItem(ActivePanelId.Plugins, "Plugins", "\ue87b", "Plugins"),
-        NavItem(ActivePanelId.Settings, "", "\ue8b8", "Settings"),
-        NavItem(ActivePanelId.VirtualSpace, "", "\ue8d4", "Virtual Space"),
     ];
 
     enum vec4 RAIL_BG = vec4(0.97f, 0.98f, 0.99f, 0.84f);
@@ -127,7 +126,7 @@ private:
     GLint overlayBlurTexelStepLocation = -1;
     int overlayBlurWidth = 0;
     int overlayBlurHeight = 0;
-    ActivePanelId activePanel = ActivePanelId.Scene;
+    ActivePanelId activePanel = ActivePanelId.Parameters;
     bool navExpanded = false;
     bool overlayOpen = true;
     bool navFaded = false;
@@ -135,8 +134,8 @@ private:
     double lastNavInteractionAt = 0;
 
     ActivePanelId sanitizeActivePanel(int rawValue) {
-        if (rawValue < cast(int)ActivePanelId.Scene || rawValue > cast(int)ActivePanelId.VirtualSpace) {
-            return ActivePanelId.Scene;
+        if (rawValue < cast(int)ActivePanelId.Parameters || rawValue > cast(int)ActivePanelId.Plugins) {
+            return ActivePanelId.Parameters;
         }
         return cast(ActivePanelId)rawValue;
     }
@@ -154,12 +153,9 @@ private:
 
     ToolWindow toolWindowFor(ActivePanelId id) {
         final switch(id) {
-        case ActivePanelId.Settings:
-            return settingWindow;
-        case ActivePanelId.VirtualSpace:
-            return spaceEditor;
-        case ActivePanelId.Scene:
+        case ActivePanelId.Parameters:
         case ActivePanelId.Tracking:
+        case ActivePanelId.View:
         case ActivePanelId.Animations:
         case ActivePanelId.Blendshapes:
         case ActivePanelId.Plugins:
@@ -221,7 +217,22 @@ private:
     }
 
     bool usesParameterOverlay(ActivePanelId id) {
-        return id == ActivePanelId.Tracking;
+        return id == ActivePanelId.Parameters;
+    }
+
+    string panelTitle(ActivePanelId id, Panel active, ToolWindow activeWindow) {
+        final switch (id) {
+        case ActivePanelId.Parameters:
+            return "Parameters";
+        case ActivePanelId.Tracking:
+            return "Tracking";
+        case ActivePanelId.View:
+            return "View";
+        case ActivePanelId.Animations:
+        case ActivePanelId.Blendshapes:
+        case ActivePanelId.Plugins:
+            return active !is null ? active.displayName() : (activeWindow !is null ? activeWindow.name() : "");
+        }
     }
 
     void destroyOverlayBlurResources() {
@@ -525,6 +536,17 @@ private:
         }
     }
 
+    void drawOverlayBackdrop(float alphaScale = 1.0f) {
+        if (alphaScale <= 0.0f) return;
+        auto bgDrawList = igGetBackgroundDrawList_Nil();
+        ImDrawList_AddRectFilled(
+            bgDrawList,
+            ImVec2(0.0f, 0.0f),
+            ImVec2(cast(float)width, cast(float)height),
+            igColorConvertFloat4ToU32(ImVec4(0.58f, 0.64f, 0.72f, 0.10f * alphaScale))
+        );
+    }
+
     string iconFor(ActivePanelId id) {
         foreach (item; NAV_ITEMS) {
             if (item.id == id) {
@@ -700,7 +722,7 @@ private:
             }
 
             if (compact) uiImSameLine();
-            drawUtilityButton("\ue2c8", "Open", {
+            drawUtilityButton("\ue2c8", "Models", {
                 const TFD_Filter[] filters = [{ ["*.inp"], "nijilive Puppet (*.inp)" }];
                 string parentWindow = "";
                 version(linux) {
@@ -731,7 +753,9 @@ private:
         if (!showUI || !overlayOpen) return;
         Panel active = panelFor(activePanel);
         ToolWindow activeWindow = toolWindowFor(activePanel);
-        if (active is null && activeWindow is null) return;
+        bool customTracking = activePanel == ActivePanelId.Tracking;
+        bool customView = activePanel == ActivePanelId.View;
+        if (active is null && activeWindow is null && !customTracking && !customView) return;
 
         auto compact = navSurfaceMode() == NavSurfaceMode.CompactBar;
         ImGuiWindowFlags flags = ImGuiWindowFlags.NoCollapse
@@ -768,14 +792,15 @@ private:
         }
 
         {
-            drawBlurBackdrop(overlayX, overlayY, overlayW, overlayH, 18.0f);
-            drawSoftWindowShadow(overlayX, overlayY, overlayW, overlayH, 18.0f);
+            drawOverlayBackdrop(1.0f);
+            drawBlurBackdrop(overlayX, overlayY, overlayW, overlayH, 13.0f);
+            drawSoftWindowShadow(overlayX, overlayY, overlayW, overlayH, 13.0f);
         }
 
         igPushStyleColor(ImGuiCol.WindowBg, ImVec4(OVERLAY_BG.x, OVERLAY_BG.y, OVERLAY_BG.z, OVERLAY_BG.w));
         igPushStyleColor(ImGuiCol.Border, ImVec4(OVERLAY_BORDER.x, OVERLAY_BORDER.y, OVERLAY_BORDER.z, OVERLAY_BORDER.w));
         igPushStyleVar(ImGuiStyleVar.WindowBorderSize, 1.0f);
-        igPushStyleVar(ImGuiStyleVar.WindowPadding, parameterOverlay ? ImVec2(0, 0) : ImVec2(16, 14));
+        igPushStyleVar(ImGuiStyleVar.WindowPadding, parameterOverlay ? ImVec2(0, 0) : ImVec2(18, 16));
         igPushStyleVar(ImGuiStyleVar.WindowRounding, 13.0f);
         scope(exit) {
             igPopStyleVar(3);
@@ -785,7 +810,7 @@ private:
         igSetNextWindowPos(ImVec2(overlayX, overlayY), ImGuiCond.Always, ImVec2(0, 0));
         igSetNextWindowSize(ImVec2(overlayW, overlayH), ImGuiCond.Always);
 
-        string title = active !is null ? active.displayName() : activeWindow.name();
+        string title = panelTitle(activePanel, active, activeWindow);
         string windowTitle = "%s###nijikan_overlay_host".format(title);
 
         if (!parameterOverlay && igIsMouseClicked(ImGuiMouseButton.Left)) {
@@ -820,26 +845,69 @@ private:
             ImVec2 iconPos = ImVec2(headerStart.x, headerStart.y + max(0.0f, (20.0f - iconSize.y) * 0.5f));
             ImDrawList_AddText(drawList, font, headerIconSize, iconPos, igColorConvertFloat4ToU32(ImVec4(ACCENT.x, ACCENT.y, ACCENT.z, ACCENT.w)), headerIcon.toStringz);
             igSetCursorScreenPos(ImVec2(headerStart.x + 30.0f, headerStart.y));
-            uiImLabelColored(title, ACCENT);
-            ImVec2 closePos = ImVec2(overlayX + overlayW - 44.0f, headerStart.y);
-            if (drawIconOnlyEntry("overlay_close", "\ue5cd", closePos, 28.0f, vec4(0.12f, 0.16f, 0.23f, 0.90f), true)) {
+            uiImLabel(title);
+            ImVec2 closePos = ImVec2(overlayX + overlayW - 42.0f, headerStart.y - 2.0f);
+            if (drawIconOnlyEntry("overlay_close", "\ue5cd", closePos, 28.0f, vec4(0.12f, 0.16f, 0.23f, 0.90f), false)) {
                 overlayOpen = false;
                 inSettingsSet("ui.overlayOpen", overlayOpen);
             }
-            igSetCursorScreenPos(ImVec2(headerStart.x, headerStart.y + 28.0f));
+            igSetCursorScreenPos(ImVec2(headerStart.x, headerStart.y + 32.0f));
 
-            uiImSeperator();
             if (parameterOverlay) {
                 igSetCursorPosX(0);
             }
-            if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, 0), false)) {
-                if (active !is null) {
+            igPushStyleColor(ImGuiCol.ChildBg, ImVec4(0, 0, 0, 0));
+            igPushStyleVar(ImGuiStyleVar.ChildBorderSize, 0.0f);
+            igPushStyleVar(ImGuiStyleVar.ItemSpacing, parameterOverlay ? ImVec2(8, 6) : ImVec2(8, 8));
+            scope(exit) {
+                igPopStyleVar();
+                igPopStyleVar();
+                igPopStyleColor();
+            }
+            immutable bool hasOverlayFooter = customTracking || customView;
+            immutable float overlayFooterHeight = hasOverlayFooter ? 48.0f : 0.0f;
+            if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, -overlayFooterHeight), false)) {
+                if (customTracking) {
+                    uiImLabel(_("Tracking Settings"));
+                    igDummy(ImVec2(0, 4));
+                    settingWindow.renderTrackingSettingsContent(true);
+                    uiImSeperator();
+                    uiImNewLine();
+                    uiImLabel(_("Virtual Space"));
+                    igDummy(ImVec2(0, 4));
+                    spaceEditor.renderEmbeddedSection();
+                } else if (customView) {
+                    uiImLabel(_("Scene Settings"));
+                    igDummy(ImVec2(0, 4));
+                    if (auto scenePanel = cast(ScenePanel)active) {
+                        scenePanel.renderSceneSettingsContent();
+                    } else if (active !is null) {
+                        active.updateEmbedded();
+                    }
+                    uiImSeperator();
+                    uiImNewLine();
+                    uiImLabel(_("Rendering"));
+                    igDummy(ImVec2(0, 4));
+                    settingWindow.renderRenderingSettingsContent(true);
+                } else if (active !is null) {
                     active.updateEmbedded();
                 } else {
                     activeWindow.updateEmbedded();
                 }
             }
             uiImEndChild();
+            if (hasOverlayFooter) {
+                igDummy(ImVec2(0, 4));
+                igSetCursorPosX(max(0.0f, uiImAvailableSpace().x - 72.0f));
+                if (uiImButton(__("Apply"), vec2(64, 0))) {
+                    if (customTracking) {
+                        settingWindow.applyTrackingSettings();
+                        spaceEditor.applyChanges();
+                    } else if (customView) {
+                        settingWindow.applyRenderingSettings();
+                    }
+                }
+            }
         }
         igEnd();
     }
@@ -933,7 +1001,7 @@ public:
         spaceEditor = new SpaceEditor();
         lastPointerPos = inInputMousePosition();
         lastNavInteractionAt = inGetTime();
-        activePanel = sanitizeActivePanel(inSettingsGet!(int)("ui.activePanel", cast(int)ActivePanelId.Scene));
+        activePanel = sanitizeActivePanel(inSettingsGet!(int)("ui.activePanel", cast(int)ActivePanelId.Parameters));
         overlayOpen = inSettingsGet!bool("ui.overlayOpen", true);
 
         // Preload any specified models
