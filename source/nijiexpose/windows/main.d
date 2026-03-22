@@ -44,13 +44,12 @@ private {
     }
 
     enum ActivePanelId {
-        Scene,
+        Parameters,
         Tracking,
+        View,
         Animations,
         Blendshapes,
         Plugins,
-        Settings,
-        VirtualSpace,
     }
 
     struct NavItem {
@@ -61,13 +60,12 @@ private {
     }
 
     immutable NavItem[] NAV_ITEMS = [
-        NavItem(ActivePanelId.Tracking, "Tracking", "\ue429", "Parameters"),
-        NavItem(ActivePanelId.Scene, "Scene Settings", "\ue8f4", "View"),
+        NavItem(ActivePanelId.Parameters, "Tracking", "\ue429", "Parameters"),
+        NavItem(ActivePanelId.Tracking, "", "\ue3b4", "Tracking"),
+        NavItem(ActivePanelId.View, "Scene Settings", "\ue8f4", "View"),
         NavItem(ActivePanelId.Animations, "Animations", "\ue037", "Animations"),
-        NavItem(ActivePanelId.Blendshapes, "Blendshapes", "\ue3b4", "Blends"),
+        NavItem(ActivePanelId.Blendshapes, "Blendshapes", "\ue3f4", "Blends"),
         NavItem(ActivePanelId.Plugins, "Plugins", "\ue87b", "Plugins"),
-        NavItem(ActivePanelId.Settings, "", "\ue8b8", "Settings"),
-        NavItem(ActivePanelId.VirtualSpace, "", "\ue8d4", "Virtual Space"),
     ];
 
     enum vec4 RAIL_BG = vec4(0.97f, 0.98f, 0.99f, 0.84f);
@@ -127,7 +125,7 @@ private:
     GLint overlayBlurTexelStepLocation = -1;
     int overlayBlurWidth = 0;
     int overlayBlurHeight = 0;
-    ActivePanelId activePanel = ActivePanelId.Scene;
+    ActivePanelId activePanel = ActivePanelId.Parameters;
     bool navExpanded = false;
     bool overlayOpen = true;
     bool navFaded = false;
@@ -135,8 +133,8 @@ private:
     double lastNavInteractionAt = 0;
 
     ActivePanelId sanitizeActivePanel(int rawValue) {
-        if (rawValue < cast(int)ActivePanelId.Scene || rawValue > cast(int)ActivePanelId.VirtualSpace) {
-            return ActivePanelId.Scene;
+        if (rawValue < cast(int)ActivePanelId.Parameters || rawValue > cast(int)ActivePanelId.Plugins) {
+            return ActivePanelId.Parameters;
         }
         return cast(ActivePanelId)rawValue;
     }
@@ -154,12 +152,9 @@ private:
 
     ToolWindow toolWindowFor(ActivePanelId id) {
         final switch(id) {
-        case ActivePanelId.Settings:
-            return settingWindow;
-        case ActivePanelId.VirtualSpace:
-            return spaceEditor;
-        case ActivePanelId.Scene:
+        case ActivePanelId.Parameters:
         case ActivePanelId.Tracking:
+        case ActivePanelId.View:
         case ActivePanelId.Animations:
         case ActivePanelId.Blendshapes:
         case ActivePanelId.Plugins:
@@ -221,7 +216,22 @@ private:
     }
 
     bool usesParameterOverlay(ActivePanelId id) {
-        return id == ActivePanelId.Tracking;
+        return id == ActivePanelId.Parameters;
+    }
+
+    string panelTitle(ActivePanelId id, Panel active, ToolWindow activeWindow) {
+        final switch (id) {
+        case ActivePanelId.Parameters:
+            return "Parameters";
+        case ActivePanelId.Tracking:
+            return "Tracking";
+        case ActivePanelId.View:
+            return "View";
+        case ActivePanelId.Animations:
+        case ActivePanelId.Blendshapes:
+        case ActivePanelId.Plugins:
+            return active !is null ? active.displayName() : (activeWindow !is null ? activeWindow.name() : "");
+        }
     }
 
     void destroyOverlayBlurResources() {
@@ -700,7 +710,7 @@ private:
             }
 
             if (compact) uiImSameLine();
-            drawUtilityButton("\ue2c8", "Open", {
+            drawUtilityButton("\ue2c8", "Models", {
                 const TFD_Filter[] filters = [{ ["*.inp"], "nijilive Puppet (*.inp)" }];
                 string parentWindow = "";
                 version(linux) {
@@ -731,7 +741,9 @@ private:
         if (!showUI || !overlayOpen) return;
         Panel active = panelFor(activePanel);
         ToolWindow activeWindow = toolWindowFor(activePanel);
-        if (active is null && activeWindow is null) return;
+        bool customTracking = activePanel == ActivePanelId.Tracking;
+        bool customView = activePanel == ActivePanelId.View;
+        if (active is null && activeWindow is null && !customTracking && !customView) return;
 
         auto compact = navSurfaceMode() == NavSurfaceMode.CompactBar;
         ImGuiWindowFlags flags = ImGuiWindowFlags.NoCollapse
@@ -785,7 +797,7 @@ private:
         igSetNextWindowPos(ImVec2(overlayX, overlayY), ImGuiCond.Always, ImVec2(0, 0));
         igSetNextWindowSize(ImVec2(overlayW, overlayH), ImGuiCond.Always);
 
-        string title = active !is null ? active.displayName() : activeWindow.name();
+        string title = panelTitle(activePanel, active, activeWindow);
         string windowTitle = "%s###nijikan_overlay_host".format(title);
 
         if (!parameterOverlay && igIsMouseClicked(ImGuiMouseButton.Left)) {
@@ -837,14 +849,38 @@ private:
                 igPopStyleVar();
                 igPopStyleColor();
             }
-            if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, 0), false)) {
-                if (active !is null) {
+            immutable bool hasOverlayFooter = customTracking || customView;
+            immutable float overlayFooterHeight = hasOverlayFooter ? 46.0f : 0.0f;
+            if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, -overlayFooterHeight), false)) {
+                if (customTracking) {
+                    settingWindow.renderTrackingSettingsSection();
+                    uiImSeperator();
+                    spaceEditor.renderEditorSection(false);
+                } else if (customView) {
+                    if (active !is null) {
+                        active.updateEmbedded();
+                    }
+                    uiImSeperator();
+                    settingWindow.renderRenderingSettingsSection();
+                } else if (active !is null) {
                     active.updateEmbedded();
                 } else {
                     activeWindow.updateEmbedded();
                 }
             }
             uiImEndChild();
+            if (hasOverlayFooter) {
+                igDummy(ImVec2(0, 6));
+                igSetCursorPosX(max(0.0f, uiImAvailableSpace().x - 72.0f));
+                if (uiImButton(__("Apply"), vec2(64, 0))) {
+                    if (customTracking) {
+                        settingWindow.applyTrackingSettings();
+                        spaceEditor.applyChanges();
+                    } else if (customView) {
+                        settingWindow.applyRenderingSettings();
+                    }
+                }
+            }
         }
         igEnd();
     }
@@ -938,7 +974,7 @@ public:
         spaceEditor = new SpaceEditor();
         lastPointerPos = inInputMousePosition();
         lastNavInteractionAt = inGetTime();
-        activePanel = sanitizeActivePanel(inSettingsGet!(int)("ui.activePanel", cast(int)ActivePanelId.Scene));
+        activePanel = sanitizeActivePanel(inSettingsGet!(int)("ui.activePanel", cast(int)ActivePanelId.Parameters));
         overlayOpen = inSettingsGet!bool("ui.overlayOpen", true);
 
         // Preload any specified models
