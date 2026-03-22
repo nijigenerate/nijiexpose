@@ -21,6 +21,7 @@ import ft;
 static import std.utf;
 
 import std.algorithm.mutation;
+import std.algorithm.comparison : max;
 
 class SpaceEditor : ToolWindow {
 private:
@@ -215,8 +216,15 @@ public:
         vec2 avail = uiImAvailableSpace();
         float lhs = 196;
         float rhs = avail.x-lhs;
+        immutable float footerHeight = 38.0f;
+        igPushStyleColor(ImGuiCol.ChildBg, ImVec4(1, 1, 1, 0));
+        igPushStyleVar(ImGuiStyleVar.ChildBorderSize, 0.0f);
+        scope(exit) {
+            igPopStyleVar();
+            igPopStyleColor();
+        }
 
-        if (uiImBeginChild("##LHS", vec2(lhs, -28), true)) {
+        if (uiImBeginChild("##LHS", vec2(lhs, -footerHeight), false)) {
             avail = uiImAvailableSpace();
             foreach(i, ref VirtualSpaceZone zone; insScene.space.getZones()) {
                 uiImPush(cast(int)i);
@@ -240,7 +248,7 @@ public:
 
         uiImSameLine(0, 0);
 
-        if (uiImBeginChild("##RHS", vec2(rhs, -28), true)) {
+        if (uiImBeginChild("##RHS", vec2(rhs, -footerHeight), false)) {
             if (editingZone is null) {
                 uiImLabel(_("No zone selected for editing..."));
             } else {
@@ -334,8 +342,7 @@ public:
         }
         uiImEndChild();
 
-        uiImDummy(vec2(-64, 0));
-        uiImSameLine(0, 0);
+        igSetCursorPosX(max(0.0f, uiImAvailableSpace().x - 72.0f));
         if (uiImButton(__("Apply"), vec2(64, 0))) {
             applyChanges();
         }

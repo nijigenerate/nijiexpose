@@ -101,8 +101,15 @@ public:
         vec2 avail = uiImAvailableSpace();
         float lhs = 196;
         float rhs = avail.x-lhs;
+        immutable float footerHeight = 38.0f;
+        igPushStyleColor(ImGuiCol.ChildBg, ImVec4(1, 1, 1, 0));
+        igPushStyleVar(ImGuiStyleVar.ChildBorderSize, 0.0f);
+        scope(exit) {
+            igPopStyleVar();
+            igPopStyleColor();
+        }
 
-        if (uiImBeginChild("##LHS", vec2(lhs, -28), true)) {
+        if (uiImBeginChild("##LHS", vec2(lhs, -footerHeight), false)) {
             avail = uiImAvailableSpace();
             uiImPush(0);
             if (uiImSelectable(__("Tracking"), selected == SelectedMode.Tracking)) {
@@ -117,7 +124,7 @@ public:
 
         uiImSameLine(0, 0);
 
-        if (uiImBeginChild("##RHS", vec2(rhs, -28), true)) {
+        if (uiImBeginChild("##RHS", vec2(rhs, -footerHeight), false)) {
             avail = uiImAvailableSpace();
             switch (selected) {
             case SelectedMode.Tracking:
@@ -215,8 +222,7 @@ public:
         }
         uiImEndChild();
 
-        uiImDummy(vec2(-64, 0));
-        uiImSameLine(0, 0);
+        igSetCursorPosX(max(0.0f, uiImAvailableSpace().x - 72.0f));
         if (uiImButton(__("Apply"), vec2(64, 0))) {
             applySettings();
         }

@@ -820,17 +820,22 @@ private:
             ImVec2 iconPos = ImVec2(headerStart.x, headerStart.y + max(0.0f, (20.0f - iconSize.y) * 0.5f));
             ImDrawList_AddText(drawList, font, headerIconSize, iconPos, igColorConvertFloat4ToU32(ImVec4(ACCENT.x, ACCENT.y, ACCENT.z, ACCENT.w)), headerIcon.toStringz);
             igSetCursorScreenPos(ImVec2(headerStart.x + 30.0f, headerStart.y));
-            uiImLabelColored(title, ACCENT);
+            uiImLabel(title);
             ImVec2 closePos = ImVec2(overlayX + overlayW - 44.0f, headerStart.y);
-            if (drawIconOnlyEntry("overlay_close", "\ue5cd", closePos, 28.0f, vec4(0.12f, 0.16f, 0.23f, 0.90f), true)) {
+            if (drawIconOnlyEntry("overlay_close", "\ue5cd", closePos, 28.0f, vec4(0.12f, 0.16f, 0.23f, 0.90f), false)) {
                 overlayOpen = false;
                 inSettingsSet("ui.overlayOpen", overlayOpen);
             }
             igSetCursorScreenPos(ImVec2(headerStart.x, headerStart.y + 28.0f));
 
-            uiImSeperator();
             if (parameterOverlay) {
                 igSetCursorPosX(0);
+            }
+            igPushStyleColor(ImGuiCol.ChildBg, ImVec4(0, 0, 0, 0));
+            igPushStyleVar(ImGuiStyleVar.ChildBorderSize, 0.0f);
+            scope(exit) {
+                igPopStyleVar();
+                igPopStyleColor();
             }
             if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, 0), false)) {
                 if (active !is null) {
