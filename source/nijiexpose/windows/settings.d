@@ -111,7 +111,11 @@ public:
         uiImCheckbox(__("Enable tracking"), tracker.enabled);
         if (tracker.enabled) {
             tracker.update();
-            if (!embedded || uiImBeginCategory("##tracker")) {
+            bool openedEmbeddedCategory = false;
+            if (embedded) {
+                openedEmbeddedCategory = uiImBeginCategory("##tracker");
+            }
+            if (!embedded || openedEmbeddedCategory) {
                 uiImLabel(_("Python path"));
                 uiImSameLine();
                 if (!pythonPathTested) {
@@ -139,8 +143,8 @@ public:
                     vec2 logAreaSize = vec2(avail2.x, avail2.y - 50);
                     if (uiImBeginChild("##log_area", logAreaSize, true)) {
                         igTextUnformatted(outputText.toStringz);
-                        uiImEndChild();
                     }
+                    uiImEndChild();
                     if (!tracker.installProcess.running()) {
                         if (uiImButton(__("OK"))) {
                             tracker.installProcess = null;
@@ -173,7 +177,8 @@ public:
                 }
                 if (embedded) {
                     igDummy(ImVec2(0, 4));
-                } else {
+                }
+                if (openedEmbeddedCategory) {
                     uiImEndCategory();
                 }
             }
