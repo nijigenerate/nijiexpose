@@ -723,7 +723,10 @@ private:
 
             if (compact) uiImSameLine();
             drawUtilityButton("\ue2c8", "Models", {
-                const TFD_Filter[] filters = [{ ["*.inp"], "nijilive Puppet (*.inp)" }];
+                const TFD_Filter[] filters = [{
+                    ["*.inp", "*.inx"],
+                    "Puppet Files (*.inp, *.inx)"
+                }];
                 string parentWindow = "";
                 version(linux) {
                     static if (is(typeof(&getWindowHandle))) {
