@@ -89,7 +89,8 @@ jobs:
 #        PACKAGE: 'out/nijiexpose-linux-x86_64.zip'
 
   windows-build:
-    runs-on: windows-latest
+    # i2d-imgui 0.8.0 invokes CMake with the Visual Studio 17 2022 generator.
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@v4
