@@ -8,6 +8,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>nijiexpose</OutputName>
     <OutputType>Package</OutputType>
+    <DefineConstants>PackageVersion=0.0.0</DefineConstants>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>

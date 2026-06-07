@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="957303f2-4354-4650-8174-9c646650a523" Name="nijiexpose" Language="1033" Version="0.8.1" Manufacturer="nijigenerate Project" UpgradeCode="f509f975-f15c-4e61-a436-8fd202a77bcc">
+	<Product Id="*" Name="nijiexpose" Language="1033" Version="$(var.PackageVersion)" Manufacturer="nijigenerate Project" UpgradeCode="f509f975-f15c-4e61-a436-8fd202a77bcc">
 		<Package Description="nijiexpose Installer" InstallerVersion="200" Compressed="yes" Platform="x64" InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
@@ -114,7 +114,7 @@
 						   Type="integer"
 						   Value="1"
 						   KeyPath="yes" />
-			<Shortcut Id="Desktopnijiexpose" Directory="DesktopFolder" Name="nijiexpose" WorkingDirectory="INSTALLFOLDER" Icon="nijiexposeIcon.ico" IconIndex="0" Advertise="no" />
+			<Shortcut Id="Desktopnijiexpose" Directory="DesktopFolder" Name="nijiexpose" Target="[INSTALLFOLDER]nijiexpose.exe" WorkingDirectory="INSTALLFOLDER" Icon="nijiexposeIcon.ico" IconIndex="0" Advertise="no" />
 		</Component>
 
 		<ComponentGroup Id="Translations" Directory="i18n">

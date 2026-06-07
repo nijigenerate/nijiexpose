@@ -191,12 +191,26 @@ jobs:
       run: |
         cd build-aux/windows/wix
 
+        $tagVersion = "${{ github.ref_name }}"
+        $msiVersion = $tagVersion -replace '^v', '' -replace '[-+].*$', ''
+        $versionParts = $msiVersion.Split('.')
+        if ($versionParts.Length -gt 3) {
+          $msiVersion = $versionParts[0..2] -join '.'
+        } elseif ($versionParts.Length -eq 2) {
+          $msiVersion = "$msiVersion.0"
+        } elseif ($versionParts.Length -eq 1) {
+          $msiVersion = "$msiVersion.0.0"
+        }
+        if ($msiVersion -notmatch '^\d+\.\d+\.\d+$') {
+          throw "Tag '$tagVersion' cannot be converted to an MSI version"
+        }
+
         # Install required dependency
         New-Item -ItemType Directory -Force packages
         nuget install WixToolset.UI.wixext -version 4.0.0 -OutputDirectory packages/
 
         # Build solution
-        msbuild "nijiexpose.sln" -property:Configuration=Release -property:Platform=x64
+        msbuild "nijiexpose.sln" -property:Configuration=Release -property:Platform=x64 -property:DefineConstants="PackageVersion=$msiVersion"
 
         # Copy installer out
         mv "bin/Release/nijiexpose.msi" "../../../out/nijiexpose-win32-x86_64.msi"
