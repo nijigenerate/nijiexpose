@@ -25,8 +25,7 @@ version(Windows) {
 
         HANDLE hStdOutRead;
         HANDLE hStdOutWrite;
-        HANDLE hStdErrorWrite;
-        HANDLE hStdErrorRead;
+        HANDLE hNullOutput;
 
         static if (readOutput) {
             char[4096] buffer;
@@ -52,10 +51,21 @@ version(Windows) {
             sa.bInheritHandle = TRUE;
             sa.lpSecurityDescriptor = null;
 
-            // Create stdout pipe
-            enforce(CreatePipe(&hStdOutRead, &hStdOutWrite, &sa, 0), "Failed to create stdout pipe");
-            enforce(CreatePipe(&hStdErrorRead, &hStdErrorWrite, &sa, 0), "Failed to create stdout pipe");
-            enforce(SetHandleInformation(hStdOutRead, HANDLE_FLAG_INHERIT, 0), "Failed to set pipe handle info");
+            static if (readOutput) {
+                enforce(CreatePipe(&hStdOutRead, &hStdOutWrite, &sa, 0), "Failed to create stdout pipe");
+                enforce(SetHandleInformation(hStdOutRead, HANDLE_FLAG_INHERIT, 0), "Failed to set pipe handle info");
+            } else {
+                hNullOutput = CreateFileW(
+                    "NUL".toUTF16z,
+                    GENERIC_WRITE,
+                    FILE_SHARE_WRITE,
+                    null,
+                    OPEN_EXISTING,
+                    FILE_ATTRIBUTE_NORMAL,
+                    null
+                );
+                enforce(hNullOutput != INVALID_HANDLE_VALUE, "Failed to open NUL output");
+            }
 
             auto quotedArgs = args.map!(a => `"` ~ a.fromStringz ~ `"`).join(" ");
             auto fullCmd = format(`"%s"%s`, executable, args.length > 0 ? " " ~ quotedArgs : "");
@@ -64,8 +74,13 @@ version(Windows) {
             debug(subprocess) { writefln("cmd: [%s]", fullCmd); }
             si.cb = STARTUPINFOW.sizeof;
             si.dwFlags = STARTF_USESTDHANDLES;
-            si.hStdOutput = hStdOutWrite;
-            si.hStdError  = hStdErrorWrite;
+            static if (readOutput) {
+                si.hStdOutput = hStdOutWrite;
+                si.hStdError  = hStdOutWrite;
+            } else {
+                si.hStdOutput = hNullOutput;
+                si.hStdError  = hNullOutput;
+            }
             si.hStdInput  = GetStdHandle(STD_INPUT_HANDLE);
 
             DWORD flags = CREATE_NO_WINDOW;
@@ -85,8 +100,9 @@ version(Windows) {
                 return false;
 
             isRunning = true;
-            CloseHandle(hStdOutWrite);
-            CloseHandle(hStdErrorWrite);
+            static if (readOutput) {
+                CloseHandle(hStdOutWrite);
+            }
 
             return true;
         }
@@ -124,7 +140,11 @@ version(Windows) {
             if (stopping) {
                 CloseHandle(pi.hProcess);
                 CloseHandle(pi.hThread);
-                CloseHandle(hStdOutRead);
+                static if (readOutput) {
+                    CloseHandle(hStdOutRead);
+                } else {
+                    CloseHandle(hNullOutput);
+                }
             }
         }
 
@@ -135,7 +155,11 @@ version(Windows) {
                 WaitForSingleObject(pi.hProcess, INFINITE);
                 CloseHandle(pi.hProcess);
                 CloseHandle(pi.hThread);
-                CloseHandle(hStdOutRead);
+                static if (readOutput) {
+                    CloseHandle(hStdOutRead);
+                } else {
+                    CloseHandle(hNullOutput);
+                }
             }
         }
 
@@ -163,7 +187,7 @@ version(Windows) {
         }
     }
 } else {
-    import std.process : pipeProcess, wait, tryWait, kill, ProcessPipes;
+    import std.process : pipeProcess, spawnProcess, wait, tryWait, kill, ProcessPipes, Redirect, Pid;
     import core.sys.posix.signal : SIGTERM;
     import core.sys.posix.fcntl : fcntl, F_GETFL, F_SETFL, O_NONBLOCK;
     import core.sys.posix.unistd : read;
@@ -174,10 +198,13 @@ version(Windows) {
         string executable;
         string[] args;
         int exitCode = -1;
-        ProcessPipes pipes;
         static if (readOutput) {
+            ProcessPipes pipes;
             enum BUF_SIZE = 4096;
             char[BUF_SIZE] buffer;
+        } else {
+            Pid pid;
+            File devNull;
         }
 
     public:
@@ -198,7 +225,12 @@ version(Windows) {
 
         bool start() {
             auto fullCmd = [executable] ~ args;
-            pipes = pipeProcess(fullCmd);
+            static if (readOutput) {
+                pipes = pipeProcess(fullCmd, Redirect.stdout | Redirect.stderr);
+            } else {
+                devNull = File("/dev/null", "w");
+                pid = spawnProcess(fullCmd, stdin, devNull, devNull);
+            }
             isRunning = true;
             import std.stdio;
             debug(subprocess) writefln("exec %s", fullCmd, args);
@@ -206,12 +238,20 @@ version(Windows) {
                 int fd = pipes.stdout.fileno;
                 auto flags = fcntl(fd, F_GETFL, 0);
                 fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+                fd = pipes.stderr.fileno;
+                flags = fcntl(fd, F_GETFL, 0);
+                fcntl(fd, F_SETFL, flags | O_NONBLOCK);
             }
             return true;
         }
 
         void update() {
-            auto result = tryWait(pipes.pid);
+            static if (readOutput) {
+                auto processId = pipes.pid;
+            } else {
+                auto processId = pid;
+            }
+            auto result = tryWait(processId);
             if (result.terminated) {
                 exitCode = result.status;
                 isRunning = false;
@@ -234,14 +274,30 @@ version(Windows) {
                         break;
                     }
                 }               
+                while (true) {
+                    int fd = pipes.stderr.fileno;
+                    int bytesRead = cast(int)read(fd, buffer.ptr, BUF_SIZE);
+                    if (bytesRead > 0) {
+                        continue;
+                    } else if (bytesRead == -1 && errno == EAGAIN) {
+                        break;
+                    } else {
+                        break;
+                    }
+                }
             }
         }
 
         void terminate() {
             if (isRunning) {
                 isRunning = false;
-                kill(pipes.pid, SIGTERM); // ← 正規の方法
-                wait(pipes.pid);
+                static if (readOutput) {
+                    auto processId = pipes.pid;
+                } else {
+                    auto processId = pid;
+                }
+                kill(processId, SIGTERM); // ← 正規の方法
+                wait(processId);
             }
         }
 
@@ -252,7 +308,9 @@ version(Windows) {
 
         int getExitCode() const { return exitCode; }
         bool running() const { return isRunning; }
-        File stdoutHandle() { return pipes.stdout; }
+        static if (readOutput) {
+            File stdoutHandle() { return pipes.stdout; }
+        }
         static if (readOutput) {
             StdOutData stdout() { return stdoutOutput; }
         }
