@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="957303f2-4354-4650-8174-9c646650a523" Name="nijiexpose" Language="1033" Version="0.8.1" Manufacturer="nijigenerate Project" UpgradeCode="f509f975-f15c-4e61-a436-8fd202a77bcc">
+		<Package Description="nijiexpose Installer" InstallerVersion="200" Compressed="yes" Platform="x64" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+		<MediaTemplate EmbedCab="yes" />
+
+		<Feature Id="nijiexposeFeatureGroup" Title="nijiexpose" Description="nijiexpose" Level="1">
+			<Feature Id="nijiexposeFeature" Title="Main Files" Description="The core nijiexpose files" Level="1" AllowAdvertise="no" Absent="disallow">
+				<ComponentGroupRef Id="ApplicationFiles" Primary="yes" />
+				<ComponentRef Id="ProgramMenuDir" />
+			</Feature>
+
+			<Feature Id="nijiexposeTranslationFeature" Title="Translations" Description="Translations for nijiexpose" Level="1">
+				<ComponentGroupRef Id="Translations" />
+			</Feature>
+
+			<Feature Id="nijiexposeDesktopiconFeature" Title="Desktop Icon" Description="Create Desktop Icon" Level="1">
+				<ComponentRef Id="DesktopIcon" />
+			</Feature>
+		</Feature>
+
+		<UIRef Id="WixUI_FeatureTree" />
+		<UIRef Id="WixUI_ErrorProgressText" />
+
+		<WixVariable Id="WixUILicenseRtf" Value="res\LICENSE.rtf" />
+	</Product>
+
+	<Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFiles64Folder">
+				<Directory Id="INSTALLFOLDER" Name="nijiexpose">
+					<Directory Id="i18n" Name="i18n" />
+				</Directory>
+			</Directory>
+
+			<Directory Id="ProgramMenuFolder" Name="Programs">
+				<Directory Id="ProgramMenuDir" Name="nijiexpose">
+					<Component Id="ProgramMenuDir" Guid="e74eb957-4b11-4445-92d1-f95c6f7ebbf6">
+						<RemoveFolder Id="ProgramMenuDir" On="uninstall" />
+						<RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]" Type="string" Value="" KeyPath="yes" />
+					</Component>
+				</Directory>
+			</Directory>
+
+			<Directory Id="DesktopFolder" Name="Desktop" />
+		</Directory>
+	</Fragment>
+
+	<Fragment>
+		<Icon Id="nijiexposeIcon.ico" SourceFile="..\..\..\build-aux\windows\icon.ico" />
+
+		<ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
+			<Component Id="nijiexpose" Win64="yes" Guid="c509f551-0420-4414-a795-c2f4d49a57f3">
+				<File Id="nijiexposeEXE.exe" Name="nijiexpose.exe" Source="..\..\..\out\nijiexpose.exe" KeyPath="yes" />
+				<Shortcut Id="ProgramFilesnijiexpose" Directory="ProgramMenuDir" Name="nijiexpose" WorkingDirectory="INSTALLFOLDER" Icon="nijiexposeIcon.ico" IconIndex="0" Advertise="yes" />
+			</Component>
+
+			<Component Id="SDL2" Win64="yes" Guid="f63af5fc-a794-4de6-aaa1-6dff88a46d30">
+				<File Name="SDL2.dll" Source="..\..\..\out\SDL2.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="Freetype" Win64="yes" Guid="2e18f00a-705d-4180-9d5a-46e17db504ea">
+				<File Name="freetype.dll" Source="..\..\..\out\freetype.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="CImGui" Win64="yes" Guid="27e0c9c6-5d81-4876-8e1f-a7de9eb065df">
+				<File Name="cimgui.dll" Source="..\..\..\out\cimgui.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="LibCrypto" Win64="yes" Guid="61cdc110-a7ef-46de-8ba1-e4ac50097b77">
+				<File Name="libcrypto-3-x64.dll" Source="..\..\..\out\libcrypto-3-x64.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="LibSSL" Win64="yes" Guid="d7cbe9c8-69b3-4013-9df2-48431655f652">
+				<File Name="libssl-3-x64.dll" Source="..\..\..\out\libssl-3-x64.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="SpoutLibrary" Win64="yes" Guid="861476d9-8c24-4cf5-a5ca-4cc595ac8d2f">
+				<File Name="SpoutLibrary.dll" Source="..\..\..\out\SpoutLibrary.dll" KeyPath="yes" />
+			</Component>
+
+			<Component Id="LicenseFreetype" Win64="yes" Guid="0442577f-94e7-4276-b5cd-829ecfeca886">
+				<File Name="LICENSE-FreeType" Source="..\..\..\out\LICENSE-FreeType" KeyPath="yes" />
+			</Component>
+
+			<Component Id="LicenseImgui" Win64="yes" Guid="8bafb934-117d-43ac-a5e5-6fbb63b791a0">
+				<File Name="LICENSE-imgui" Source="..\..\..\out\LICENSE-imgui" KeyPath="yes" />
+			</Component>
+
+			<Component Id="LicenseLua" Win64="yes" Guid="e11fad78-c3fb-4e39-8a0d-4aad6142edf3">
+				<File Name="LICENSE-Lua" Source="..\..\..\out\LICENSE-Lua" KeyPath="yes" />
+			</Component>
+
+			<Component Id="LicenseSpout2" Win64="yes" Guid="df29a21d-3a74-40ed-9863-fdeed9b3aa5a">
+				<File Name="LICENSE-Spout2" Source="..\..\..\out\LICENSE-Spout2" KeyPath="yes" />
+			</Component>
+
+			<Component Id="LicenseMaterialIcons" Win64="yes" Guid="db2f970f-1316-4ffb-acc4-59245bff1fbd">
+				<File Name="MaterialIcons-LICENSE" Source="..\..\..\out\MaterialIcons-LICENSE" KeyPath="yes" />
+			</Component>
+
+			<Component Id="LicenseNotoSansCJK" Win64="yes" Guid="6cba7b4e-50be-410a-8a24-4924bbb4ddd5">
+				<File Name="NotoSansCJK-Regular-LICENSE" Source="..\..\..\out\NotoSansCJK-Regular-LICENSE" KeyPath="yes" />
+			</Component>
+		</ComponentGroup>
+
+		<Component Id="DesktopIcon" Win64="yes" Guid="db9df305-ec30-45b3-8935-ff681dd6ab9c"
+			Directory="INSTALLFOLDER">
+			<RegistryValue Root="HKCU"
+						   Key="Software\Microsoft\nijiexpose"
+						   Name="installed"
+						   Type="integer"
+						   Value="1"
+						   KeyPath="yes" />
+			<Shortcut Id="Desktopnijiexpose" Directory="DesktopFolder" Name="nijiexpose" WorkingDirectory="INSTALLFOLDER" Icon="nijiexposeIcon.ico" IconIndex="0" Advertise="no" />
+		</Component>
+
+		<ComponentGroup Id="Translations" Directory="i18n">
+			<Component Id="TranslationFiles" Win64="yes" Guid="ea40f87a-20c0-4861-9f08-1e21dfe2fe83">
+				<CreateFolder Directory="i18n" />
+				<File Id="Japanese" Name="ja.mo" Source="..\..\..\out\i18n\ja.mo" KeyPath="yes" />
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>

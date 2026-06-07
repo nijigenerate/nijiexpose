@@ -50,17 +50,17 @@ jobs:
     - uses: dlang-community/setup-dlang@v1.4.0
       with:
         compiler: ldc-1.41.0
-  
+
     - name: 'Get build dependencies'
       run: |
         sudo apt-get update
         sudo apt install libsdl2-dev libfreetype6-dev gettext
-    
+
     - name: 'Generate i18n'
       run: |
         sudo chmod +x gentl.sh
         ./gentl.sh
-      
+
     - name: 'Clone dependencies & set versions'
       run: |
         git clone https://github.com/nijigenerate/ng-facetrack-d.git
@@ -80,7 +80,7 @@ jobs:
       uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.31'
-    
+
     - name: CMake version
       run: cmake --version
 
@@ -105,7 +105,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
           files: 'out/nijiexpose-linux-x86_64.zip'
-        
+
 #    - name: 'Publish to Itch'
 #      uses: manleydev/butler-publish-itchio-action@master
 #      env:
@@ -132,7 +132,7 @@ jobs:
       with:
         name: translations
         path: out/i18n/
-      
+
     - name: 'Clone dependencies & set versions'
       run: |
         git clone https://github.com/nijigenerate/ng-facetrack-d.git
@@ -152,7 +152,7 @@ jobs:
       uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: '3.31'
-    
+
     - name: CMake version
       run: cmake --version
 
@@ -169,13 +169,13 @@ jobs:
               }
           }
           Invoke-VSDevEnvironment
-          
+
           # Build metadata (like version information and icons)
           dub build --config=meta
-          
+
           # Build the project, with its main file included, without unittests
           dub build --compiler=ldc2 --build=release --config=win32-full
-          
+
     - name: 'Archive Zip'
       uses: thedoctor0/zip-release@main
       with:
@@ -184,17 +184,38 @@ jobs:
         directory: 'out/'
         path: '*'
 
+    - name: 'Add msbuild to PATH'
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: 'Build MSI'
+      run: |
+        cd build-aux/windows/wix
+
+        # Install required dependency
+        New-Item -ItemType Directory -Force packages
+        nuget install WixToolset.UI.wixext -version 4.0.0 -OutputDirectory packages/
+
+        # Build solution
+        msbuild "nijiexpose.sln" -property:Configuration=Release -property:Platform=x64
+
+        # Copy installer out
+        mv "bin/Release/nijiexpose.msi" "../../../out/nijiexpose-win32-x86_64.msi"
+        cd ../../../
+
     - name: 'Release'
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-          files: out/nijiexpose-win32-x86_64.zip
+          files: |
+            out/nijiexpose-win32-x86_64.msi
+            out/nijiexpose-win32-x86_64.zip
 
-    - name: Make Artifact of ZIP
+    - name: Make Artifact of build
       uses: actions/upload-artifact@v4
       with:
         name: release-win32
         path: |
+          out/nijiexpose-win32-x86_64.msi
           out/nijiexpose-win32-x86_64.zip
           version.txt
         retention-days: 1
@@ -227,7 +248,7 @@ jobs:
     - uses: dlang-community/setup-dlang@v1.4.0
       with:
         compiler: ldc-1.41.0
-  
+
     - name: "Prepare for DMG packing"
       continue-on-error: true
       run: |
@@ -253,13 +274,13 @@ jobs:
         # And the .a for it as well
         if [ -f "/usr/local/lib/libharfbuzz.a" ]; then
           sudo rm -r /usr/local/lib/libharfbuzz.a
-        fi  macOS-build:
+        fi
 
     - name: 'Generate i18n'
       run: |
         sudo chmod +x gentl.sh
         ./gentl.sh
-      
+
     - name: "Clone dependencies & set versions"
       run: |
         git clone https://github.com/nijigenerate/ng-facetrack-d.git
@@ -286,7 +307,7 @@ jobs:
       run: |
         # Build metadata (like version information and icons)
         dub build --config=meta
-        
+
         # Build ARM64 version only
         echo "Building arm64 binary..."
         dub build --build=release --config=osx-full --arch=arm64-apple-macos
@@ -303,24 +324,27 @@ jobs:
         directory: 'out/'
         path: '*'
 
-    - name: Make Artifact of ZIP
+    - name: 'Build DMG'
+      run: |
+        ./build-aux/osx/gendmg.sh
+
+    - name: Make Artifact of build
       uses: actions/upload-artifact@v4
       with:
         name: release-osx
         path: |
           out/nijiexpose-macOS.zip
+          out/Install_nijiexpose.dmg
           version.txt
         retention-days: 1
-
-    - name: 'Build DMG'
-      run: |
-        ./build-aux/osx/gendmg.sh
 
     - name: Release
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
-          files: out/Install_nijiexpose.dmg
+          files: |
+            out/nijiexpose-macOS.zip
+            out/Install_nijiexpose.dmg
 
 #  macOS-itch:
 #    name: Itch Release (macOS)
