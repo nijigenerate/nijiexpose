@@ -1,10 +1,11 @@
 mkdir -p out/
 
-if [ -n `$(find tl/ -name "*.po" 2>/dev/null)` ]
-then
+set -- tl/*.po
+if [ ! -e "$1" ]; then
     echo "No translations, skipping..."
-else
-    for f in tl/*.po; do
-        msgfmt -o "out/$(basename -- "$f" .po).mo" -- "$f" 
-    done
+    exit 0
 fi
+
+for f do
+    msgfmt -o "out/$(basename -- "$f" .po).mo" -- "$f"
+done
