@@ -68,6 +68,16 @@ public:
         return buildPath(trackerPath.fromStringz, trackerScriptName);
     }
 
+    string pythonPath() {
+        version(Windows) {
+            auto bundledPython = buildPath(trackerPath.fromStringz, ".venv", "Scripts", "python.exe");
+        } else {
+            auto bundledPython = buildPath(trackerPath.fromStringz, ".venv", "bin", "python");
+        }
+        if (bundledPython.exists) return bundledPython;
+        return PythonProcess!false.detectPython();
+    }
+
     void serialize(S)(ref S serializer) {
         auto state = serializer.structBegin;
             serializer.putKey("enabled");
@@ -95,6 +105,8 @@ public:
         if (!data["hostname"].isEmpty) data["hostname"].deserializeValue(hostname);
         if (!data["port"].isEmpty) data["port"].deserializeValue(port);
         if (!data["trackerPath"].isEmpty) data["trackerPath"].deserializeValue(trackerPath);
+        hostname = hostname.fromStringz;
+        trackerPath = trackerPath.fromStringz;
         initialized = true;
         return null;
     }
@@ -117,7 +129,7 @@ public:
             return deviceList;
         }
         if (queryProcess is null) {
-            queryProcess = new PythonProcess!true(scriptPath, ["--list-devices"]);
+            queryProcess = new PythonProcess!true(scriptPath, ["--list-devices"], pythonPath);
             queryProcess.start();
         } else {
             if (!queryProcess.running) {
@@ -137,7 +149,7 @@ public:
         string[] args = ["--device", device.to!string, "--osc-host", hostname, "--osc-port", port.to!string];
         if (showWindow) args ~= ["--show", "--show-video", "--show-wire"];
         if (flipped) args ~= ["--flip"];
-        process = new PythonProcess!false(scriptPath, args);
+        process = new PythonProcess!false(scriptPath, args, pythonPath);
         process.start();
     }
 
@@ -198,7 +210,7 @@ public:
             write(destPath, member.expandedData);
             insLogInfo("Wrote %s".format(destPath));
         }
-        installProcess = new PythonProcess!true(null, ["-m", "pip", "install", trackerPath]);
+        installProcess = new PythonProcess!true(null, ["-m", "pip", "install", trackerPath], pythonPath);
         installProcess.start();
         return installProcess;
     }

@@ -18,6 +18,8 @@
     <string>nijiexpose</string>
     <key>CFBundleIconFile</key>
     <string>nijiexpose</string>
+    <key>NSCameraUsageDescription</key>
+    <string>nijiexpose uses the camera for face tracking.</string>
     <key>CFBundleDocumentTypes</key>
     <array>
       <dict>
