@@ -24,6 +24,19 @@ import std.process;
 import nijilive.core.nodes.common : nlSetTripleBufferFallback, nlIsTripleBufferFallbackEnabled;
 import nijiui.core.settings : inSettingsGet;
 
+version(Windows) {
+    debug {
+    } else {
+        version (LDC) {
+            pragma(linkerDirective, "/SUBSYSTEM:WINDOWS");
+            static if (__VERSION__ >= 2091)
+                pragma(linkerDirective, "/ENTRY:wmainCRTStartup");
+            else
+                pragma(linkerDirective, "/ENTRY:mainCRTStartup");
+        }
+    }
+}
+
 void main(string[] args) {
     insLogInfo("nijiexpose %s, args=%s", INS_VERSION, args[1..$]);
 
