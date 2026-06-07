@@ -119,7 +119,7 @@ public:
                 uiImLabel(_("Python path"));
                 uiImSameLine();
                 if (!pythonPathTested) {
-                    pythonPath = PythonProcess!false.detectPython();
+                    pythonPath = tracker.pythonPath;
                     pythonPathTested = true;
                 }
                 if (pythonPath is null) {
