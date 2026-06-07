@@ -59,7 +59,7 @@ version(Windows) {
                     "NUL".toUTF16z,
                     GENERIC_WRITE,
                     FILE_SHARE_WRITE,
-                    null,
+                    &sa,
                     OPEN_EXISTING,
                     FILE_ATTRIBUTE_NORMAL,
                     null

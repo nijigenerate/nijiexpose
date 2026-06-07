@@ -79,6 +79,7 @@ public:
     void applyLanguageSettings() {
         ensureDraftLoaded();
         neLocaleSet(languageDraft);
+        inSettingsSave();
     }
 
     void applySettings() {

@@ -14,6 +14,34 @@ permissions:
   contents: write
 
 jobs:
+  build-resources:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: 'Install dependencies'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gettext
+        mkdir -p out/
+
+    - name: 'Generate i18n'
+      run: |
+        mkdir -p otl/
+
+        sudo chmod +x ./gentl.sh
+        ./gentl.sh
+
+        cp out/* otl/
+
+    - name: Make Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: translations
+        path: otl/*
+        retention-days: 1
+
   linux-build:
     runs-on: ubuntu-22.04
 
@@ -91,12 +119,19 @@ jobs:
   windows-build:
     # i2d-imgui 0.8.0 invokes CMake with the Visual Studio 17 2022 generator.
     runs-on: windows-2022
+    needs: build-resources
 
     steps:
     - uses: actions/checkout@v4
     - uses: dlang-community/setup-dlang@v1.4.0
       with:
         compiler: ldc-1.41.0
+
+    - name: Download translations
+      uses: actions/download-artifact@v4
+      with:
+        name: translations
+        path: out/i18n/
       
     - name: 'Clone dependencies & set versions'
       run: |
