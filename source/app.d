@@ -11,6 +11,7 @@ module app;
 import nijilive;
 import nijiui;
 import nijiexpose.windows;
+import nijiexpose.i18n;
 import std.stdio : writeln;
 import nijiexpose.plugins;
 import nijiexpose.log;
@@ -39,6 +40,7 @@ void main(string[] args) {
     
     // Initialize UI
     inInitUI();
+    neLocaleInitFromSettings();
 
     // Initialize expressions before models are loaded.
     insInitExpressions();

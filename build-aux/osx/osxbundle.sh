@@ -25,8 +25,11 @@ echo "Setting up file structure..."
 # Copy info plist and icon
 cp build-aux/osx/Info.plist out/nijiexpose.app/Contents/
 
-# Move any translation files in if any.
-mv -n out/*.mo out/nijiexpose.app/Contents/Resources/i18n/
+# Copy any translation files in if any.
+set -- out/*.mo
+if [ -e "$1" ]; then
+    cp -n "$@" out/nijiexpose.app/Contents/Resources/i18n/
+fi
 
 # Copy license info to SharedSupport
 cp res/licenses/*-LICENSE out/nijiexpose.app/Contents/SharedSupport/

@@ -1,147 +1,147 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# Japanese translations for PACKAGE package.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Automatically generated, 2026.
 #
 #: source/nijiexpose/animation/package.d:57
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: nijiexpose\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-07 22:32+0900\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2026-06-07 22:32+0900\n"
+"Last-Translator: nijigenerate Project <noreply@example.com>\n"
+"Language-Team: Japanese <noreply@example.com>\n"
+"Language: ja\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
 #: source/nijiexpose/plugins/plugin.d:63
 #, c-format, d-format
 msgid "Attempted to load invalid module specifier %s"
-msgstr ""
+msgstr "無効なモジュール指定子 %s を読み込もうとしました"
 
 #: source/nijiexpose/plugins/plugin.d:81
 #, c-format, d-format
 msgid "Module %s not found"
-msgstr ""
+msgstr "モジュール %s が見つかりません"
 
 #: source/nijiexpose/plugins/plugin.d:93
 msgid "Attempted to require a symlink, this is not allowed."
-msgstr ""
+msgstr "シンボリックリンクを require しようとしました。これは許可されていません。"
 
 #: source/nijiexpose/plugins/plugin.d:164
 #, c-format, d-format
 msgid "Loaded plugin %s %s..."
-msgstr ""
+msgstr "プラグイン %s %s を読み込みました..."
 
 #. Error display for plugins erroring out
 #: source/nijiexpose/plugins/plugin.d:174 source/nijiexpose/panels/plugin.d:45
 #, c-format, d-format
 msgid "%s (plugin): %s"
-msgstr ""
+msgstr "%s (プラグイン): %s"
 
 #: source/nijiexpose/panels/tracking.d:81
 #: source/nijiexpose/panels/tracking.d:309
 msgid "Ratio Binding"
-msgstr ""
+msgstr "比率バインディング"
 
 #: source/nijiexpose/panels/tracking.d:83
 #: source/nijiexpose/panels/tracking.d:315
 msgid "Expression Binding"
-msgstr ""
+msgstr "式バインディング"
 
 #: source/nijiexpose/panels/tracking.d:85
 #: source/nijiexpose/panels/tracking.d:322
 msgid "Event Binding"
-msgstr ""
+msgstr "イベントバインディング"
 
 #: source/nijiexpose/panels/tracking.d:87
 #: source/nijiexpose/panels/tracking.d:329
 msgid "Compound Binding"
-msgstr ""
+msgstr "複合バインディング"
 
 #: source/nijiexpose/panels/tracking.d:89
 msgid "External Binding"
-msgstr ""
+msgstr "外部バインディング"
 
 #: source/nijiexpose/panels/tracking.d:307
 msgid "Type"
-msgstr ""
+msgstr "種類"
 
 #: source/nijiexpose/panels/tracking.d:357
 #: source/nijiexpose/panels/tracking.d:474
 #: source/nijiexpose/panels/tracking.d:526
 msgid "Dampen"
-msgstr ""
+msgstr "減衰"
 
 #: source/nijiexpose/panels/tracking.d:371
 #: source/nijiexpose/panels/tracking.d:556
 #: source/nijiexpose/panels/tracking.d:638
 msgid "Value out of range, clamped to 0..1 range."
-msgstr ""
+msgstr "値が範囲外のため、0..1 の範囲に制限されました。"
 
 #: source/nijiexpose/panels/tracking.d:374
 #: source/nijiexpose/panels/tracking.d:559
 #: source/nijiexpose/panels/tracking.d:641
 #, c-format, d-format
 msgid "Output (%s)"
-msgstr ""
+msgstr "出力 (%s)"
 
 #: source/nijiexpose/panels/tracking.d:394
 #: source/nijiexpose/panels/animations.d:89
 msgid "Not tracked"
-msgstr ""
+msgstr "未トラッキング"
 
 #: source/nijiexpose/panels/tracking.d:409
 #: source/nijiexpose/panels/animations.d:104
 msgid "X"
-msgstr ""
+msgstr "X"
 
 #: source/nijiexpose/panels/tracking.d:415
 #: source/nijiexpose/panels/animations.d:110
 msgid "Y"
-msgstr ""
+msgstr "Y"
 
 #: source/nijiexpose/panels/tracking.d:421
 #: source/nijiexpose/panels/animations.d:116
 msgid "Z"
-msgstr ""
+msgstr "Z"
 
 #: source/nijiexpose/panels/tracking.d:427
 #: source/nijiexpose/panels/animations.d:122
 msgid "Roll"
-msgstr ""
+msgstr "ロール"
 
 #: source/nijiexpose/panels/tracking.d:433
 #: source/nijiexpose/panels/animations.d:128
 msgid "Pitch"
-msgstr ""
+msgstr "ピッチ"
 
 #: source/nijiexpose/panels/tracking.d:439
 #: source/nijiexpose/panels/animations.d:134
 msgid "Yaw"
-msgstr ""
+msgstr "ヨー"
 
 #: source/nijiexpose/panels/tracking.d:467
 #: source/nijiexpose/panels/tracking.d:540
 #: source/nijiexpose/panels/tracking.d:604 source/nijiexpose/panels/scene.d:154
 msgid ""
-msgstr ""
+msgstr ""
 
 #: source/nijiexpose/panels/tracking.d:472
 msgid "Inverse"
-msgstr ""
+msgstr "反転"
 
 #: source/nijiexpose/panels/tracking.d:477
 msgid "Tracking In"
-msgstr ""
+msgstr "トラッキング入力"
 
 #: source/nijiexpose/panels/tracking.d:506
 msgid "Tracking Out"
-msgstr ""
+msgstr "トラッキング出力"
 
 #: source/nijiexpose/panels/tracking.d:549
 #: source/nijiexpose/panels/tracking.d:631
@@ -149,35 +149,35 @@ msgstr ""
 #: source/nijiexpose/windows/spaceedit.d:300
 #: source/nijiexpose/windows/spaceedit.d:362
 msgid ""
-msgstr ""
+msgstr ""
 
 #: source/nijiexpose/panels/tracking.d:576
 msgid "Weighted Sum"
-msgstr ""
+msgstr "重み付き合計"
 
 #: source/nijiexpose/panels/tracking.d:577
 msgid "Weighted Multiply"
-msgstr ""
+msgstr "重み付き乗算"
 
 #: source/nijiexpose/panels/tracking.d:578
 msgid "Ordered"
-msgstr ""
+msgstr "順序付き"
 
 #: source/nijiexpose/panels/tracking.d:654
 #: source/nijiexpose/panels/animations.d:425
 msgid ""
-msgstr ""
+msgstr ""
 
 #: source/nijiexpose/panels/tracking.d:658
 #: source/nijiexpose/panels/animations.d:429
 msgid "Refresh"
-msgstr ""
+msgstr "更新"
 
 #: source/nijiexpose/panels/tracking.d:662
 #: source/nijiexpose/panels/animations.d:433
 #: source/nijiexpose/windows/spaceedit.d:413
 msgid ""
-msgstr ""
+msgstr ""
 
 #: source/nijiexpose/panels/tracking.d:666
 #: source/nijiexpose/panels/animations.d:437
@@ -187,413 +187,413 @@ msgstr ""
 #: source/nijiexpose/windows/spaceedit.d:282
 #: source/nijiexpose/windows/spaceedit.d:419
 msgid "Error"
-msgstr ""
+msgstr "エラー"
 
 #: source/nijiexpose/panels/tracking.d:669
 #: source/nijiexpose/panels/animations.d:440
 msgid "Save to File"
-msgstr ""
+msgstr "ファイルに保存"
 
 #: source/nijiexpose/panels/tracking.d:695
 msgid "No settings available."
-msgstr ""
+msgstr "利用可能な設定はありません。"
 
 #: source/nijiexpose/panels/tracking.d:702
 #: source/nijiexpose/panels/animations.d:495
 msgid "No puppet selected"
-msgstr ""
+msgstr "パペットが選択されていません"
 
 #: source/nijiexpose/panels/tracking.d:707
 #: source/nijiexpose/animation/package.d:53
 #: source/nijiexpose/windows/settings.d:220
 #: source/nijiexpose/windows/settings.d:289
 msgid "Tracking"
-msgstr ""
+msgstr "トラッキング"
 
 #: source/nijiexpose/panels/animations.d:88
 msgid "Tracking Parameter"
-msgstr ""
+msgstr "トラッキングパラメータ"
 
 #: source/nijiexpose/panels/animations.d:156
 msgid "Reset"
-msgstr ""
+msgstr "リセット"
 
 #: source/nijiexpose/panels/animations.d:164
 msgid "Default Thresholds"
-msgstr ""
+msgstr "既定のしきい値"
 
 #: source/nijiexpose/panels/animations.d:168
 msgid "Use Hold Delay"
-msgstr ""
+msgstr "ホールド遅延を使用"
 
 #: source/nijiexpose/panels/animations.d:173
 msgid "Play Threshold"
-msgstr ""
+msgstr "再生しきい値"
 
 #: source/nijiexpose/panels/animations.d:207
 #: source/nijiexpose/panels/animations.d:255
 #: source/nijiexpose/panels/animations.d:302
 msgid "Hold Delay (ms):"
-msgstr ""
+msgstr "ホールド遅延 (ms):"
 
 #: source/nijiexpose/panels/animations.d:221
 msgid "Stop Threshold"
-msgstr ""
+msgstr "停止しきい値"
 
 #: source/nijiexpose/panels/animations.d:268
 msgid "Full Stop Threshold"
-msgstr ""
+msgstr "完全停止しきい値"
 
 #: source/nijiexpose/panels/animations.d:324
 #: source/nijiexpose/animation/package.d:55
 msgid "Event"
-msgstr ""
+msgstr "イベント"
 
 #: source/nijiexpose/panels/animations.d:327
 msgid "Play on"
-msgstr ""
+msgstr "再生条件"
 
 #: source/nijiexpose/panels/animations.d:329
 msgid "Stop on"
-msgstr ""
+msgstr "停止条件"
 
 #: source/nijiexpose/panels/animations.d:331
 msgid "Full stop on"
-msgstr ""
+msgstr "完全停止条件"
 
 #: source/nijiexpose/panels/animations.d:340
 msgid "Load"
-msgstr ""
+msgstr "ロード"
 
 #: source/nijiexpose/panels/animations.d:346
 #: source/nijiexpose/panels/animations.d:375
 #: source/nijiexpose/panels/animations.d:399
 msgid "Idle"
-msgstr ""
+msgstr "待機"
 
 #: source/nijiexpose/panels/animations.d:354
 #: source/nijiexpose/panels/animations.d:381
 #: source/nijiexpose/panels/animations.d:405
 msgid "Sleep"
-msgstr ""
+msgstr "スリープ"
 
 #: source/nijiexpose/panels/animations.d:459
 msgid "Loop"
-msgstr ""
+msgstr "ループ"
 
 #: source/nijiexpose/panels/animations.d:463
 msgid "Trigger"
-msgstr ""
+msgstr "トリガー"
 
 #: source/nijiexpose/panels/animations.d:501
 msgid "Animations"
-msgstr ""
+msgstr "アニメーション"
 
 #: source/nijiexpose/panels/scene.d:43
 #, c-format, d-format
 msgid "Could not load %s, %s"
-msgstr ""
+msgstr "%s を読み込めませんでした: %s"
 
 #: source/nijiexpose/panels/scene.d:57
 msgid "Post Processing"
-msgstr ""
+msgstr "ポストプロセス"
 
 #: source/nijiexpose/panels/scene.d:60
 msgid "Enabled###POST_PROCESSING"
-msgstr ""
+msgstr "有効###POST_PROCESSING"
 
 #: source/nijiexpose/panels/scene.d:65
 msgid "Lighting"
-msgstr ""
+msgstr "ライティング"
 
 #: source/nijiexpose/panels/scene.d:75
 msgid "Background Color"
-msgstr ""
+msgstr "背景色"
 
 #: source/nijiexpose/panels/scene.d:83
 msgid "Color Swatches"
-msgstr ""
+msgstr "カラースウォッチ"
 
 #: source/nijiexpose/panels/scene.d:86
 msgid "Full Transparent"
-msgstr ""
+msgstr "完全透明"
 
 #: source/nijiexpose/panels/scene.d:92
 msgid "Chroma Key Red"
-msgstr ""
+msgstr "クロマキー赤"
 
 #: source/nijiexpose/panels/scene.d:98
 msgid "Chroma Key Green"
-msgstr ""
+msgstr "クロマキー緑"
 
 #: source/nijiexpose/panels/scene.d:104
 msgid "Chroma Key Blue"
-msgstr ""
+msgstr "クロマキー青"
 
 #: source/nijiexpose/panels/scene.d:110
 msgid "Background Image"
-msgstr ""
+msgstr "背景画像"
 
 #: source/nijiexpose/panels/scene.d:113
 msgid "Select Background"
-msgstr ""
+msgstr "背景を選択"
 
 #: source/nijiexpose/panels/scene.d:120 source/nijiexpose/windows/main.d:736
 msgid "Open..."
-msgstr ""
+msgstr "開く..."
 
 #: source/nijiexpose/panels/scene.d:144 source/nijiexpose/windows/main.d:937
 #, c-format, d-format
 msgid "Could not load %s, unsupported file format."
-msgstr ""
+msgstr "%s を読み込めませんでした。対応していないファイル形式です。"
 
 #: source/nijiexpose/panels/scene.d:167 source/nijiexpose/windows/main.d:883
 msgid "Scene Settings"
-msgstr ""
+msgstr "シーン設定"
 
 #: source/nijiexpose/panels/plugin.d:37
 #, c-format, d-format
 msgid "%s has crashed, options are disabled."
-msgstr ""
+msgstr "%s がクラッシュしたため、オプションは無効です。"
 
 #: source/nijiexpose/panels/plugin.d:49
 msgid "Plugin cannot be configured."
-msgstr ""
+msgstr "プラグインを設定できません。"
 
 #: source/nijiexpose/panels/plugin.d:61
 msgid "Plugins"
-msgstr ""
+msgstr "プラグイン"
 
 #: source/nijiexpose/panels/blends.d:35
 msgid "Blendshapes"
-msgstr ""
+msgstr "ブレンドシェイプ"
 
 #: source/nijiexpose/animation/package.d:51
 msgid "None"
-msgstr ""
+msgstr "なし"
 
 #: source/nijiexpose/animation/package.d:510
 #: source/nijiexpose/tracking/ratiobinding.d:197
 #, c-format, d-format
 msgid "%s (X)"
-msgstr ""
+msgstr "%s (X)"
 
 #: source/nijiexpose/animation/package.d:513
 #: source/nijiexpose/tracking/ratiobinding.d:200
 #, c-format, d-format
 msgid "%s (Y)"
-msgstr ""
+msgstr "%s (Y)"
 
 #: source/nijiexpose/animation/package.d:516
 #: source/nijiexpose/tracking/ratiobinding.d:203
 #, c-format, d-format
 msgid "%s (Z)"
-msgstr ""
+msgstr "%s (Z)"
 
 #: source/nijiexpose/animation/package.d:519
 #: source/nijiexpose/tracking/ratiobinding.d:206
 #, c-format, d-format
 msgid "%s (Roll)"
-msgstr ""
+msgstr "%s (ロール)"
 
 #: source/nijiexpose/animation/package.d:522
 #: source/nijiexpose/tracking/ratiobinding.d:209
 #, c-format, d-format
 msgid "%s (Pitch)"
-msgstr ""
+msgstr "%s (ピッチ)"
 
 #: source/nijiexpose/animation/package.d:525
 #: source/nijiexpose/tracking/ratiobinding.d:212
 #, c-format, d-format
 msgid "%s (Yaw)"
-msgstr ""
+msgstr "%s (ヨー)"
 
 #: source/nijiexpose/tracking/ratiobinding.d:215
 #, c-format, d-format
 msgid "%s (Key)"
-msgstr ""
+msgstr "%s (キー)"
 
 #: source/nijiexpose/tracking/expr.d:197
 #, c-format, d-format
 msgid "Expected %s, got %s"
-msgstr ""
+msgstr "%s が必要ですが、%s が渡されました"
 
 #: source/nijiexpose/windows/main.d:874
 msgid "Tracking Settings"
-msgstr ""
+msgstr "トラッキング設定"
 
 #: source/nijiexpose/windows/main.d:879
 #: source/nijiexpose/windows/spaceedit.d:481
 msgid "Virtual Space"
-msgstr ""
+msgstr "仮想空間"
 
 #: source/nijiexpose/windows/main.d:892
 #: source/nijiexpose/windows/settings.d:292
 msgid "Rendering"
-msgstr ""
+msgstr "レンダリング"
 
 #: source/nijiexpose/windows/main.d:905
 #: source/nijiexpose/windows/settings.d:317
 #: source/nijiexpose/windows/spaceedit.d:311
 msgid "Apply"
-msgstr ""
+msgstr "適用"
 
 #: source/nijiexpose/windows/settings.d:114
 #: source/nijiexpose/windows/settings.d:116
 msgid "Language"
-msgstr ""
+msgstr "言語"
 
 #: source/nijiexpose/windows/settings.d:119
 #: source/nijiexpose/windows/settings.d:124
 msgid "English"
-msgstr ""
+msgstr "英語"
 
 #: source/nijiexpose/windows/settings.d:134
 msgid "Restart may be required for all text to update."
-msgstr ""
+msgstr "すべてのテキストを更新するには再起動が必要な場合があります。"
 
 #: source/nijiexpose/windows/settings.d:142
 msgid "Enable tracking"
-msgstr ""
+msgstr "トラッキングを有効化"
 
 #: source/nijiexpose/windows/settings.d:150
 msgid "Python path"
-msgstr ""
+msgstr "Python パス"
 
 #: source/nijiexpose/windows/settings.d:157
 msgid "Python is not detected. Please install python (<=3.12) first."
-msgstr ""
+msgstr "Python が検出されません。先に Python (<=3.12) をインストールしてください。"
 
 #: source/nijiexpose/windows/settings.d:161
 msgid "Tracker executable path"
-msgstr ""
+msgstr "トラッカー実行ファイルのパス"
 
 #: source/nijiexpose/windows/settings.d:165
 #, c-format, d-format
 msgid "Specified path doesn't contain %s"
-msgstr ""
+msgstr "指定されたパスに %s が含まれていません"
 
 #: source/nijiexpose/windows/settings.d:167
 msgid "Install"
-msgstr ""
+msgstr "インストール"
 
 #: source/nijiexpose/windows/settings.d:180
 msgid "OK"
-msgstr ""
+msgstr "OK"
 
 #: source/nijiexpose/windows/settings.d:185
 msgid "Camera device"
-msgstr ""
+msgstr "カメラデバイス"
 
 #: source/nijiexpose/windows/settings.d:189
 msgid "Select device..."
-msgstr ""
+msgstr "デバイスを選択..."
 
 #: source/nijiexpose/windows/settings.d:200
 msgid "Host name"
-msgstr ""
+msgstr "ホスト名"
 
 #: source/nijiexpose/windows/settings.d:203
 msgid "Port number"
-msgstr ""
+msgstr "ポート番号"
 
 #: source/nijiexpose/windows/settings.d:206
 msgid "Flip input"
-msgstr ""
+msgstr "入力を反転"
 
 #: source/nijiexpose/windows/settings.d:207
 msgid "Show camera tracking window"
-msgstr ""
+msgstr "カメラトラッキングウィンドウを表示"
 
 #: source/nijiexpose/windows/settings.d:230
 #: source/nijiexpose/windows/settings.d:249
 msgid "V-Sync throttling"
-msgstr ""
+msgstr "V-Sync 間引き"
 
 #: source/nijiexpose/windows/settings.d:233
 #: source/nijiexpose/windows/settings.d:251
 msgid "Throtting interval"
-msgstr ""
+msgstr "間引き間隔"
 
 #: source/nijiexpose/windows/settings.d:233
 #: source/nijiexpose/windows/settings.d:251
 msgid "Experimental"
-msgstr ""
+msgstr "実験的"
 
 #: source/nijiexpose/windows/settings.d:240
 #: source/nijiexpose/windows/settings.d:257
 msgid "Triple buffer fallback"
-msgstr ""
+msgstr "トリプルバッファフォールバック"
 
 #: source/nijiexpose/windows/settings.d:243
 #: source/nijiexpose/windows/settings.d:259
 msgid "Enable triple buffer fallback"
-msgstr ""
+msgstr "トリプルバッファフォールバックを有効化"
 
 #: source/nijiexpose/windows/settings.d:244
 #: source/nijiexpose/windows/settings.d:260
 msgid "Use when advanced blend is unavailable or causes issues."
-msgstr ""
+msgstr "高度なブレンドが利用できない、または問題を起こす場合に使用します。"
 
 #: source/nijiexpose/windows/settings.d:286
 msgid "General"
-msgstr ""
+msgstr "一般"
 
 #: source/nijiexpose/windows/settings.d:330
 msgid "Settings"
-msgstr ""
+msgstr "設定"
 
 #: source/nijiexpose/windows/spaceedit.d:78
 #: source/nijiexpose/windows/spaceedit.d:88
 #: source/nijiexpose/windows/spaceedit.d:287
 msgid "Delete"
-msgstr ""
+msgstr "削除"
 
 #: source/nijiexpose/windows/spaceedit.d:101
 msgid "iFacialMocap Adpator would listen on udp port 49983"
-msgstr ""
+msgstr "iFacialMocap アダプターは UDP ポート 49983 で待ち受けます"
 
 #: source/nijiexpose/windows/spaceedit.d:104
 msgid "Make sure the port is not blocked by firewall."
-msgstr ""
+msgstr "ファイアウォールでポートがブロックされていないことを確認してください。"
 
 #: source/nijiexpose/windows/spaceedit.d:224
 #: source/nijiexpose/windows/spaceedit.d:368
 msgid "No zone selected for editing..."
-msgstr ""
+msgstr "編集するゾーンが選択されていません..."
 
 #: source/nijiexpose/windows/spaceedit.d:243
 #: source/nijiexpose/windows/spaceedit.d:380
 msgid "Unset"
-msgstr ""
+msgstr "未設定"
 
 #: source/nijiexpose/windows/spaceedit.d:276
 msgid "Save Changes"
-msgstr ""
+msgstr "変更を保存"
 
 #: source/nijiexpose/windows/spaceedit.d:321
 msgid "Zone"
-msgstr ""
+msgstr "ゾーン"
 
 #: source/nijiexpose/windows/spaceedit.d:332
 #: source/nijiexpose/windows/spaceedit.d:392
 #: source/nijiexpose/windows/spaceedit.d:423
 msgid ""
-msgstr ""
+msgstr ""
 
 #: source/nijiexpose/windows/spaceedit.d:454
 msgid "Add Source"
-msgstr ""
+msgstr "ソースを追加"
 
 #: source/nijiexpose/framesend.d:50
 msgid ""
 "Could not start texture sharing, it will be disabled. Is the library missing?"
-msgstr ""
+msgstr "テクスチャ共有を開始できなかったため、無効化されます。ライブラリが見つからない可能性があります。"
 
 #: source/nijiexpose/framesend.d:51
 msgid "Frame-sending started successfully!"
-msgstr ""
+msgstr "フレーム送信を開始しました。"
 
 #: source/nijiexpose/i18n.d:18
 msgid "LANG_NAME"
-msgstr ""
+msgstr "日本語"

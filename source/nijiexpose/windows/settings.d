@@ -1,6 +1,7 @@
 module nijiexpose.windows.settings;
 
 import nijiexpose.log;
+import nijiexpose.i18n;
 import nijiexpose.scene;
 import nijiexpose.tracking.tracker;
 import nijiexpose.windows.main;
@@ -26,6 +27,7 @@ private:
     bool trackerDraftLoaded = false;
     int throttlingDraft = 1;
     bool tripleFallbackDraft = false;
+    string languageDraft = "en";
 
     void copyTrackerState(ref Tracker dst, ref Tracker src) {
         dst.enabled = src.enabled;
@@ -46,6 +48,7 @@ private:
         copyTrackerState(trackerDraft, tracker);
         throttlingDraft = inSettingsGet!int("throttlingRate", 1);
         tripleFallbackDraft = inSettingsGet!bool("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
+        languageDraft = neLocaleCurrentCode();
         trackerDraftLoaded = true;
     }
 
@@ -73,11 +76,17 @@ public:
         inSettingsSave();
     }
 
+    void applyLanguageSettings() {
+        ensureDraftLoaded();
+        neLocaleSet(languageDraft);
+    }
+
     void applySettings() {
+        applyLanguageSettings();
         applyTrackingSettings();
         applyRenderingSettings();
     }
-    SelectedMode selected = SelectedMode.Tracking;
+    SelectedMode selected = SelectedMode.General;
     string pythonPath = null;
     bool pythonPathTested = false;
 
@@ -101,8 +110,48 @@ public:
     }
 
     enum SelectedMode {
+        General,
         Tracking,
         Rendering
+    }
+
+    void renderGeneralSettingsSection() {
+        if (uiImHeader(__("Language"), true)) {
+            uiImIndent();
+                renderLanguageSettingsContent(false);
+            uiImUnindent();
+        }
+    }
+
+    void renderLanguageSettingsContent(bool embedded) {
+        ensureDraftLoaded();
+        if (embedded) {
+            uiImLabelColored(_("Language"), vec4(0.8, 0.3, 0.3, 1));
+            uiImSeperator();
+            uiImIndent();
+        }
+        uiImLabel(_("Language"));
+        uiImSameLine();
+        string currentName = languageDraft.length == 0 || languageDraft == "en"
+            ? _("English")
+            : neLocaleCurrentName();
+        auto selectedEntry = neLocaleGetEntryFor(languageDraft);
+        if (selectedEntry !is null) currentName = selectedEntry.humanName;
+        if (uiImBeginComboBox("##LANGUAGE", currentName.toStringz)) {
+            if (uiImSelectable(_("English").toStringz, languageDraft.length == 0 || languageDraft == "en")) {
+                languageDraft = "en";
+            }
+            foreach (entry; neLocaleGetEntries()) {
+                if (uiImSelectable(entry.humanNameC, entry.code == languageDraft)) {
+                    languageDraft = entry.code;
+                }
+            }
+            uiImEndComboBox();
+        }
+        uiImLabel(_("Restart may be required for all text to update."));
+        if (embedded) {
+            uiImUnindent();
+        }
     }
 
     void renderTrackingSettingsContent(bool embedded) {
@@ -252,10 +301,13 @@ public:
         if (uiImBeginChild("##LHS", vec2(lhs, -footerHeight), false)) {
             avail = uiImAvailableSpace();
             uiImPush(0);
+            if (uiImSelectable(__("General"), selected == SelectedMode.General)) {
+                selected = SelectedMode.General;
+            }
             if (uiImSelectable(__("Tracking"), selected == SelectedMode.Tracking)) {
                 selected = SelectedMode.Tracking;
             }
-            if (uiImSelectable(__("Rending"), selected == SelectedMode.Rendering)) {
+            if (uiImSelectable(__("Rendering"), selected == SelectedMode.Rendering)) {
                 selected = SelectedMode.Rendering;
             }
             uiImPop();            
@@ -266,6 +318,9 @@ public:
 
         if (uiImBeginChild("##RHS", vec2(rhs, -footerHeight), false)) {
             final switch (selected) {
+            case SelectedMode.General:
+                renderGeneralSettingsSection();
+                break;
             case SelectedMode.Tracking:
                 renderTrackingSettingsSection();
                 break;

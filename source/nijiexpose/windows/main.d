@@ -51,6 +51,7 @@ private {
         Animations,
         Blendshapes,
         Plugins,
+        Language,
     }
 
     struct NavItem {
@@ -67,6 +68,7 @@ private {
         NavItem(ActivePanelId.Animations, "Animations", "\ue037", "Animations"),
         NavItem(ActivePanelId.Blendshapes, "Blendshapes", "\ue3f4", "Blends"),
         NavItem(ActivePanelId.Plugins, "Plugins", "\ue87b", "Plugins"),
+        NavItem(ActivePanelId.Language, "", "\ue8e2", "Language"),
     ];
 
     enum vec4 RAIL_BG = vec4(0.97f, 0.98f, 0.99f, 0.84f);
@@ -134,7 +136,7 @@ private:
     double lastNavInteractionAt = 0;
 
     ActivePanelId sanitizeActivePanel(int rawValue) {
-        if (rawValue < cast(int)ActivePanelId.Parameters || rawValue > cast(int)ActivePanelId.Plugins) {
+        if (rawValue < cast(int)ActivePanelId.Parameters || rawValue > cast(int)ActivePanelId.Language) {
             return ActivePanelId.Parameters;
         }
         return cast(ActivePanelId)rawValue;
@@ -159,6 +161,7 @@ private:
         case ActivePanelId.Animations:
         case ActivePanelId.Blendshapes:
         case ActivePanelId.Plugins:
+        case ActivePanelId.Language:
             return null;
         }
     }
@@ -228,6 +231,8 @@ private:
             return "Tracking";
         case ActivePanelId.View:
             return "View";
+        case ActivePanelId.Language:
+            return "Language";
         case ActivePanelId.Animations:
         case ActivePanelId.Blendshapes:
         case ActivePanelId.Plugins:
@@ -758,7 +763,8 @@ private:
         ToolWindow activeWindow = toolWindowFor(activePanel);
         bool customTracking = activePanel == ActivePanelId.Tracking;
         bool customView = activePanel == ActivePanelId.View;
-        if (active is null && activeWindow is null && !customTracking && !customView) return;
+        bool customLanguage = activePanel == ActivePanelId.Language;
+        if (active is null && activeWindow is null && !customTracking && !customView && !customLanguage) return;
 
         auto compact = navSurfaceMode() == NavSurfaceMode.CompactBar;
         ImGuiWindowFlags flags = ImGuiWindowFlags.NoCollapse
@@ -867,7 +873,7 @@ private:
                 igPopStyleVar();
                 igPopStyleColor();
             }
-            immutable bool hasOverlayFooter = customTracking || customView;
+            immutable bool hasOverlayFooter = customTracking || customView || customLanguage;
             immutable float overlayFooterHeight = hasOverlayFooter ? 48.0f : 0.0f;
             if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, -overlayFooterHeight), false)) {
                 if (customTracking) {
@@ -892,6 +898,8 @@ private:
                     uiImLabel(_("Rendering"));
                     igDummy(ImVec2(0, 4));
                     settingWindow.renderRenderingSettingsContent(true);
+                } else if (customLanguage) {
+                    settingWindow.renderLanguageSettingsContent(true);
                 } else if (active !is null) {
                     active.updateEmbedded();
                 } else {
@@ -908,6 +916,8 @@ private:
                         spaceEditor.applyChanges();
                     } else if (customView) {
                         settingWindow.applyRenderingSettings();
+                    } else if (customLanguage) {
+                        settingWindow.applyLanguageSettings();
                     }
                 }
             }
