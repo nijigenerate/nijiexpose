@@ -205,10 +205,6 @@ jobs:
           throw "Tag '$tagVersion' cannot be converted to an MSI version"
         }
 
-        # Install required dependency
-        New-Item -ItemType Directory -Force packages
-        nuget install WixToolset.UI.wixext -version 4.0.0 -OutputDirectory packages/
-
         # Build solution
         msbuild "nijiexpose.sln" -property:Configuration=Release -property:Platform=x64 -property:DefineConstants="PackageVersion=$msiVersion"
 
