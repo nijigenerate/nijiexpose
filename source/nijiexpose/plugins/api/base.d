@@ -46,25 +46,30 @@ private {
 
     extern(C)
     int l_print(lua_State* lstate) {
-        writeln(printGetOutString(lstate));
+        auto message = printGetOutString(lstate);
+        version (Windows) {
+            insLogInfo("%s", message);
+        } else {
+            try { writeln(message); } catch (Exception) {}
+        }
         return 0;
     }
 
     extern(C)
     int l_info(lua_State* lstate) {
-        insLogInfo(printGetOutString(lstate));
+        insLogInfo("%s", printGetOutString(lstate));
         return 0;
     }
 
     extern(C)
     int l_warn(lua_State* lstate) {
-        insLogWarn(printGetOutString(lstate));
+        insLogWarn("%s", printGetOutString(lstate));
         return 0;
     }
 
     extern(C)
     int l_err(lua_State* lstate) {
-        insLogErr(printGetOutString(lstate));
+        insLogErr("%s", printGetOutString(lstate));
         return 0;
     }
 

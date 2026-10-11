@@ -52,7 +52,8 @@ configuration "win32-full" {
 	dependency "bindbc-spout2" version="~>0.1.1"
 	dependency "vibe-http" version="~>1.2.2"
 	targetType "executable"
-	lflags "/SUBSYSTEM:windows" "/ENTRY:mainCRTStartup" platform="window-dmd"
+	lflags "/SUBSYSTEM:windows" "/ENTRY:mainCRTStartup" platform="windows-dmd"
+	lflags "/SUBSYSTEM:windows" "/ENTRY:wmainCRTStartup" platform="windows-ldc"
 	sourceFiles "build-aux\\windows\\nijiexpose.res"
 	versions "InBranding"
 }
@@ -78,7 +79,8 @@ configuration "win32-nightly" {
 	dependency "bindbc-spout2" version="~>0.1.1"
 	dependency "vibe-http" version="~>1.2.2"
 	targetType "executable"
-	lflags "/SUBSYSTEM:windows" "/ENTRY:mainCRTStartup" platform="window-dmd"
+	lflags "/SUBSYSTEM:windows" "/ENTRY:mainCRTStartup" platform="windows-dmd"
+	lflags "/SUBSYSTEM:windows" "/ENTRY:wmainCRTStartup" platform="windows-ldc"
 	sourceFiles "build-aux\\windows\\nijiexpose.res"
 	versions "InBranding" "InNightly"
 }

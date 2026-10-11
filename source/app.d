@@ -12,7 +12,6 @@ import nijilive;
 import nijiui;
 import nijiexpose.windows;
 import nijiexpose.i18n;
-import std.stdio : writeln;
 import nijiexpose.plugins;
 import nijiexpose.log;
 import nijiexpose.ver;
@@ -38,6 +37,7 @@ version(Windows) {
 }
 
 void main(string[] args) {
+    insInitLogging();
     insLogInfo("nijiexpose %s, args=%s", INS_VERSION, args[1..$]);
 
     // Set the application info

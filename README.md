@@ -9,7 +9,15 @@ model by [seagetch](https://twitter.com/seagetch)_
 This application is currently under heavy development and isn't ready for production just yet.
 
 ## Downloads
-No official stable build provided for time being.
+Download release packages from [Releases](https://github.com/nijigenerate/nijiexpose/releases).
+On Windows, run `nijiexpose-win32-x86_64.msi` to install the application and
+shortcuts. The ZIP package remains available for portable use.
+
+Windows builds run without a console window. Diagnostic output, including Lua
+`print` and dependency output, is saved to
+`%LOCALAPPDATA%\nijiexpose\logs\nijiexpose.log`. At startup, logs of 5 MiB or
+larger are moved to `nijiexpose.log.previous`. If the log directory is unavailable,
+output is discarded so logging does not prevent startup.
 
 ### Experimental Builds
 
