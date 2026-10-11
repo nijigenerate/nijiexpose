@@ -176,6 +176,11 @@ jobs:
           # Build the project, with its main file included, without unittests
           dub build --compiler=ldc2 --build=release --config=win32-full
 
+    - name: 'Test console-less logging'
+      run: |
+        . ./vcvars.ps1
+        ./build-aux/windows/test-logging.ps1
+
     - name: 'Archive Zip'
       uses: thedoctor0/zip-release@main
       with:
@@ -186,6 +191,11 @@ jobs:
 
     - name: 'Add msbuild to PATH'
       uses: microsoft/setup-msbuild@v1.1
+
+    - name: 'Ensure WiX v3 is available'
+      run: |
+        choco install wixtoolset --version=3.14.1 --yes --no-progress
+        if ($LASTEXITCODE -ne 0) { throw "WiX installation failed" }
 
     - name: 'Build MSI'
       run: |
@@ -205,11 +215,12 @@ jobs:
           throw "Tag '$tagVersion' cannot be converted to an MSI version"
         }
 
-        # Build solution
-        msbuild "nijiexpose.sln" -property:Configuration=Release -property:Platform=x64 -property:DefineConstants="PackageVersion=$msiVersion"
+        # Build the x64 installer project directly.
+        msbuild "nijiexpose.wixproj" -property:Configuration=Release -property:Platform=x64 -property:DefineConstants="PackageVersion=$msiVersion"
+        if ($LASTEXITCODE -ne 0) { throw "MSI build failed" }
 
         # Copy installer out
-        mv "bin/Release/nijiexpose.msi" "../../../out/nijiexpose-win32-x86_64.msi"
+        Move-Item -LiteralPath "bin/x64/Release/nijiexpose.msi" -Destination "../../../out/nijiexpose-win32-x86_64.msi"
         cd ../../../
 
     - name: 'Release'

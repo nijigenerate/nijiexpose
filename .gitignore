@@ -20,4 +20,6 @@ out/
 dub.selections.json
 source/nijiexpose/ver.d
 build-aux/windows/nijiexpose.res
+build-aux/windows/wix/bin/
+build-aux/windows/wix/obj/
 version.txt

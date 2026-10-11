@@ -25,6 +25,8 @@
 		<UIRef Id="WixUI_ErrorProgressText" />
 
 		<WixVariable Id="WixUILicenseRtf" Value="res\LICENSE.rtf" />
+		<WixVariable Id="WixUIBannerBmp" Value="res\banner.bmp" />
+		<WixVariable Id="WixUIDialogBmp" Value="res\dialog.bmp" />
 	</Product>
 
 	<Fragment>
