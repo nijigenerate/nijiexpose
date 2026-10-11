@@ -5,12 +5,6 @@
 name: Build & Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      msi_version:
-        description: 'MSI version for a manual packaging verification (no release is published)'
-        required: true
-        default: '1.0.0'
   push:
     tags:
       - '*'
@@ -204,7 +198,7 @@ jobs:
 
     - name: 'Build MSI'
       env:
-        TAG_VERSION: ${{ inputs.msi_version || github.ref_name }}
+        TAG_VERSION: ${{ github.ref_name }}
       run: |
         cd build-aux/windows/wix
 
