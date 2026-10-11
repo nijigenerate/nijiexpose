@@ -5,6 +5,12 @@
 name: Build & Release
 
 on:
+  workflow_dispatch:
+    inputs:
+      msi_version:
+        description: 'MSI version for a manual packaging verification (no release is published)'
+        required: true
+        default: '1.0.0'
   push:
     tags:
       - '*'
@@ -194,14 +200,15 @@ jobs:
 
     - name: 'Ensure WiX v3 is available'
       run: |
-        choco install wixtoolset --version=3.14.1 --yes --no-progress
-        if ($LASTEXITCODE -ne 0) { throw "WiX installation failed" }
+        ./build-aux/windows/ensure-wix.ps1
 
     - name: 'Build MSI'
+      env:
+        TAG_VERSION: ${{ inputs.msi_version || github.ref_name }}
       run: |
         cd build-aux/windows/wix
 
-        $tagVersion = "${{ github.ref_name }}"
+        $tagVersion = $env:TAG_VERSION
         $msiVersion = $tagVersion -replace '^v', '' -replace '[-+].*$', ''
         $versionParts = $msiVersion.Split('.')
         if ($versionParts.Length -gt 3) {
