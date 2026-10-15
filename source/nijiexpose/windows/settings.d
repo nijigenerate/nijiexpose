@@ -37,6 +37,9 @@ private:
         dst.port = src.port;
         dst.device = src.device;
         dst.trackerPath = src.trackerPath;
+        dst.nativeExecutable = src.nativeExecutable;
+        dst.executablePath = src.executablePath;
+        dst.pythonExecutablePath = src.pythonExecutablePath;
     }
 
     void ensureDraftLoaded() {
@@ -49,6 +52,7 @@ private:
         throttlingDraft = inSettingsGet!int("throttlingRate", 1);
         tripleFallbackDraft = inSettingsGet!bool("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
         languageDraft = neLocaleCurrentCode();
+        pythonPathTested = false;
         trackerDraftLoaded = true;
     }
 
@@ -166,27 +170,54 @@ public:
                 openedEmbeddedCategory = uiImBeginCategory("##tracker");
             }
             if (!embedded || openedEmbeddedCategory) {
-                uiImLabel(_("Python path"));
+                uiImLabel(_("Tracker launch mode"));
                 uiImSameLine();
-                if (!pythonPathTested) {
-                    pythonPath = tracker.pythonPath;
-                    pythonPathTested = true;
+                if (uiImBeginComboBox("##trackerLaunchMode", tracker.nativeExecutable ? _("Executable").toStringz : _("Python").toStringz)) {
+                    if (uiImSelectable(_("Python").toStringz, !tracker.nativeExecutable)) tracker.nativeExecutable = false;
+                    if (uiImSelectable(_("Executable").toStringz, tracker.nativeExecutable)) tracker.nativeExecutable = true;
+                    uiImEndComboBox();
                 }
-                if (pythonPath is null) {
-                    uiImLabelColored(_("Python is not detected. Please install python (<=3.12) first."), vec4(0.9, 0.5, 0.5, 1));
-                } else {
-                    uiImLabel(pythonPath);
-                }
-                uiImLabel(_("Tracker executable path"));
-                uiImSameLine();
-                uiImInputText("##trackerPath", tracker.trackerPath);
-                if (!tracker.scriptPath.exists) {
-                    uiImLabelColored(_("Specified path doesn't contain %s").format(tracker.trackerScriptName), vec4(0.95, 0.5, 0.5, 1));
+                if (tracker.nativeExecutable) {
+                    uiImLabel(_("Tracker executable path"));
                     uiImSameLine();
-                    if (uiImButton(__("Install"))) {
-                        tracker.install();
+                    uiImInputText("##nativeTrackerPath", tracker.executablePath);
+                } else {
+                    uiImLabel(_("Python executable path (empty: auto-detect)"));
+                    uiImSameLine();
+                    auto previousPythonPath = tracker.pythonExecutablePath;
+                    auto previousTrackerPath = tracker.trackerPath;
+                    uiImInputText("##pythonExecutablePath", tracker.pythonExecutablePath);
+                    if (previousPythonPath != tracker.pythonExecutablePath) pythonPathTested = false;
+                    uiImLabel(_("Python path"));
+                    uiImSameLine();
+                    if (!pythonPathTested) {
+                        pythonPath = tracker.pythonPath;
+                        pythonPathTested = true;
                     }
-                } else if (tracker.installProcess !is null) {
+                    if (pythonPath is null) {
+                        uiImLabelColored(_("Python is not detected. Please install python (<=3.12) first."), vec4(0.9, 0.5, 0.5, 1));
+                    } else {
+                        uiImLabel(pythonPath);
+                    }
+                    uiImLabel(_("Tracker script directory"));
+                    uiImSameLine();
+                    uiImInputText("##trackerPath", tracker.trackerPath);
+                    if (previousTrackerPath != tracker.trackerPath) pythonPathTested = false;
+                }
+                bool trackerAvailable = tracker.nativeExecutable
+                    ? (tracker.executableFilePath.exists && tracker.executableFilePath.isFile)
+                    : (tracker.scriptPath.exists && tracker.scriptPath.isFile);
+                if (!trackerAvailable) {
+                    if (tracker.nativeExecutable) {
+                        uiImLabelColored(_("Tracker executable was not found."), vec4(0.95, 0.5, 0.5, 1));
+                    } else {
+                        uiImLabelColored(_("Specified path doesn't contain %s").format(tracker.trackerScriptName), vec4(0.95, 0.5, 0.5, 1));
+                        uiImSameLine();
+                        if (uiImButton(__("Install"))) {
+                            tracker.install();
+                        }
+                    }
+                } else if (!tracker.nativeExecutable && tracker.installProcess !is null) {
                     tracker.installProcess.update();
                     auto outputText = tracker.installProcess.stdoutOutput.join("\n");
                     vec2 avail2 = uiImAvailableSpace();

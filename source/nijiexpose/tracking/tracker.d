@@ -1,6 +1,7 @@
 module nijiexpose.tracking.tracker;
 
 import nijiexpose.utils.subprocess;
+import nijiexpose.utils.launchpath : launchPath;
 import nijiexpose.log;
 import nijiexpose.scene;
 import nijiexpose.tracking.ext.exvmc;
@@ -45,6 +46,10 @@ public:
     uint port = 39540;
     int device =-1;
     string trackerPath;
+    bool nativeExecutable = false;
+    string executablePath;
+    string pythonExecutablePath;
+    private string deviceQueryKey;
     string trackerScriptName = "nijitrack.py";
     static enum ScriptDownloadSource = "https://github.com/nijigenerate/nijitrack/archive/refs/heads/main.zip";
 
@@ -65,14 +70,17 @@ public:
     }
 
     string scriptPath() {
-        return buildPath(trackerPath.fromStringz, trackerScriptName);
+        return buildPath(launchPath(trackerPath), trackerScriptName);
     }
 
+    string executableFilePath() { return launchPath(executablePath); }
+
     string pythonPath() {
+        if (launchPath(pythonExecutablePath).length) return launchPath(pythonExecutablePath);
         version(Windows) {
-            auto bundledPython = buildPath(trackerPath.fromStringz, ".venv", "Scripts", "python.exe");
+            auto bundledPython = buildPath(launchPath(trackerPath), ".venv", "Scripts", "python.exe");
         } else {
-            auto bundledPython = buildPath(trackerPath.fromStringz, ".venv", "bin", "python");
+            auto bundledPython = buildPath(launchPath(trackerPath), ".venv", "bin", "python");
         }
         if (bundledPython.exists) return bundledPython;
         return PythonProcess!false.detectPython();
@@ -94,6 +102,12 @@ public:
             serializer.putValue(port);
             serializer.putKey("trackerPath");
             serializer.putValue(trackerPath);
+            serializer.putKey("nativeExecutable");
+            serializer.putValue(nativeExecutable);
+            serializer.putKey("executablePath");
+            serializer.putValue(executablePath);
+            serializer.putKey("pythonExecutablePath");
+            serializer.putValue(pythonExecutablePath);
         serializer.structEnd(state);
     }
     
@@ -105,6 +119,9 @@ public:
         if (!data["hostname"].isEmpty) data["hostname"].deserializeValue(hostname);
         if (!data["port"].isEmpty) data["port"].deserializeValue(port);
         if (!data["trackerPath"].isEmpty) data["trackerPath"].deserializeValue(trackerPath);
+        if (!data["nativeExecutable"].isEmpty) data["nativeExecutable"].deserializeValue(nativeExecutable);
+        if (!data["executablePath"].isEmpty) data["executablePath"].deserializeValue(executablePath);
+        if (!data["pythonExecutablePath"].isEmpty) data["pythonExecutablePath"].deserializeValue(pythonExecutablePath);
         hostname = hostname.fromStringz;
         trackerPath = trackerPath.fromStringz;
         initialized = true;
@@ -125,11 +142,19 @@ public:
     }
 
     DeviceInfo[] listDevices(bool force = false)() {
+        auto key = format("%s\n%s\n%s\n%s", nativeExecutable,
+            executablePath.fromStringz, trackerPath.fromStringz, pythonExecutablePath.fromStringz);
+        if (key != deviceQueryKey) {
+            if (queryProcess !is null && queryProcess.running) queryProcess.terminate();
+            queryProcess = null;
+            deviceList = null;
+            deviceQueryKey = key;
+        }
         if (deviceList && !force) {
             return deviceList;
         }
         if (queryProcess is null) {
-            queryProcess = new PythonProcess!true(scriptPath, ["--list-devices"], pythonPath);
+            queryProcess = createProcess!true(["--list-devices"]);
             queryProcess.start();
         } else {
             if (!queryProcess.running) {
@@ -149,8 +174,16 @@ public:
         string[] args = ["--device", device.to!string, "--osc-host", hostname, "--osc-port", port.to!string];
         if (showWindow) args ~= ["--show", "--show-video", "--show-wire"];
         if (flipped) args ~= ["--flip"];
-        process = new PythonProcess!false(scriptPath, args, pythonPath);
+        process = createProcess!false(args);
         process.start();
+    }
+
+    SubProcess!capture createProcess(bool capture)(string[] args) {
+        if (nativeExecutable) {
+            enforce(executableFilePath.length > 0, "Tracker executable path is empty");
+            return new SubProcess!capture(executableFilePath, args);
+        }
+        return new PythonProcess!capture(scriptPath, args, pythonPath);
     }
 
     void terminate() {
@@ -163,8 +196,9 @@ public:
     }
 
     SubProcess!true install() {
+        enforce(!nativeExecutable, "Automatic installation is only available for Python trackers");
         import std.stdio: writefln;
-        trackerPath = trackerPath.fromStringz;
+        trackerPath = launchPath(trackerPath);
         if (trackerPath is null) return null;
 
         string url = ScriptDownloadSource;
