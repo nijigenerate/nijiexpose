@@ -59,12 +59,20 @@ private:
 public:
     void applyTrackingSettings() {
         ensureDraftLoaded();
+        if (trackerDraft.enabled) {
+            auto problem = trackerDraft.validationError;
+            if (problem.length) {
+                uiImDialog(__("Error"), problem);
+                return;
+            }
+        }
         auto tracker = neTracker();
         copyTrackerState(tracker, trackerDraft);
         inSettingsSet("tracker", tracker);
         inSettingsSave();
         if (tracker.enabled) {
             tracker.restart();
+            if (tracker.launchError.length) uiImDialog(__("Error"), tracker.launchError);
             tracker.setupVSpace();
         } else {
             tracker.terminate();
@@ -170,6 +178,7 @@ public:
                 openedEmbeddedCategory = uiImBeginCategory("##tracker");
             }
             if (!embedded || openedEmbeddedCategory) {
+                auto previousLaunchKey = tracker.launchConfigurationKey;
                 uiImLabel(_("Tracker launch mode"));
                 uiImSameLine();
                 if (uiImBeginComboBox("##trackerLaunchMode", tracker.nativeExecutable ? _("Executable").toStringz : _("Python").toStringz)) {
@@ -204,17 +213,16 @@ public:
                     uiImInputText("##trackerPath", tracker.trackerPath);
                     if (previousTrackerPath != tracker.trackerPath) pythonPathTested = false;
                 }
-                bool trackerAvailable = tracker.nativeExecutable
-                    ? (tracker.executableFilePath.exists && tracker.executableFilePath.isFile)
-                    : (tracker.scriptPath.exists && tracker.scriptPath.isFile);
+                if (previousLaunchKey != tracker.launchConfigurationKey) tracker.invalidateDeviceQuery();
+                auto problem = tracker.validationError;
+                bool trackerAvailable = !problem.length;
                 if (!trackerAvailable) {
-                    if (tracker.nativeExecutable) {
-                        uiImLabelColored(_("Tracker executable was not found."), vec4(0.95, 0.5, 0.5, 1));
-                    } else {
-                        uiImLabelColored(_("Specified path doesn't contain %s").format(tracker.trackerScriptName), vec4(0.95, 0.5, 0.5, 1));
+                    uiImLabelColored(problem, vec4(0.95, 0.5, 0.5, 1));
+                    if (!tracker.nativeExecutable && !tracker.scriptPath.exists) {
                         uiImSameLine();
                         if (uiImButton(__("Install"))) {
-                            tracker.install();
+                            try { tracker.install(); }
+                            catch (Exception ex) { uiImDialog(__("Error"), ex.msg); }
                         }
                     }
                 } else if (!tracker.nativeExecutable && tracker.installProcess !is null) {
@@ -235,6 +243,9 @@ public:
                     uiImLabel(_("Camera device"));
                     uiImSameLine();
                     auto deviceList = tracker.listDevices();
+                    if (tracker.launchError.length) {
+                        uiImLabelColored(tracker.launchError, vec4(0.95, 0.5, 0.5, 1));
+                    }
                     long currentDeviceId = deviceList.countUntil!(x=>x.id == tracker.device)();
                     string currentDeviceName = (currentDeviceId >= 0)? deviceList[currentDeviceId].name: _("Select device...");
                     if (igBeginCombo("##device", currentDeviceName.toStringz ,ImGuiComboFlags.None)) {

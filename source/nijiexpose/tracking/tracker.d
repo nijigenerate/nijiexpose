@@ -1,7 +1,8 @@
 module nijiexpose.tracking.tracker;
 
 import nijiexpose.utils.subprocess;
-import nijiexpose.utils.launchpath : launchPath;
+import nijiexpose.utils.launchpath : launchPath, executableFileAvailable;
+import i18n : _;
 import nijiexpose.log;
 import nijiexpose.scene;
 import nijiexpose.tracking.ext.exvmc;
@@ -50,6 +51,8 @@ public:
     string executablePath;
     string pythonExecutablePath;
     private string deviceQueryKey;
+    private bool queryFailed;
+    string launchError;
     string trackerScriptName = "nijitrack.py";
     static enum ScriptDownloadSource = "https://github.com/nijigenerate/nijitrack/archive/refs/heads/main.zip";
 
@@ -67,6 +70,8 @@ public:
 
     this () {
         this.trackerPath = buildPath(thisExePath().dirName, "nijitrack");
+        version (Windows) executablePath = buildPath(trackerPath, "nijitrack.exe");
+        else executablePath = buildPath(trackerPath, "nijitrack");
     }
 
     string scriptPath() {
@@ -74,6 +79,38 @@ public:
     }
 
     string executableFilePath() { return launchPath(executablePath); }
+
+    string launchConfigurationKey() {
+        return nativeExecutable ? "native\n" ~ executableFilePath
+            : "python\n" ~ scriptPath ~ "\n" ~ launchPath(pythonExecutablePath);
+    }
+
+    string validationError() {
+        if (nativeExecutable) {
+            if (!executableFileAvailable(executableFilePath))
+                return _("Tracker executable is missing or cannot be executed.");
+        } else {
+            if (launchPath(pythonExecutablePath).length && !executableFileAvailable(pythonExecutablePath))
+                return _("Python executable is missing or cannot be executed.");
+            try {
+                if (!scriptPath.exists || !scriptPath.isFile)
+                    return _("Tracker script was not found.");
+            } catch (Exception) {
+                return _("Tracker script was not found.");
+            }
+        }
+        return null;
+    }
+
+    void invalidateDeviceQuery(bool resetSelection = true) {
+        if (queryProcess !is null && queryProcess.running) queryProcess.terminate();
+        queryProcess = null;
+        deviceList = null;
+        if (resetSelection) device = -1;
+        deviceQueryKey = launchConfigurationKey;
+        queryFailed = false;
+        launchError = null;
+    }
 
     string pythonPath() {
         if (launchPath(pythonExecutablePath).length) return launchPath(pythonExecutablePath);
@@ -142,48 +179,74 @@ public:
     }
 
     DeviceInfo[] listDevices(bool force = false)() {
-        auto key = format("%s\n%s\n%s\n%s", nativeExecutable,
-            executablePath.fromStringz, trackerPath.fromStringz, pythonExecutablePath.fromStringz);
+        auto key = launchConfigurationKey;
         if (key != deviceQueryKey) {
-            if (queryProcess !is null && queryProcess.running) queryProcess.terminate();
-            queryProcess = null;
-            deviceList = null;
-            deviceQueryKey = key;
+            invalidateDeviceQuery(deviceQueryKey.length > 0);
         }
+        if (force) { queryFailed = false; launchError = null; }
+        if (queryFailed) return deviceList;
+        launchError = validationError;
+        if (launchError.length) return null;
         if (deviceList && !force) {
             return deviceList;
         }
-        if (queryProcess is null) {
-            queryProcess = createProcess!true(["--list-devices"]);
-            queryProcess.start();
-        } else {
-            if (!queryProcess.running) {
-                if (queryProcess.getExitCode() == 0) {
-                    auto jsonValue = parseJSON(queryProcess.stdout.join("\n"));
-                    deviceList = parseDeviceList(jsonValue);
+        try {
+            if (queryProcess is null) {
+                queryProcess = createProcess!true(["--list-devices"]);
+                enforce(queryProcess.start(), _("Could not start the tracker."));
+            } else {
+                if (!queryProcess.running) {
+                    if (queryProcess.getExitCode() == 0) {
+                        auto jsonValue = parseJSON(queryProcess.stdout.join("\n"));
+                        deviceList = parseDeviceList(jsonValue);
+                        import std.algorithm : any;
+                        if (!deviceList.any!(entry => entry.id == device)) device = -1;
+                    } else {
+                        throw new Exception(_("Could not list tracker cameras."));
+                    }
+                    queryProcess = null;
                 }
-                queryProcess = null;
             }
+        } catch (Exception ex) {
+            launchError = ex.msg;
+            queryFailed = true;
+            queryProcess = null;
+            insLogErr("Camera query failed: %s", ex.msg);
         }
         return deviceList;
     }
 
     void restart() {
+        launchError = validationError;
+        if (launchError.length) {
+            insLogErr("Tracker launch rejected: %s", launchError);
+            return;
+        }
         if (device < 0) return;
         if (process !is null && process.running) process.terminate();
         string[] args = ["--device", device.to!string, "--osc-host", hostname, "--osc-port", port.to!string];
         if (showWindow) args ~= ["--show", "--show-video", "--show-wire"];
         if (flipped) args ~= ["--flip"];
-        process = createProcess!false(args);
-        process.start();
+        try {
+            process = createProcess!false(args);
+            enforce(process.start(), _("Could not start the tracker."));
+        } catch (Exception ex) {
+            launchError = ex.msg;
+            process = null;
+            insLogErr("Tracker launch failed: %s", ex.msg);
+        }
     }
 
     SubProcess!capture createProcess(bool capture)(string[] args) {
+        auto problem = validationError;
+        enforce(!problem.length, problem);
         if (nativeExecutable) {
             enforce(executableFilePath.length > 0, "Tracker executable path is empty");
             return new SubProcess!capture(executableFilePath, args);
         }
-        return new PythonProcess!capture(scriptPath, args, pythonPath);
+        auto interpreter = pythonPath;
+        enforce(interpreter.length > 0, _("Python executable was not found."));
+        return new PythonProcess!capture(scriptPath, args, interpreter);
     }
 
     void terminate() {
@@ -271,6 +334,47 @@ public:
 
 private {
     Tracker tracker;
+}
+
+unittest {
+    // Invalid persisted enabled settings must never prevent startup.
+    auto t = new Tracker();
+    assert(dirName(t.executableFilePath) == t.trackerPath);
+    assert(dirName(t.scriptPath) == t.trackerPath);
+    t.nativeExecutable = true;
+    t.executablePath = null;
+    t.enabled = true;
+    t.device = 3;
+    t.restart();
+    assert(t.launchError.length && !t.running);
+    t.listDevices();
+    assert(t.launchError.length && t.queryProcess is null);
+
+    import std.uuid : randomUUID;
+    auto fixture = buildPath(tempDir(), "nijiexpose-tracker-" ~ randomUUID().toString ~ ".exe");
+    write(fixture, "not an executable");
+    scope(exit) remove(fixture);
+    t.executablePath = fixture;
+    t.listDevices();
+    assert(t.device == -1); // launch configuration changed
+    assert(t.launchError.length);
+    auto failure = t.launchError;
+    t.listDevices();
+    assert(t.launchError == failure && t.queryProcess is null);
+    t.device = 3;
+    t.restart(); // existing but invalid executable: process creation fails safely
+    assert(t.launchError.length && !t.running);
+
+    // A valid script does not make an invalid explicit interpreter available.
+    t.nativeExecutable = false;
+    t.trackerPath = dirName(fixture);
+    t.trackerScriptName = baseName(fixture);
+    t.pythonExecutablePath = fixture ~ ".missing";
+    assert(t.validationError.length);
+    t.restart();
+    assert(t.launchError.length && !t.running);
+    t.listDevices();
+    assert(t.launchError.length && t.queryProcess is null && t.device == -1);
 }
 
 ref Tracker neTracker() {
