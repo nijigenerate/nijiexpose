@@ -185,8 +185,8 @@ public:
         }
         if (force) { queryFailed = false; launchError = null; }
         if (queryFailed) return deviceList;
-        launchError = validationError;
-        if (launchError.length) return null;
+        auto problem = validationError;
+        if (problem.length) { launchError = problem; return null; }
         if (deviceList && !force) {
             return deviceList;
         }
@@ -199,6 +199,7 @@ public:
                     if (queryProcess.getExitCode() == 0) {
                         auto jsonValue = parseJSON(queryProcess.stdout.join("\n"));
                         deviceList = parseDeviceList(jsonValue);
+                        launchError = null;
                         import std.algorithm : any;
                         if (!deviceList.any!(entry => entry.id == device)) device = -1;
                     } else {
@@ -217,13 +218,15 @@ public:
     }
 
     void restart() {
+        // Even a configuration with no camera must stop the previous tracker.
+        if (process !is null && process.running) process.terminate();
+        process = null;
+        if (device < 0) { launchError = null; return; }
         launchError = validationError;
         if (launchError.length) {
             insLogErr("Tracker launch rejected: %s", launchError);
             return;
         }
-        if (device < 0) return;
-        if (process !is null && process.running) process.terminate();
         string[] args = ["--device", device.to!string, "--osc-host", hostname, "--osc-port", port.to!string];
         if (showWindow) args ~= ["--show", "--show-video", "--show-wire"];
         if (flipped) args ~= ["--flip"];
@@ -353,6 +356,7 @@ unittest {
     import std.uuid : randomUUID;
     auto fixture = buildPath(tempDir(), "nijiexpose-tracker-" ~ randomUUID().toString ~ ".exe");
     write(fixture, "not an executable");
+    version (Posix) setAttributes(fixture, 0x1C0); // owner read/write/execute
     scope(exit) remove(fixture);
     t.executablePath = fixture;
     t.listDevices();
@@ -361,6 +365,20 @@ unittest {
     auto failure = t.launchError;
     t.listDevices();
     assert(t.launchError == failure && t.queryProcess is null);
+    // The UI retry action must permit a query after a transient failure.
+    class CompletedQuery : SubProcess!true {
+        this(string file) {
+            super(file);
+            stdoutOutput = [`[{"id":3,"name":"Test camera"}]`];
+        }
+        override int getExitCode() const { return 0; }
+    }
+    t.invalidateDeviceQuery(false);
+    t.device = 3;
+    t.queryProcess = new CompletedQuery(fixture);
+    auto devices = t.listDevices();
+    assert(devices.length == 1 && devices[0].id == 3);
+    assert(!t.launchError.length && t.device == 3);
     t.device = 3;
     t.restart(); // existing but invalid executable: process creation fails safely
     assert(t.launchError.length && !t.running);
@@ -375,6 +393,18 @@ unittest {
     assert(t.launchError.length && !t.running);
     t.listDevices();
     assert(t.launchError.length && t.queryProcess is null && t.device == -1);
+
+    // Applying a cleared selection must stop the previously running tracker.
+    class RunningProcess : SubProcess!false {
+        bool stopped;
+        this() { super("unused"); }
+        override bool running() const { return !stopped; }
+        override void terminate() { stopped = true; }
+    }
+    auto previous = new RunningProcess();
+    t.process = previous;
+    t.restart();
+    assert(previous.stopped && t.process is null && !t.running);
 }
 
 ref Tracker neTracker() {

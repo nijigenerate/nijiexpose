@@ -658,3 +658,7 @@ msgstr "Python実行ファイルが見つかりません。"
 #, c-format, d-format
 #~ msgid "Specified path doesn't contain %s"
 #~ msgstr "指定されたパスに %s が含まれていません"
+
+#: source/nijiexpose/windows/settings.d
+msgid "Retry camera detection"
+msgstr "カメラ検出を再試行"

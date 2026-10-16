@@ -245,6 +245,9 @@ public:
                     auto deviceList = tracker.listDevices();
                     if (tracker.launchError.length) {
                         uiImLabelColored(tracker.launchError, vec4(0.95, 0.5, 0.5, 1));
+                        if (uiImButton(__("Retry camera detection"))) {
+                            tracker.invalidateDeviceQuery(false);
+                        }
                     }
                     long currentDeviceId = deviceList.countUntil!(x=>x.id == tracker.device)();
                     string currentDeviceName = (currentDeviceId >= 0)? deviceList[currentDeviceId].name: _("Select device...");

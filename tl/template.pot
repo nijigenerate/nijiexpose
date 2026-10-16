@@ -650,3 +650,7 @@ msgstr ""
 #: source/nijiexpose/tracking/tracker.d:246
 msgid "Python executable was not found."
 msgstr ""
+
+#: source/nijiexpose/windows/settings.d
+msgid "Retry camera detection"
+msgstr ""
