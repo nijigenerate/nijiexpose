@@ -37,6 +37,9 @@ private:
         dst.port = src.port;
         dst.device = src.device;
         dst.trackerPath = src.trackerPath;
+        dst.nativeExecutable = src.nativeExecutable;
+        dst.executablePath = src.executablePath;
+        dst.pythonExecutablePath = src.pythonExecutablePath;
     }
 
     void ensureDraftLoaded() {
@@ -49,18 +52,27 @@ private:
         throttlingDraft = inSettingsGet!int("throttlingRate", 1);
         tripleFallbackDraft = inSettingsGet!bool("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
         languageDraft = neLocaleCurrentCode();
+        pythonPathTested = false;
         trackerDraftLoaded = true;
     }
 
 public:
     void applyTrackingSettings() {
         ensureDraftLoaded();
+        if (trackerDraft.enabled) {
+            auto problem = trackerDraft.validationError;
+            if (problem.length) {
+                uiImDialog(__("Error"), problem);
+                return;
+            }
+        }
         auto tracker = neTracker();
         copyTrackerState(tracker, trackerDraft);
         inSettingsSet("tracker", tracker);
         inSettingsSave();
         if (tracker.enabled) {
             tracker.restart();
+            if (tracker.launchError.length) uiImDialog(__("Error"), tracker.launchError);
             tracker.setupVSpace();
         } else {
             tracker.terminate();
@@ -166,27 +178,54 @@ public:
                 openedEmbeddedCategory = uiImBeginCategory("##tracker");
             }
             if (!embedded || openedEmbeddedCategory) {
-                uiImLabel(_("Python path"));
+                auto previousLaunchKey = tracker.launchConfigurationKey;
+                uiImLabel(_("Tracker launch mode"));
                 uiImSameLine();
-                if (!pythonPathTested) {
-                    pythonPath = tracker.pythonPath;
-                    pythonPathTested = true;
+                if (uiImBeginComboBox("##trackerLaunchMode", tracker.nativeExecutable ? _("Executable").toStringz : _("Python").toStringz)) {
+                    if (uiImSelectable(_("Python").toStringz, !tracker.nativeExecutable)) tracker.nativeExecutable = false;
+                    if (uiImSelectable(_("Executable").toStringz, tracker.nativeExecutable)) tracker.nativeExecutable = true;
+                    uiImEndComboBox();
                 }
-                if (pythonPath is null) {
-                    uiImLabelColored(_("Python is not detected. Please install python (<=3.12) first."), vec4(0.9, 0.5, 0.5, 1));
-                } else {
-                    uiImLabel(pythonPath);
-                }
-                uiImLabel(_("Tracker executable path"));
-                uiImSameLine();
-                uiImInputText("##trackerPath", tracker.trackerPath);
-                if (!tracker.scriptPath.exists) {
-                    uiImLabelColored(_("Specified path doesn't contain %s").format(tracker.trackerScriptName), vec4(0.95, 0.5, 0.5, 1));
+                if (tracker.nativeExecutable) {
+                    uiImLabel(_("Tracker executable path"));
                     uiImSameLine();
-                    if (uiImButton(__("Install"))) {
-                        tracker.install();
+                    uiImInputText("##nativeTrackerPath", tracker.executablePath);
+                } else {
+                    uiImLabel(_("Python executable path (empty: auto-detect)"));
+                    uiImSameLine();
+                    auto previousPythonPath = tracker.pythonExecutablePath;
+                    auto previousTrackerPath = tracker.trackerPath;
+                    uiImInputText("##pythonExecutablePath", tracker.pythonExecutablePath);
+                    if (previousPythonPath != tracker.pythonExecutablePath) pythonPathTested = false;
+                    uiImLabel(_("Python path"));
+                    uiImSameLine();
+                    if (!pythonPathTested) {
+                        pythonPath = tracker.pythonPath;
+                        pythonPathTested = true;
                     }
-                } else if (tracker.installProcess !is null) {
+                    if (pythonPath is null) {
+                        uiImLabelColored(_("Python is not detected. Please install python (<=3.12) first."), vec4(0.9, 0.5, 0.5, 1));
+                    } else {
+                        uiImLabel(pythonPath);
+                    }
+                    uiImLabel(_("Tracker script directory"));
+                    uiImSameLine();
+                    uiImInputText("##trackerPath", tracker.trackerPath);
+                    if (previousTrackerPath != tracker.trackerPath) pythonPathTested = false;
+                }
+                if (previousLaunchKey != tracker.launchConfigurationKey) tracker.invalidateDeviceQuery();
+                auto problem = tracker.validationError;
+                bool trackerAvailable = !problem.length;
+                if (!trackerAvailable) {
+                    uiImLabelColored(problem, vec4(0.95, 0.5, 0.5, 1));
+                    if (!tracker.nativeExecutable && !tracker.scriptPath.exists) {
+                        uiImSameLine();
+                        if (uiImButton(__("Install"))) {
+                            try { tracker.install(); }
+                            catch (Exception ex) { uiImDialog(__("Error"), ex.msg); }
+                        }
+                    }
+                } else if (!tracker.nativeExecutable && tracker.installProcess !is null) {
                     tracker.installProcess.update();
                     auto outputText = tracker.installProcess.stdoutOutput.join("\n");
                     vec2 avail2 = uiImAvailableSpace();
@@ -204,6 +243,12 @@ public:
                     uiImLabel(_("Camera device"));
                     uiImSameLine();
                     auto deviceList = tracker.listDevices();
+                    if (tracker.launchError.length) {
+                        uiImLabelColored(tracker.launchError, vec4(0.95, 0.5, 0.5, 1));
+                        if (uiImButton(__("Retry camera detection"))) {
+                            tracker.invalidateDeviceQuery(false);
+                        }
+                    }
                     long currentDeviceId = deviceList.countUntil!(x=>x.id == tracker.device)();
                     string currentDeviceName = (currentDeviceId >= 0)? deviceList[currentDeviceId].name: _("Select device...");
                     if (igBeginCombo("##device", currentDeviceName.toStringz ,ImGuiComboFlags.None)) {
