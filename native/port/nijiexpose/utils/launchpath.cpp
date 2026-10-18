@@ -1,9 +1,15 @@
 // Source: source/nijiexpose/utils/launchpath.d (see reference-sources.json).
 #include "nijiexpose/utils/launchpath.hpp"
 #include "dcompat/string.hpp"
+#include <filesystem>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#endif
 
 namespace nijiexpose::utils {
 std::string launchPath(std::string_view input) {
@@ -18,9 +24,14 @@ bool executableFileAvailable(std::string_view input) {
     auto path = launchPath(input);
     try {
         if (!path.length()) return false;
-        const auto attributes = GetFileAttributesW(dcompat::toUTF16z(path).c_str());
-        if (attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_DIRECTORY)) return false;
-        return true;
+        const auto candidate = dcompat::pathFromUTF8(path);
+        if (!std::filesystem::is_regular_file(candidate)) return false;
+#ifdef _WIN32
+        const auto attributes = GetFileAttributesW(candidate.c_str());
+        return attributes != INVALID_FILE_ATTRIBUTES && !(attributes & FILE_ATTRIBUTE_DIRECTORY);
+#else
+        return access(candidate.c_str(), X_OK) == 0;
+#endif
     } catch (const std::exception&) {
         return false;
     }

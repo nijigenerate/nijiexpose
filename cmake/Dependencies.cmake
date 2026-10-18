@@ -2,10 +2,20 @@ include(FetchContent)
 
 include("${CMAKE_CURRENT_LIST_DIR}/DependencyLock.cmake")
 nijiexpose_dependency(sdl3)
-FetchContent_Declare(sdl3_binary URL "${dependency_url}" URL_HASH "SHA256=${dependency_hash}" DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
-FetchContent_MakeAvailable(sdl3_binary)
-set(SDL3_SOURCE_DIR "${sdl3_binary_SOURCE_DIR}")
-find_package(SDL3 CONFIG REQUIRED PATHS "${SDL3_SOURCE_DIR}/cmake" NO_DEFAULT_PATH)
+if(WIN32)
+    FetchContent_Declare(sdl3_binary URL "${dependency_url}" URL_HASH "SHA256=${dependency_hash}" DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+    FetchContent_MakeAvailable(sdl3_binary)
+    set(SDL3_SOURCE_DIR "${sdl3_binary_SOURCE_DIR}")
+    find_package(SDL3 CONFIG REQUIRED PATHS "${SDL3_SOURCE_DIR}/cmake" NO_DEFAULT_PATH)
+else()
+    find_program(BREW_EXECUTABLE brew REQUIRED)
+    execute_process(COMMAND "${BREW_EXECUTABLE}" --prefix sdl3
+        OUTPUT_VARIABLE NIJIEXPOSE_SDL3_PREFIX OUTPUT_STRIP_TRAILING_WHITESPACE
+        COMMAND_ERROR_IS_FATAL ANY)
+    set(SDL3_SOURCE_DIR "${NIJIEXPOSE_SDL3_PREFIX}")
+    find_package(SDL3 CONFIG REQUIRED
+        PATHS "${NIJIEXPOSE_SDL3_PREFIX}/lib/cmake/SDL3" NO_DEFAULT_PATH)
+endif()
 
 set(NICXLIVE_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 set(NICXLIVE_BUILD_TESTS OFF CACHE BOOL "" FORCE)

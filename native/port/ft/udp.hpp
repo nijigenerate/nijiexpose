@@ -5,7 +5,7 @@
 namespace nijiexpose::ft {
 // Windows implementation of the std.socket calls used by the D adaptors.
 class UdpSocket {
-    uintptr_t socket;
+    std::intptr_t socket=-1;
 public:
     UdpSocket();
     ~UdpSocket();

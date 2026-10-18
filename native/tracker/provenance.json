@@ -1,5 +1,5 @@
 {
-  "source": "local nijitrack/native",
+  "source": "https://github.com/nijigenerate/nijitrack/tree/ac76c322aedd62740eee01c3ea1c528f7de51f6c/native",
   "files": [
     {
       "source": "src/tracking.hpp",
@@ -32,6 +32,10 @@
     {
       "source": "src/face_connections.hpp",
       "sha256": "ac5e43edef44c09c762be6203bbd0d09f3becd17724333bf2c36d4f5a942b8f8"
+    },
+    {
+      "source": "keyboard/macos.cpp",
+      "sha256": "dc807eea44e25a8e7a4e589cd892a5a3887f64e9caf1b277db7d6ecb5e3345bf"
     }
   ],
   "adaptations": [
@@ -40,5 +44,11 @@
     "Preview receives host-dispatched events; never polls or quits the host SDL runtime.",
     "Camera permission denied uses the SDL3 integer API (< 0).",
     "SDK is isolated in a same-process DLL to preserve its /MT runtime; only C structures cross the boundary."
-  ]
+  ],
+  "macos_sdk": {
+    "recipe": "native/build.sh setup / prepare / sdk",
+    "integration": "NijitrackSource.cmake",
+    "local_mediapipe_patches": false,
+    "build_script_patch": "patches/nijitrack-macos-sdk.patch (installed SDK detection and analysis-only preflight)"
+  }
 }

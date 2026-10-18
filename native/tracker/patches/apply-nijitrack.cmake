@@ -1,0 +1,18 @@
+set(script "${NIJITRACK_SOURCE}/native/scripts/build_mediapipe_halide.sh")
+set(before e5bfa884b57031aae34480de92d7023d5e9956a981befbfb0928820f134ef494)
+set(after 4e3c321010cfd5b23ff52cc22bc0cc6bac50a184c17379bb28fe6f89b1fec32c)
+file(SHA256 "${script}" actual)
+if(actual STREQUAL after)
+    return()
+endif()
+if(NOT actual STREQUAL before)
+    message(FATAL_ERROR "Unknown nijitrack SDK script; rebase the macOS SDK detection patch")
+endif()
+find_program(patch_program patch REQUIRED)
+execute_process(COMMAND "${patch_program}" -p1 -i
+    "${CMAKE_CURRENT_LIST_DIR}/nijitrack-macos-sdk.patch"
+    WORKING_DIRECTORY "${NIJITRACK_SOURCE}" COMMAND_ERROR_IS_FATAL ANY)
+file(SHA256 "${script}" actual)
+if(NOT actual STREQUAL after)
+    message(FATAL_ERROR "Patched nijitrack SDK script checksum mismatch")
+endif()

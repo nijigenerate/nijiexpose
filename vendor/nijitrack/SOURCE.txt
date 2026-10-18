@@ -8,3 +8,14 @@ Python repository setup and generators replaced with Starlark, C++ and CMake; se
 Pinned downloads: native/toolchain.lock.json and upstream WORKSPACE dependency hashes.
 Source archive SHA256: 326494c9b2346a9138362b6c03de9df0d4ea146986e3320614725ceaf30d7378
 Tracking recipe SHA256: 7901bb2cb4b5886ea1b4bc97378eed8b874c484ab644e156ad2f1735ca4ccd27
+
+macOS source build:
+nijitrack ac76c322aedd62740eee01c3ea1c528f7de51f6c
+https://github.com/nijigenerate/nijitrack
+Source archive SHA256: bb5f1f25f8d1849f9bee94d9858fdc96bbe84249bcc8d1c7b06762824cea916d
+Uses native/build.sh setup, prepare and sdk with the original MediaPipe patches.
+Local native script patch: select the installed macOS SDK for Command Line Tools,
+and support analysis-only preflight. No replacement Halide implementation.
+The upstream recipe supplies the verified Halide arbitrary-angle ROI implementation,
+Python-free generators, static face/hand archive and transitive link options.
+Built SDK provenance is installed from its generated SOURCE.txt.

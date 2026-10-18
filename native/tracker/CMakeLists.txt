@@ -1,4 +1,48 @@
 set(tracker_vendor "${PROJECT_SOURCE_DIR}/vendor/nijitrack")
+
+if(APPLE)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/NijitrackSource.cmake")
+    add_library(nijiexpose_embedded_tracker SHARED
+        embedded.cpp keyboard/common.cpp keyboard/macos.cpp)
+    set_target_properties(nijiexpose_embedded_tracker PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/native"
+        INSTALL_RPATH "@loader_path")
+    target_compile_features(nijiexpose_embedded_tracker PRIVATE cxx_std_20)
+    target_compile_definitions(nijiexpose_embedded_tracker PRIVATE NIJITRACK_EMBEDDED_EXPORTS)
+    target_include_directories(nijiexpose_embedded_tracker PRIVATE
+        upstream include "${PROJECT_SOURCE_DIR}/native/tracker")
+    target_include_directories(nijiexpose_embedded_tracker INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+    target_link_libraries(nijiexpose_embedded_tracker PRIVATE
+        "$<LINK_LIBRARY:WHOLE_ARCHIVE,nijitrack_mediapipe>"
+        nijitrack_halide SDL3::SDL3 "-framework ApplicationServices")
+    # Upstream emits one linker argument per line. A compiler response file
+    # preserves framework/name pairs and works before the SDK has been built.
+    target_link_options(nijiexpose_embedded_tracker PRIVATE
+        "-mmacosx-version-min=${tracker_sdk_version}"
+        "@${tracker_sdk}/mediapipe_tracking_linkopts.txt")
+    add_dependencies(nijiexpose_embedded_tracker nijitrack_source_sdk)
+    install(TARGETS nijiexpose_embedded_tracker LIBRARY
+        DESTINATION nijiexpose-native.app/Contents/Frameworks)
+    install(FILES LICENSE.nijitrack "${tracker_sdk}/LICENSE.mediapipe"
+        "${tracker_sdk}/LICENSE.halide" "${tracker_sdk}/SOURCE.txt"
+        DESTINATION share/licenses/nijiexpose/nijitrack)
+    install(DIRECTORY "${tracker_sdk}/licenses/"
+        DESTINATION share/licenses/nijiexpose/nijitrack/licenses)
+    set(NIJIEXPOSE_TRACKER_TEST_IMAGE "" CACHE FILEPATH
+        "Optional local portrait fixture for the existing real-inference test")
+    if(NIJIEXPOSE_TRACKER_TEST_IMAGE)
+        add_executable(nijiexpose_embedded_tracker_test ../tests/embedded_tracker_test.cpp)
+        set_target_properties(nijiexpose_embedded_tracker_test PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/native")
+        target_compile_features(nijiexpose_embedded_tracker_test PRIVATE cxx_std_20)
+        target_include_directories(nijiexpose_embedded_tracker_test PRIVATE
+            "${PROJECT_SOURCE_DIR}/native/port" "${nicxlive_SOURCE_DIR}")
+        target_link_libraries(nijiexpose_embedded_tracker_test PRIVATE
+            nijiexpose_embedded_tracker SDL3::SDL3)
+    endif()
+    return()
+endif()
+
 file(STRINGS "${tracker_vendor}/sdk.sha256" sdk_expected LIMIT_COUNT 1)
 file(SHA256 "${tracker_vendor}/sdk-windows-x64.zip" sdk_actual)
 if(NOT sdk_actual STREQUAL sdk_expected)

@@ -44,9 +44,10 @@ Paths copied with surrounding double quotes (Windows "Copy as path") are accepte
 ## Building
 
 The `native-cpp` branch also contains an experimental C++20 / nicxlive / SDL3
-development harness. See [native build instructions](native/README.md) and the
-[migration requirements](NATIVE_CPP_DESIGN.md). Windows implementation parity
-with the D code is required; the harness is not an equivalent application port.
+application with Windows and macOS build configurations. See [native build
+instructions](native/README.md) and the [migration requirements](NATIVE_CPP_DESIGN.md).
+Windows implementation parity with the D code is required; the native build is
+not yet an equivalent application port.
 
 We have a quick start guide [BUILD.md](https://github.com/nijigenerate/nijigenerate/blob/main/BUILD.md) in the nijigenerate project. This file contains information on how to build nijiexpose.
 

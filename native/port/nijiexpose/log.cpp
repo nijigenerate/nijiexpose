@@ -3,13 +3,18 @@
 #include "nijiexpose/log.hpp"
 #include "dcompat/string.hpp"
 #include <filesystem>
+#ifdef _WIN32
 #include <io.h>
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#else
+#include <cstdlib>
+#endif
 
 namespace nijiexpose {
 void insInitLogging() {
+#ifdef _WIN32
     std::wstring destination = L"NUL";
     try {
         const DWORD length = GetEnvironmentVariableW(L"LOCALAPPDATA", nullptr, 0);
@@ -38,11 +43,32 @@ void insInitLogging() {
                 reinterpret_cast<HANDLE>(_get_osfhandle(_fileno(reopened))));
         }
     }
+#else
+    std::filesystem::path destination;
+    try {
+        if (const auto* home = std::getenv("HOME"); home && *home) {
+            const auto directory = std::filesystem::path(home) / "Library/Logs/nijiexpose";
+            std::filesystem::create_directories(directory);
+            destination = directory / "nijiexpose.log";
+            if (std::filesystem::exists(destination) && std::filesystem::file_size(destination) >= 5 * 1024 * 1024) {
+                auto previous = destination;
+                previous += ".previous";
+                std::error_code error;
+                std::filesystem::remove(previous, error);
+                std::filesystem::rename(destination, previous, error);
+            }
+        }
+    } catch (const std::exception&) {}
+    const auto filename = destination.empty() ? std::string("/dev/null") : destination.string();
+    for (FILE* stream : {stdout, stderr}) {
+        if (auto* reopened = std::freopen(filename.c_str(), "a", stream)) setvbuf(reopened, nullptr, _IONBF, 0);
+    }
+#endif
 }
 
 void insLogFormatted(std::string_view level, std::string_view message) noexcept {
     try {
-        FILE* output = __acrt_iob_func(1);
+        FILE* output = stdout;
         if (std::fwrite("[", 1, 1, output) != 1) return;
         if (std::fwrite(level.data(), 1, level.size(), output) != level.size()) return;
         if (std::fwrite("] ", 1, 2, output) != 2) return;

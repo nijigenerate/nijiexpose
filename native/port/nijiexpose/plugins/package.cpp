@@ -75,7 +75,7 @@ int Plugin::requireModule(const std::string& module){
     push(state,environment);lua_getfield(state,-1,"LOADED");lua_getfield(state,-1,canonical.c_str());if(lua_type(state,-1)==5){int ref=luaL_ref(state,LUA_REGISTRYINDEX);lua_pop(state,2);return ref;}lua_pop(state,3);
     auto file=module;for(char& c:file)if(c=='.')c='/';auto relative=std::filesystem::u8path(file);relative.replace_extension("lua");auto base=std::filesystem::u8path(workingDirectory),path=base/relative;
     if(!std::filesystem::exists(path))throw std::runtime_error(replaceFormat(i18n::_("Module %s not found"),canonical));
-    std::filesystem::path segments;for(auto& segment:relative){segments/=segment;if(std::filesystem::is_symlink(base/segments)){encounteredError=true;throw std::runtime_error(i18n::_("Attempted to require a symlink, this is not allowed."));}}
+    std::filesystem::path segments;for(const auto& segment:relative){segments/=segment;if(std::filesystem::is_symlink(base/segments)){encounteredError=true;throw std::runtime_error(i18n::_("Attempted to require a symlink, this is not allowed."));}}
     int ref=inheritedEnvironment(state,canonical,environment);run(state,readFile(path),ref);push(state,environment);lua_getfield(state,-1,"LOADED");push(state,ref);lua_setfield(state,-2,canonical.c_str());lua_pop(state,2);return ref;
 }
 void insSavePluginState(){json::Object states;for(auto& p:insPlugins)states[p->getInfo().pluginId]=json::Object{{"isEnabled",p->isEnabled()}};nijiui::inSettingsSetJson("pluginStates",std::move(states));}

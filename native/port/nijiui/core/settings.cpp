@@ -11,10 +11,10 @@ thread_local nijiexpose::json::Value settings = nijiexpose::json::Object{};
 // A loaded scalar/array remains a leaf, as in the source FghjNode. Assigning
 // children does not replace that leaf; serialization still writes the leaf.
 thread_local nijiexpose::json::Object leafChildren;
-std::filesystem::path path(std::string_view value) { return nijiexpose::dcompat::toUTF16z(value); }
+std::filesystem::path path(std::string_view value) { return nijiexpose::dcompat::pathFromUTF8(value); }
 }
 std::string inSettingsPath() {
-    return nijiexpose::dcompat::toUTF8((path(inGetAppConfigPath()) / L"settings.json").native());
+    return nijiexpose::dcompat::pathToUTF8(path(inGetAppConfigPath()) / "settings.json");
 }
 void inSettingsLoad() {
     settings = nijiexpose::json::Object{};

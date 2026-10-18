@@ -6,7 +6,11 @@
 #include "nijiui/core/settings.hpp"
 #include "i18n/tr.hpp"
 #include <filesystem>
+#ifdef _WIN32
 #include <windows.h>
+#else
+#include <SDL3/SDL.h>
+#endif
 #include <cmath>
 #include "embedded.h"
 #include <SDL3/SDL.h>
@@ -14,7 +18,13 @@ namespace nijiexpose::tracking {
 namespace {std::filesystem::path path(const std::string& s){return std::filesystem::u8path(s);}std::string utf8(const std::filesystem::path& p){auto s=p.u8string();return {s.begin(),s.end()};}}
 Tracker::~Tracker(){terminate();if(cameraInitialized)SDL_QuitSubSystem(SDL_INIT_CAMERA);}
 std::string Tracker::launchConfigurationKey()const{return "embedded-nijitrack";}
-std::string Tracker::modelPath()const{std::wstring exe(32768,L'\0');auto n=GetModuleFileNameW(nullptr,exe.data(),static_cast<DWORD>(exe.size()));exe.resize(n);return utf8(std::filesystem::path(exe).parent_path()/"models"/"face_landmarker.task");}
+std::string Tracker::modelPath()const{
+#ifdef _WIN32
+std::wstring exe(32768,L'\0');auto n=GetModuleFileNameW(nullptr,exe.data(),static_cast<DWORD>(exe.size()));exe.resize(n);return utf8(std::filesystem::path(exe).parent_path()/"models"/"face_landmarker.task");
+#else
+const auto* base=SDL_GetBasePath(); if(!base)return {}; auto result=std::filesystem::path(base)/"../Resources/models/face_landmarker.task"; return utf8(result);
+#endif
+}
 std::string Tracker::validationError()const{if(width<1||height<1||width>8192||height>8192||!std::isfinite(fps)||fps<=0||fps>240)return "Invalid camera resolution or frame rate.";return std::filesystem::is_regular_file(path(modelPath()))?std::string{}:"Bundled face_landmarker.task is missing.";}
 void Tracker::invalidateDeviceQuery(bool reset){deviceList.clear();if(reset)device=-1;queryFailed=false;launchError.clear();deviceQueryKey.clear();}
 void Tracker::ensureCamera(){if(!cameraInitialized){if(!SDL_InitSubSystem(SDL_INIT_CAMERA))throw std::runtime_error(SDL_GetError());cameraInitialized=true;}}

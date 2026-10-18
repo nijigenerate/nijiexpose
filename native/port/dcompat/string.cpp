@@ -1,9 +1,14 @@
 #include "dcompat/string.hpp"
 #include <cstdint>
 #include <stdexcept>
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#else
+#include <codecvt>
+#include <locale>
+#endif
 
 namespace nijiexpose::dcompat {
 namespace {
@@ -112,18 +117,39 @@ std::vector<std::string> splitLines(std::string_view s) {
 
 std::wstring toUTF16z(std::string_view input) {
     if (input.empty()) return {};
+#ifdef _WIN32
     const int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, input.data(), static_cast<int>(input.size()), nullptr, 0);
     if (!size) throw std::runtime_error("Invalid UTF-8 sequence");
     std::wstring result(size, L'\0');
     MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, input.data(), static_cast<int>(input.size()), result.data(), size);
     return result;
+#else
+    try { return std::wstring_convert<std::codecvt_utf8<wchar_t>>{}.from_bytes(input.data(), input.data()+input.size()); }
+    catch (const std::range_error&) { throw std::runtime_error("Invalid UTF-8 sequence"); }
+#endif
 }
 std::string toUTF8(std::wstring_view input) {
     if (input.empty()) return {};
+#ifdef _WIN32
     const int size = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, nullptr);
     if (!size) throw std::runtime_error("Invalid UTF-16 sequence");
     std::string result(size, '\0');
     WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, input.data(), static_cast<int>(input.size()), result.data(), size, nullptr, nullptr);
     return result;
+#else
+    try { return std::wstring_convert<std::codecvt_utf8<wchar_t>>{}.to_bytes(input.data(), input.data()+input.size()); }
+    catch (const std::range_error&) { throw std::runtime_error("Invalid wide character sequence"); }
+#endif
+}
+std::filesystem::path pathFromUTF8(std::string_view input) {
+#ifdef _WIN32
+    return std::filesystem::path(toUTF16z(input));
+#else
+    return std::filesystem::path(input);
+#endif
+}
+std::string pathToUTF8(const std::filesystem::path& input) {
+    const auto value=input.u8string();
+    return {value.begin(),value.end()};
 }
 }

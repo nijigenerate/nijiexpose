@@ -1,6 +1,22 @@
 # Match the D build's i2d-imgui -> cimgui -> imgui source chain exactly.
 # Used only by the D implementation comparison tests.
 function(nijiexpose_add_reference_imgui)
+    if(APPLE)
+        find_package(Freetype REQUIRED)
+        if(NOT TARGET freetype)
+            add_library(freetype INTERFACE)
+            target_link_libraries(freetype INTERFACE Freetype::Freetype)
+        endif()
+        find_program(BREW_EXECUTABLE brew REQUIRED)
+        execute_process(COMMAND "${BREW_EXECUTABLE}" --prefix freetype
+            OUTPUT_VARIABLE freetype_prefix OUTPUT_STRIP_TRAILING_WHITESPACE
+            COMMAND_ERROR_IS_FATAL ANY)
+        find_file(NIJIEXPOSE_FREETYPE_LICENSE NAMES FTL.TXT LICENSE.TXT
+            PATHS "${freetype_prefix}" "${freetype_prefix}/share/doc/freetype2" "${freetype_prefix}/share/doc/freetype"
+            REQUIRED NO_DEFAULT_PATH)
+        set(NIJIEXPOSE_FREETYPE_LICENSE "${NIJIEXPOSE_FREETYPE_LICENSE}" PARENT_SCOPE)
+        return()
+    endif()
     nijiexpose_dependency(freetype)
     FetchContent_Declare(freetype_binary URL "${dependency_url}" URL_HASH "SHA256=${dependency_hash}" DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
     FetchContent_MakeAvailable(freetype_binary)

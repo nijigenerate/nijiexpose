@@ -1,6 +1,6 @@
 # Native C++ / SDL3 build
 
-The Windows C++ migration uses nicxlive, SDL 3.2.28, and official Dear ImGui
+The C++ application uses nicxlive, SDL 3, and official Dear ImGui
 1.93.0-docking (commit 4e02e84cbb85d48881388e7090c2dfa1708c02a1). Source archives
 are fixed by commit and SHA256. SDL3/OpenGL3 backends come from the same
 ImGui release; FreeType support is enabled. Translation uses GNU gettext
@@ -16,7 +16,7 @@ migration; see [the requirements](../NATIVE_CPP_DESIGN.md).
 
 ## Build
 
-Use a Visual Studio 2022 developer shell, CMake 3.24+, Ninja, Python,
+On Windows, use a Visual Studio 2022 developer shell, CMake 3.24+, Ninja, Python,
 Boost headers and an OpenGL 3.3 driver. LDC is used for original D comparison
 executables; no DMD installation is required.
 
@@ -48,6 +48,42 @@ Keep all staged DLLs beside it and distribute the staged licenses. `--version`
 reports the linked ImGui version. `--smoke-test` checks four hidden-window
 frames, framebuffer readback, resizing and shutdown without saving a layout.
 Enable its CTest registration using `-DNIJIEXPOSE_GPU_TESTS=ON`.
+
+## macOS build
+
+Install the platform dependencies with Homebrew:
+
+```sh
+brew install cmake ninja openjdk boost sdl3 freetype gettext jq pkg-config
+cmake -S . -B build/native-macos-source -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+cmake --build build/native-macos-source --parallel 4
+cmake --install build/native-macos-source --prefix out/native-macos
+```
+
+CMake fetches nijitrack at the commit and archive hash in
+[`tracker/NijitrackSource.cmake`](tracker/NijitrackSource.cmake). It invokes
+nijitrack's own `native/build.sh setup`, `prepare` and `sdk` stages. These verify
+pinned tools, MediaPipe sources, C API headers, patches and the existing Halide
+arbitrary-angle ROI implementation. The source-built static face/hand SDK and
+Halide AOT archive are linked into the embedded tracker with calculator
+registration objects preserved. No additional MediaPipe implementation is
+maintained here. A small patch to nijitrack’s build script detects the installed
+macOS SDK when using Command Line Tools and supports an analysis-only preflight.
+The emitted SDK link options are consumed directly. CMake checks that a JDK is
+available and passes its `JAVA_HOME` to Bazel; `NIJIEXPOSE_JAVA_HOME` selects a
+nonstandard installation.
+
+Keep `build/native-macos-source`: nijitrack's sources, tools, prepared workspace,
+Bazel cache and static archives all remain beneath its `_deps/nijitrack-main-src`
+directory. CMake records each completed SDK stage; application changes do not
+rerun SDK preparation. Changing the pinned nijitrack recipe requires rebuilding
+the affected SDK outputs. A successful configure is not an inference check. Before SDK compilation, run
+`cmake --build build/native-macos-source --target nijitrack_sdk_preflight`
+to analyze the same target and arguments without compiling the SDK.
+
+The application bundle includes models, fonts and dialog artwork. Spout frame
+sharing is disabled on macOS. Camera and keyboard access require macOS camera
+and Input Monitoring permissions respectively.
 
 ## Verification
 
@@ -87,10 +123,10 @@ The bundled x64 Spout DLL is the unchanged bindbc-spout2 0.1.1 distribution.
 ## Embedded nijitrack
 
 The native tracker runs in this process. `native/tracker` contains the adapted
-nijitrack inference/camera/preview code; `vendor/nijitrack` contains the copied
-face/hand task bundles and checksummed Windows static SDK archive.
-The SDK uses /MT, so a same-process DLL
-with a C ABI isolates its CRT from the application's /MD runtime.
+nijitrack inference/camera/preview code. On Windows, `vendor/nijitrack` provides
+the checksummed static SDK archive, isolated behind a same-process DLL with a C
+ABI because that SDK uses `/MT`. On macOS, CMake runs the pinned nijitrack source build recipe and links its
+static SDK and Halide AOT archive into the adapter `.dylib`.
 
 Settings are passed as a structure. Inference publishes complete face/pose/gaze
 packets to a bounded latest-frame queue. The main thread drains it into the
@@ -101,7 +137,12 @@ before the tracker is destroyed. Python and executable-path settings are ignored
 when loading older tracker configurations.
 
 Tracker download and automatic installation code is not needed and has been
-removed. The application uses the bundled native tracker and task files.
+removed. The application uses the native tracker and bundled task files.
 
 To enable the real-inference integration test, set NIJIEXPOSE_TRACKER_TEST_IMAGE
 to a local MediaPipe portrait.jpg fixture. No test image is downloaded by builds.
+On macOS this builds the existing `nijiexpose_embedded_tracker_test` target
+without enabling the Windows comparison suite. Run it with the model path,
+portrait path and output directory, using `SDL_VIDEODRIVER=dummy` and
+`SDL_RENDER_DRIVER=software`. It checks real face inference, pose/blendshape
+packets, preview, restart, cancellation and error propagation.

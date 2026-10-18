@@ -2,16 +2,24 @@
 #include "font.hpp"
 #include "settings.hpp"
 #include <imgui.h>
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#else
+#include <SDL3/SDL.h>
+#include <fstream>
+#include <filesystem>
+#endif
 #include <algorithm>
 #include <cstring>
 #include <span>
 #include <stdexcept>
+#include <vector>
 namespace nijiui {
 namespace {
 thread_local ImFontAtlas* atlas;
+#ifdef _WIN32
 std::span<std::byte> fontResource(int id) {
     auto module=GetModuleHandleW(nullptr);
     auto resource=FindResourceW(module,MAKEINTRESOURCEW(id),MAKEINTRESOURCEW(10));
@@ -20,6 +28,25 @@ std::span<std::byte> fontResource(int id) {
     if(!data) throw std::runtime_error("Cannot load embedded nijiui font resource");
     return {static_cast<std::byte*>(LockResource(data)),SizeofResource(module,resource)};
 }
+#else
+std::vector<std::byte> notoFont;
+std::vector<std::byte> iconFont;
+std::span<std::byte> fontResource(int id) {
+    const auto* base=SDL_GetBasePath();
+    if (!base) throw std::runtime_error("Unable to locate application resources");
+    const auto filename=std::filesystem::path(base)/"../Resources/fonts"/(id==4101?"NotoSansCJK-Regular.ttc":"MaterialIcons.ttf");
+    auto& bytes=id==4101?notoFont:iconFont;
+    if(bytes.empty()) {
+        std::ifstream input(filename,std::ios::binary|std::ios::ate);
+        if(!input) throw std::runtime_error("Missing bundled nijiui font resource");
+        const auto size=input.tellg();
+        bytes.resize(static_cast<std::size_t>(size));
+        input.seekg(0); input.read(reinterpret_cast<char*>(bytes.data()),static_cast<std::streamsize>(size));
+        if(!input) throw std::runtime_error("Cannot read bundled nijiui font resource");
+    }
+    return bytes;
+}
+#endif
 void inAddFontData(const char* name,std::span<std::byte> data,float size,const ImWchar* ranges,ImVec2 offset) {
     ImFontConfig cfg;
 #if IMGUI_VERSION_NUM >= 19200

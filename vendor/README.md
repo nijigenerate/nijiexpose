@@ -16,7 +16,7 @@ Their required notices are still installed with application distributions.
 | nicxlive | nijigenerate/nicxlive, `6ff544470b0f851ab998d8a12220aa750dac0d6b` | Original source archive and upstream license; application overlay remains in `native/tools` |
 | ImGui | ocornut/imgui, `4e02e84cbb85d48881388e7090c2dfa1708c02a1` | Original docking source archive, MIT |
 | Reference ImGui | Inochi2D/imgui, `dd5b7c6847372016f45d5b5abda687bd5cd19224` | Original source archive, MIT; comparison tests only |
-| nijitrack SDK | Hash in `nijitrack/sdk.sha256` | MediaPipe / Halide native SDK archive, component licenses and source provenance |
+| nijitrack SDK | Windows archive hash in `nijitrack/sdk.sha256`; MediaPipe source commit in `nijitrack/SOURCE.txt` | Windows uses the checked SDK archive; macOS invokes the pinned nijitrack source recipe including its Halide patches and static SDK |
 | MediaPipe task bundles | Versions, original URLs and hashes in `nijitrack/models/models.lock.json` | Face and hand models, Apache-2.0 license |
 | Lua / Spout | Existing pinned application binaries, unchanged | Moved from `native/res/bin` to `runtime`; licenses in `licenses` |
 

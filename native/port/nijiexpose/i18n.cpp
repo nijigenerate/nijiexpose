@@ -7,14 +7,20 @@
 #include <algorithm>
 #include <filesystem>
 #include <vector>
+#include <cctype>
+#ifndef _WIN32
+#include <SDL3/SDL.h>
+#endif
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #define NOMINMAX
 #include <windows.h>
+#endif
 namespace nijiexpose {
 namespace {
 thread_local std::vector<TLEntry> localeFiles;
 [[maybe_unused]] std::string neLocaleLanguageNameMarker() { return i18n::_("LANG_NAME"); }
-std::filesystem::path path(std::string_view value) { return dcompat::toUTF16z(value); }
+std::filesystem::path path(std::string_view value) { return dcompat::pathFromUTF8(value); }
 std::string neGetCultureExpression(std::string_view langcode) {
     for (const auto& locale : localeFiles) if (locale.code == langcode) return locale.humanName;
     if (langcode.size() >= 5) return i18n::i18nGetCultureLanguage(langcode) + " (" +
@@ -24,33 +30,42 @@ std::string neGetCultureExpression(std::string_view langcode) {
 void neLocaleScan(const std::filesystem::path& directory) {
     if (!std::filesystem::exists(directory)) return;
     for (const auto& entry : std::filesystem::directory_iterator(directory)) {
-        auto extension = entry.path().extension().native();
-        for (auto& c : extension) if (c >= L'A' && c <= L'Z') c += L'a' - L'A';
-        if (extension != L".mo") continue;
-        const auto langcode = dcompat::toUTF8(entry.path().stem().native());
+        auto extension = dcompat::pathToUTF8(entry.path().extension());
+        for (auto& c : extension) if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
+        if (extension != ".mo") continue;
+        const auto langcode = dcompat::pathToUTF8(entry.path().stem());
         if (!i18n::i18nValidateCultureCode(langcode)) continue;
-        const auto filename = dcompat::toUTF8(entry.path().native());
+        const auto filename = dcompat::pathToUTF8(entry.path());
         auto langName = i18n::i18nGetLanguageName(filename);
         if (langName == "<UNKNOWN LANGUAGE>") langName = neGetCultureExpression(langcode);
         bool found = false;
         for (const auto& locale : localeFiles) if (locale.code == langcode) { found = true; break; }
         if (found) continue;
-        localeFiles.push_back({langName, langcode, filename, dcompat::toUTF8(directory.native())});
+        localeFiles.push_back({langName, langcode, filename, dcompat::pathToUTF8(directory)});
     }
 }
 std::filesystem::path executableDirectory() {
+#ifdef _WIN32
     std::wstring buffer(32768, L'\0');
     const auto length = GetModuleFileNameW(nullptr, buffer.data(), DWORD(buffer.size()));
     if (!length || length >= buffer.size()) throw std::runtime_error("Unable to get executable path");
     buffer.resize(length);
     return std::filesystem::path(buffer).parent_path();
+#else
+    const auto* base=SDL_GetBasePath();
+    if(!base)throw std::runtime_error("Unable to get executable path");
+    return std::filesystem::path(base);
+#endif
 }
 }
 void neLocaleInit() {
     localeFiles.clear();
     neLocaleScan(path(nijiui::inGetAppLocalePath()));
     neLocaleScan(executableDirectory());
-    neLocaleScan(executableDirectory() / L"i18n");
+    neLocaleScan(executableDirectory() / "i18n");
+#ifdef __APPLE__
+    neLocaleScan(executableDirectory() / "../Resources/i18n");
+#endif
     std::sort(localeFiles.begin(), localeFiles.end(), neCompareLocaleEntries);
     neMarkLocaleDups(localeFiles);
 }
@@ -62,10 +77,16 @@ void neLocaleInitFromSettings() {
     }
 }
 bool neCompareLocaleEntries(const TLEntry& a, const TLEntry& b) {
+ #ifdef _WIN32
     const auto left = dcompat::toUTF16z(a.humanName), right = dcompat::toUTF16z(b.humanName);
     const int cmp = CompareStringOrdinal(left.data(), int(left.size()), right.data(), int(right.size()), TRUE);
     if (cmp == CSTR_EQUAL) return a.path < b.path;
     return cmp == CSTR_LESS_THAN;
+ #else
+    auto lower=[](std::string value){for(auto& c:value)c=static_cast<char>(std::tolower(static_cast<unsigned char>(c)));return value;};
+    const auto left=lower(a.humanName),right=lower(b.humanName);
+    return left==right?a.path<b.path:left<right;
+ #endif
 }
 void neMarkLocaleDups(std::span<TLEntry> entries) {
     if (entries.size() <= 1) return;
