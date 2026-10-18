@@ -4,7 +4,7 @@ The Windows C++ migration uses nicxlive, SDL 3.2.28, and official Dear ImGui
 1.93.0-docking (commit 4e02e84cbb85d48881388e7090c2dfa1708c02a1). Source archives
 are fixed by commit and SHA256. SDL3/OpenGL3 backends come from the same
 ImGui release; FreeType support is enabled. Translation uses GNU gettext
-libintl 0.22.5, and JSON uses Boost.JSON from Boost 1.90.0. These backend
+libintl 1.0, and JSON uses Boost.JSON from Boost 1.90.0. These backend
 differences are explicitly authorized; their internals are not reimplemented.
 
 The executable includes the ported application loop, scene, tracking, Lua,
@@ -17,29 +17,31 @@ migration; see [the requirements](../NATIVE_CPP_DESIGN.md).
 ## Build
 
 Use a Visual Studio 2022 developer shell, CMake 3.24+, Ninja, Python,
-Boost 1.90.0 headers, and an OpenGL 3.3 driver. Selected dependencies are bundled
-in [vendor](../vendor/README.md). Unmodified Boost, gettext/libiconv and SDL3
-remain external dependencies.
-Existing LDC is used for original
-D comparison executables. No DMD installation is required.
+Boost headers and an OpenGL 3.3 driver. LDC is used for original D comparison
+executables; no DMD installation is required.
 
 ```powershell
-vcpkg install --triplet=x64-windows-native --overlay-triplets=cmake/vcpkg/triplets --x-manifest-root=cmake/vcpkg --x-install-root=out/vcpkg --x-buildtrees-root=build/vcpkg --x-packages-root=out/vcpkg-packages
-cmake --preset native-release
+cmake -DBOOST_DESTINATION="$PWD/build/boost" -P cmake/FetchBoostHeaders.cmake
+$boostRoot = Get-Content build/boost/prefix.txt -Raw
+cmake --preset native-release -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON
 cmake --build --preset native-release --parallel 3
 ctest --preset native-release
 cmake --install build/native-release --prefix out/native
 ```
 
-Use the existing vcpkg executable. An existing gettext prefix can be supplied
-with `-DNIJIEXPOSE_GETTEXT_PREFIX=/path/to/prefix`. Gettext and libiconv DLLs
-and license texts are staged automatically. Boost.JSON is compiled from its
-`src.hpp`; no separately built Boost.JSON library is needed.
-Compiled catalogs in `out/i18n` are installed beside the executable. CI
-compiles the existing `tl/*.po` files using GNU msgfmt.
+SDL3 uses the official MSVC development binary. GNU gettext/libiconv and FreeType
+use Windows binaries from the distributors linked by their official download
+pages. These dependencies are downloaded with SHA-256 verification, not compiled.
+ImGui and the patched nicxlive core are built from pinned source with the app.
+Boost.JSON is compiled from `src.hpp`; no separately built Boost library is needed.
 
-Pass `-DBOOST_ROOT=/path/to/boost` when needed. An optional nicxlive source
-override is `-DNIJIEXPOSE_NICXLIVE_SOURCE_DIR=/path/to/nicxlive`.
+Versions, URLs, hashes, ABI requirements and license paths are recorded in
+[dependencies.lock.json](../cmake/dependencies.lock.json). See
+[dependency updates](../cmake/DEPENDENCY_UPDATES.md) for the update procedure.
+Libraries selected for vendoring and their notices are in [vendor](../vendor/README.md).
+Unmodified Boost, gettext/libiconv and SDL3 are not committed to the repository.
+Compiled catalogs in `out/i18n` are installed beside the executable; CI generates
+them using GNU msgfmt. All required runtime DLLs and notices are staged.
 
 The staged Windows executable is `out/native/bin/nijiexpose-native.exe`.
 Keep all staged DLLs beside it and distribute the staged licenses. `--version`
@@ -50,7 +52,8 @@ Enable its CTest registration using `-DNIJIEXPOSE_GPU_TESTS=ON`.
 ## Verification
 
 Windows CI uses sccache with the GitHub Actions cache backend for C/C++
-compilation, alongside the existing vcpkg binary cache. Each run records build
+compilation. Boost headers are cached separately; SDL3, gettext/libiconv and
+FreeType are downloaded as binaries. Each run records build
 seconds and cache hit/miss statistics in its job summary and test artifacts.
 Source/compiler/options changes invalidate the affected compilation entries;
 linking and tests still run normally.

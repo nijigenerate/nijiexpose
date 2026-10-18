@@ -45,6 +45,7 @@ if(WIN32)
         message(FATAL_ERROR "The pinned D-release SpoutLibrary.dll has changed")
     endif()
     add_custom_command(TARGET nijiexpose_native POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:freetype> $<TARGET_FILE_DIR:nijiexpose_native>
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${native_spout_dll}" $<TARGET_FILE_DIR:nijiexpose_native>)
     install(FILES "${native_spout_dll}" DESTINATION bin)
     install(FILES "${PROJECT_SOURCE_DIR}/res/licenses/LICENSE-Spout2" "${CMAKE_CURRENT_SOURCE_DIR}/licenses/bindbc-spout2.txt"
@@ -64,7 +65,7 @@ endif()
 install(TARGETS nijiexpose_native RUNTIME DESTINATION bin BUNDLE DESTINATION .)
 if(WIN32)
     install(FILES $<TARGET_FILE:SDL3::SDL3-shared> DESTINATION bin)
-    install(FILES ${NIJIEXPOSE_GETTEXT_DLLS} DESTINATION bin)
+    install(FILES ${NIJIEXPOSE_GETTEXT_DLLS} $<TARGET_FILE:freetype> DESTINATION bin)
 elseif(APPLE)
     install(FILES $<TARGET_FILE:SDL3::SDL3-shared>
         DESTINATION nijiexpose-native.app/Contents/Frameworks)
@@ -82,15 +83,15 @@ install(FILES "${SDL3_SOURCE_DIR}/LICENSE.txt" DESTINATION share/licenses/nijiex
 install(FILES "${imgui_SOURCE_DIR}/LICENSE.txt" DESTINATION share/licenses/nijiexpose RENAME imgui.txt)
 install(FILES "${nicxlive_SOURCE_DIR}/LICENSE" DESTINATION share/licenses/nijiexpose RENAME nicxlive.txt)
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/licenses/Boost.txt" DESTINATION share/licenses/nijiexpose)
-install(FILES "${NIJIEXPOSE_GETTEXT_PREFIX}/share/gettext-libintl/copyright"
+install(FILES "${NIJIEXPOSE_GETTEXT_PREFIX}/licenses/gettext.txt"
     DESTINATION share/licenses/nijiexpose RENAME gettext-libintl.txt)
-install(FILES "${NIJIEXPOSE_GETTEXT_PREFIX}/share/libiconv/copyright"
+install(FILES "${NIJIEXPOSE_GETTEXT_PREFIX}/licenses/iconv.txt"
     DESTINATION share/licenses/nijiexpose RENAME libiconv.txt)
 set(NIJIEXPOSE_TRANSLATIONS_DIR "${PROJECT_SOURCE_DIR}/out/i18n" CACHE PATH "Compiled .mo catalogs")
 if(EXISTS "${NIJIEXPOSE_TRANSLATIONS_DIR}")
     install(DIRECTORY "${NIJIEXPOSE_TRANSLATIONS_DIR}/" DESTINATION bin/i18n FILES_MATCHING PATTERN "*.mo")
 endif()
-install(FILES "${PROJECT_SOURCE_DIR}/res/licenses/LICENSE-FreeType" DESTINATION share/licenses/nijiexpose)
+install(FILES "${NIJIEXPOSE_FREETYPE_LICENSE}" DESTINATION share/licenses/nijiexpose)
 
 if(WIN32)
     add_library(nijiexpose_port STATIC

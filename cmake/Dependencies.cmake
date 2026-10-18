@@ -1,17 +1,11 @@
 include(FetchContent)
 
-# Source archives are pinned by commit AND SHA256. No Git history is fetched.
-set(SDL_SHARED ON CACHE BOOL "" FORCE)
-set(SDL_STATIC OFF CACHE BOOL "" FORCE)
-set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
-set(SDL_TESTS OFF CACHE BOOL "" FORCE)
-set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
-FetchContent_Declare(SDL3
-    URL https://codeload.github.com/libsdl-org/SDL/tar.gz/7f3ae3d57459e59943a4ecfefc8f6277ec6bf540
-    URL_HASH SHA256=7a8347c770b90b33daac2352858ca03f9c9a2ccc8ce711054870361d1a6b32e5
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
-FetchContent_MakeAvailable(SDL3)
+include("${CMAKE_CURRENT_LIST_DIR}/DependencyLock.cmake")
+nijiexpose_dependency(sdl3)
+FetchContent_Declare(sdl3_binary URL "${dependency_url}" URL_HASH "SHA256=${dependency_hash}" DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_MakeAvailable(sdl3_binary)
+set(SDL3_SOURCE_DIR "${sdl3_binary_SOURCE_DIR}")
+find_package(SDL3 CONFIG REQUIRED PATHS "${SDL3_SOURCE_DIR}/cmake" NO_DEFAULT_PATH)
 
 set(NICXLIVE_BUILD_SHARED OFF CACHE BOOL "" FORCE)
 set(NICXLIVE_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -24,9 +18,10 @@ if(NIJIEXPOSE_NICXLIVE_SOURCE_DIR)
     add_subdirectory("${NIJIEXPOSE_NICXLIVE_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/nicxlive")
     set(nicxlive_SOURCE_DIR "${NIJIEXPOSE_NICXLIVE_SOURCE_DIR}")
 else()
+    nijiexpose_dependency(nicxlive)
     FetchContent_Declare(nicxlive
-        URL "${PROJECT_SOURCE_DIR}/vendor/nicxlive.tar.gz"
-        URL_HASH SHA256=685fd02d84c3e79b7e494cff36b173df37f159eed9eaed6c0c7f6e88e6676563
+        URL "${dependency_url}"
+        URL_HASH "SHA256=${dependency_hash}"
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
     FetchContent_MakeAvailable(nicxlive)
 endif()

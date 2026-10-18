@@ -49,29 +49,6 @@ jobs:
         uses: mozilla-actions/sccache-action@v0.0.11
         with:
           version: v0.16.0
-      - uses: actions/checkout@v4
-        with:
-          repository: microsoft/vcpkg
-          ref: af752f21c9d79ba3df9cb0250ce2233933f58486
-          path: build/vcpkg-tool
-          fetch-depth: 1
-      - name: Bootstrap gettext dependency builder
-        shell: pwsh
-        run: ./build/vcpkg-tool/bootstrap-vcpkg.bat -disableMetrics
-      - uses: actions/cache@v4
-        with:
-          path: build/vcpkg-cache
-          key: native-gettext-${{ runner.os }}-${{ hashFiles('cmake/vcpkg/**') }}
-      - name: Build GNU gettext runtime
-        shell: pwsh
-        env:
-          VCPKG_ROOT: ${{ github.workspace }}/build/vcpkg-tool
-          VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/build/vcpkg-cache,readwrite
-        run: >-
-          ./build/vcpkg-tool/vcpkg.exe install --triplet=x64-windows-native
-          --overlay-triplets=cmake/vcpkg/triplets --x-manifest-root=cmake/vcpkg
-          --x-install-root=out/vcpkg --x-buildtrees-root=build/vcpkg
-          --x-packages-root=out/vcpkg-packages
       - uses: actions/download-artifact@v4
         with:
           name: native-translations
@@ -79,19 +56,22 @@ jobs:
       - uses: dlang-community/setup-dlang@v1.4.0
         with:
           compiler: ldc-1.41.0
+      - name: Cache pinned Boost headers
+        id: boost-cache
+        uses: actions/cache@v4
+        with:
+          path: build/boost
+          key: native-boost-${{ runner.os }}-${{ hashFiles('cmake/dependencies.lock.json', 'cmake/FetchBoostHeaders.cmake') }}
       - name: Fetch pinned Boost headers
+        if: steps.boost-cache.outputs.cache-hit != 'true'
         run: cmake -DBOOST_DESTINATION="${{ github.workspace }}/build/boost" -P cmake/FetchBoostHeaders.cmake
       - name: Fetch verified tracker test portrait
         run: cmake -DDESTINATION="${{ github.workspace }}/out/tracker-test/portrait.jpg" -P native/tools/fetch-tracker-test-image.cmake
       - name: Configure Windows application
-        run: >-
-          cmake --preset native-release
-          -DBOOST_ROOT="${{ github.workspace }}/build/boost/boost_1_90_0"
-          -DBoost_NO_SYSTEM_PATHS=ON
-          -DBoost_NO_BOOST_CMAKE=ON
-          -DCMAKE_C_COMPILER_LAUNCHER=sccache
-          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg"
+        shell: pwsh
+        run: |
+          $boostRoot = Get-Content build/boost/prefix.txt -Raw
+          cmake --preset native-release -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg"
       - name: Build
         shell: pwsh
         run: |

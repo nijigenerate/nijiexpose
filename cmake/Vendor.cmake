@@ -1,5 +1,6 @@
 # Verify the dependencies selected for vendoring.
 file(READ "${PROJECT_SOURCE_DIR}/vendor/manifest.json" vendor_manifest)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/vendor/manifest.json")
 function(nijiexpose_vendor_verify relative_path)
     string(JSON expected GET "${vendor_manifest}" "${relative_path}")
     file(SHA256 "${PROJECT_SOURCE_DIR}/vendor/${relative_path}" actual)
@@ -13,9 +14,3 @@ foreach(index RANGE ${vendor_last})
     string(JSON entry MEMBER "${vendor_manifest}" ${index})
     nijiexpose_vendor_verify("${entry}")
 endforeach()
-# Use FreeType's bundled zlib; no removed tracker ZIP dependency is needed.
-set(FT_DISABLE_ZLIB ON CACHE BOOL "" FORCE)
-set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
-set(FT_DISABLE_PNG ON CACHE BOOL "" FORCE)
-set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
-set(FT_DISABLE_BROTLI ON CACHE BOOL "" FORCE)

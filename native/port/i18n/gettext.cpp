@@ -79,7 +79,9 @@ struct Catalogs {
         // libintl on Windows also consults these variables directly. Its C
         // locale suppression precedes LANGUAGE, even after setlocale(). An
         // explicit in-app selection therefore overrides launcher C/POSIX.
-        if (const auto* all = std::getenv("LC_ALL"); all && (std::strcmp(all, "C") == 0 || std::strcmp(all, "POSIX") == 0))
+        if (const auto* all = std::getenv("LC_ALL"); all &&
+            (std::strcmp(all, "C") == 0 || std::strcmp(all, "POSIX") == 0 ||
+             std::string_view(all).starts_with("C.") || std::string_view(all).starts_with("POSIX.")))
             setEnvironment("LC_ALL", L"LC_ALL", "");
         setEnvironment("LC_MESSAGES", L"LC_MESSAGES", catalog.language.empty() ? "C" : catalog.language);
         // Explicit app selection must work even when the launcher sets LANG=C.

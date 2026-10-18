@@ -1,7 +1,8 @@
 # Official stable release; source and backends are updated together.
+nijiexpose_dependency(imgui)
 FetchContent_Declare(imgui
-    URL "${PROJECT_SOURCE_DIR}/vendor/imgui.tar.gz"
-    URL_HASH SHA256=4737967e4a571038fc8310b355a79e2b3b86e30008f06db3dce812837789c9e9
+    URL "${dependency_url}"
+    URL_HASH "SHA256=${dependency_hash}"
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_MakeAvailable(imgui)
 add_library(nijiexpose_imgui STATIC

@@ -4,9 +4,14 @@ if(NOT DEFINED BOOST_DESTINATION)
     message(FATAL_ERROR "Pass -DBOOST_DESTINATION=<directory>")
 endif()
 file(MAKE_DIRECTORY "${BOOST_DESTINATION}")
+include("${CMAKE_CURRENT_LIST_DIR}/DependencyLock.cmake")
+nijiexpose_dependency(boost)
 file(DOWNLOAD
-    https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.gz
+    "${dependency_url}"
     "${BOOST_DESTINATION}/boost.tar.gz"
-    EXPECTED_HASH SHA256=5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9
+    EXPECTED_HASH "SHA256=${dependency_hash}"
     TLS_VERIFY ON)
 file(ARCHIVE_EXTRACT INPUT "${BOOST_DESTINATION}/boost.tar.gz" DESTINATION "${BOOST_DESTINATION}")
+file(READ "${CMAKE_CURRENT_LIST_DIR}/dependencies.lock.json" lock)
+string(JSON boost_directory GET "${lock}" boost directory)
+file(WRITE "${BOOST_DESTINATION}/prefix.txt" "${BOOST_DESTINATION}/${boost_directory}")

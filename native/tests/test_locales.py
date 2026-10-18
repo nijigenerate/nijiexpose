@@ -48,6 +48,8 @@ with tempfile.TemporaryDirectory(prefix="nijiexpose-gettext-") as directory:
     subprocess.run([args.cpp, str(catalog)], env=dict(os.environ, IN_CONFIG_PATH=str(root)), check=True)
     saved = json.loads((root / "settings.json").read_text(encoding="utf-8"))
     assert saved == {"lang": "", "unknown": [1, True]}, saved
-    for extra_env in [dict(LC_ALL="C", LC_CTYPE="C", LANG="C"), dict(LANG="de_DE.UTF-8", LANGUAGE="de")]:
+    for extra_env in [dict(LC_ALL="C", LC_CTYPE="C", LANG="C"),
+                      dict(LC_ALL="C.UTF-8", LC_CTYPE="C.UTF-8", LANG="C.UTF-8"),
+                      dict(LANG="de_DE.UTF-8", LANGUAGE="de")]:
         (root / "settings.json").write_text(json.dumps({"lang": "ja", "unknown": [1, True]}), encoding="utf-8")
         subprocess.run([args.cpp, str(catalog)], env=dict(os.environ, IN_CONFIG_PATH=str(root), **extra_env), check=True)
