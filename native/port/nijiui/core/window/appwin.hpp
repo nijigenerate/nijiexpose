@@ -1,0 +1,44 @@
+#pragma once
+#include "window.hpp"
+#include <SDL3/SDL.h>
+#include <imgui.h>
+#include <string>
+namespace nicxlive::core { class ShallowTexture; }
+namespace nijiui {
+// Windows win32-full configuration of nijiui.core.window.appwin.
+// Windows nijiui enables SafeThrottling; UIViewports remains disabled.
+class InApplicationWindow : public InWindow {
+    SDL_Window* window=nullptr;
+    ImGuiContext* ctx=nullptr;
+    ImGuiIO* io=nullptr;
+    SDL_GLContext glctx=nullptr;
+    bool done=false,show=true;
+    int width_=0,height_=0;
+    std::vector<std::string> draggedFiles;
+    std::string iniPath;
+    int throttlingRate=1;
+    unsigned renderThrottlingCount=0;
+    unsigned fbo=0,fboTexture=0;
+protected:
+    std::vector<std::string>& getDraggedFiles() { return draggedFiles; }
+    void cleanup();
+    void initStyling();
+    void initDarkMode();
+public:
+    InApplicationWindow(std::string title,unsigned width,unsigned height,int throttlingRate=1);
+    ~InApplicationWindow() override;
+    void onEarlyUpdate() override {}
+    void onUpdate() override {}
+    void setThrottlingRate(int rate=1);
+    bool shouldProcess() override;
+    void update();
+    std::string getWindowHandle() { return {}; }
+    void focus() override;
+    void close() override;
+    bool isAlive() override { return !done; }
+    int width() override { return width_; }
+    int height() override { return height_; }
+    void setIcon(const nicxlive::core::ShallowTexture& texture);
+    void onResized(int width,int height) override;
+};
+}

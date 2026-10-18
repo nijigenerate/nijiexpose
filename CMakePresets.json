@@ -1,0 +1,22 @@
+{
+  "version": 5,
+  "cmakeMinimumRequired": { "major": 3, "minor": 24, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "native-release",
+      "displayName": "Native C++ / SDL3 (Release)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/native-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_TESTING": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "native-release", "configurePreset": "native-release" }
+  ],
+  "testPresets": [
+    { "name": "native-release", "configurePreset": "native-release", "output": { "outputOnFailure": true } }
+  ]
+}

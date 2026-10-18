@@ -1,0 +1,66 @@
+{
+  "source": "../nijimi/source/render/opengl/opengl_backend.d",
+  "sha256": "8dc6b2994b0043adf47dbbd4ee5ff764417d93eb81457cae919d0d295ed5fb3f",
+  "functions": [
+    {
+      "cpp": "void oglExecutePartPacket(",
+      "nijimi": "    void drawPartPacket(ref PartDrawPacket packet)"
+    },
+    {
+      "cpp": "void renderStage(",
+      "nijimi": "    void renderStage(ref PartDrawPacket packet, bool advanced)"
+    },
+    {
+      "cpp": "void oglInitPartBackendResources(",
+      "nijimi": "    void initializePartBackendResources()"
+    },
+    {
+      "cpp": "void oglBeginScene(",
+      "nijimi": "    void beginScene("
+    },
+    {
+      "cpp": "void oglEndScene(",
+      "nijimi": "    void endScene("
+    },
+    {
+      "cpp": "void oglResizeViewport(",
+      "nijimi": "    void resizeViewportTargets("
+    },
+    {
+      "cpp": "void oglPostProcessScene(",
+      "nijimi": "    void postProcessScene("
+    },
+    {
+      "cpp": "oglInitRenderer",
+      "nijimi": "initializeRenderer + application lighting/scene-quad adapter"
+    },
+    {
+      "cpp": "void oglBeginMask(",
+      "nijimi": "    void beginMask("
+    },
+    {
+      "cpp": "void oglEndMask(",
+      "nijimi": "    void endMask("
+    },
+    {
+      "cpp": "void oglBeginMaskContent(",
+      "nijimi": "    void beginMaskContent("
+    },
+    {
+      "cpp": "void oglExecuteMaskPacket(",
+      "nijimi": "    void executeMaskPacket("
+    },
+    {
+      "cpp": "void oglExecuteMaskApplyPacket(",
+      "nijimi": "    void applyMask(ref MaskApplyPacket packet)"
+    },
+    {
+      "cpp": "void oglSetLegacyBlendMode(",
+      "nijimi": "    void setLegacyBlendMode("
+    },
+    {
+      "cpp": "void oglSetAdvancedBlendEquation(",
+      "nijimi": "    void setAdvancedBlendEquation("
+    }
+  ]
+}

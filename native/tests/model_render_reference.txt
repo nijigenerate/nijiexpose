@@ -1,0 +1,6 @@
+init-error:1282
+quad:256:0
+mask:0:128:1282
+mask:1:128:1282
+difference:256:0:0:4096:0
+end-error:1282

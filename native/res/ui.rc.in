@@ -1,0 +1,34 @@
+#include <windows.h>
+1 ICON "@PROJECT_SOURCE_DIR@/build-aux/windows/icon.ico"
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+PRODUCTVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName", "nijigenerate Project\0"
+            VALUE "FileDescription", "nijiexpose\0"
+            VALUE "FileVersion", "@PROJECT_VERSION@\0"
+            VALUE "InternalName", "nijiexpose\0"
+            VALUE "OriginalFilename", "nijiexpose-native.exe\0"
+            VALUE "ProductName", "nijiexpose\0"
+            VALUE "ProductVersion", "@PROJECT_VERSION@\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1252
+    END
+END
+
+4101 RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/res/fonts/NotoSansCJK-Regular.ttc"
+4102 RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/res/fonts/MaterialIcons.ttf"
+4201 RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/res/ui/ui-info.png"
+4202 RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/res/ui/ui-warning.png"
+4203 RCDATA "@CMAKE_CURRENT_SOURCE_DIR@/res/ui/ui-error.png"
+4301 RCDATA "@PROJECT_SOURCE_DIR@/res/tex/logo.png"
+4302 RCDATA "@PROJECT_SOURCE_DIR@/res/icon_x256.png"

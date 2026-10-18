@@ -22,4 +22,7 @@ source/nijiexpose/ver.d
 build-aux/windows/nijiexpose.res
 build-aux/windows/wix/bin/
 build-aux/windows/wix/obj/
+/build/
+/CMakeUserPresets.json
+/imgui.ini
 version.txt

@@ -1,0 +1,19 @@
+{
+  "source": "../nijimi/source/render/opengl",
+  "files": {
+    "opengl_backend.d": "8dc6b2994b0043adf47dbbd4ee5ff764417d93eb81457cae919d0d295ed5fb3f",
+    "shaders\\advanced_blend.frag": "a318e5b699b87572a25a43325881291ada56b877b0dea5366f7a8265584847f2",
+    "shaders\\basic-mask.frag": "61b809bdd4a7d5dc450a2d681ff3279f771b1b9547edb0147a75c14cec0bb5d1",
+    "shaders\\basic-stage1.frag": "609f1e0e08ef8ec5b54eb13db3709f83ac8814b166343605f822d8a02ab88b70",
+    "shaders\\basic-stage2.frag": "a66f176ffbdab0ed7cd0aa9efb846b08199c8b2cbc5416c6cdc9cf23b4966839",
+    "shaders\\basic.frag": "e8c46a6614dc015fedab782ca544c01a252ecf851c6ce6bbda70d99535d04033",
+    "shaders\\basic.vert": "8f63d3ded2922aaba51671711ec83f8bf05b4c7d2976f4fe6f6653cc052a1097",
+    "shaders\\mask.frag": "076db540ba24c011e0157b7e803c23d0d9d171e833c2aa97d3bde29cab5a8141",
+    "shaders\\mask.vert": "629d2deecfa5a76d30ec8aa4d2a82f3a316577f4a472fd59a45dd2f3d8b0ee86"
+  },
+  "implemented": [
+    "Shader assets: exact source bytes (newline normalized)",
+    "RenderingBackend.setupShaderStage: all stages and attachment-presence selection"
+  ],
+  "remaining": "Other backend functions still use the nijilive port and require nijimi correspondence review."
+}

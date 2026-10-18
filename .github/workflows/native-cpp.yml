@@ -1,0 +1,107 @@
+name: Windows native application
+
+on:
+  pull_request:
+    branches: [native-cpp]
+  push:
+    branches: [native-cpp]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  translations:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile gettext catalogs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext
+          mkdir -p out/i18n
+          for source in tl/*.po; do
+            msgfmt --check --check-format "$source" -o "out/i18n/$(basename "$source" .po).mo"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-translations
+          path: out/i18n/*.mo
+          if-no-files-found: error
+  windows-native:
+    needs: translations
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - name: Verify D reference sources
+        shell: pwsh
+        run: ./native/tools/verify-reference.ps1
+      - name: Enable MSVC command line
+        uses: ilammy/msvc-dev-cmd@v1
+      - uses: actions/checkout@v4
+        with:
+          repository: microsoft/vcpkg
+          ref: af752f21c9d79ba3df9cb0250ce2233933f58486
+          path: build/vcpkg-tool
+          fetch-depth: 1
+      - name: Bootstrap gettext dependency builder
+        shell: pwsh
+        run: ./build/vcpkg-tool/bootstrap-vcpkg.bat -disableMetrics
+      - uses: actions/cache@v4
+        with:
+          path: build/vcpkg-cache
+          key: native-gettext-${{ runner.os }}-${{ hashFiles('cmake/vcpkg/**') }}
+      - name: Build GNU gettext runtime
+        shell: pwsh
+        env:
+          VCPKG_ROOT: ${{ github.workspace }}/build/vcpkg-tool
+          VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/build/vcpkg-cache,readwrite
+        run: >-
+          ./build/vcpkg-tool/vcpkg.exe install --triplet=x64-windows-native
+          --overlay-triplets=cmake/vcpkg/triplets --x-manifest-root=cmake/vcpkg
+          --x-install-root=out/vcpkg --x-buildtrees-root=build/vcpkg
+          --x-packages-root=out/vcpkg-packages
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-translations
+          path: out/i18n
+      - uses: dlang-community/setup-dlang@v1.4.0
+        with:
+          compiler: ldc-1.41.0
+      - name: Fetch pinned Boost headers
+        run: cmake -DBOOST_DESTINATION="${{ github.workspace }}/build/boost" -P cmake/FetchBoostHeaders.cmake
+      - name: Configure Windows application
+        run: >-
+          cmake --preset native-release
+          -DBOOST_ROOT="${{ github.workspace }}/build/boost/boost_1_90_0"
+          -DBoost_NO_SYSTEM_PATHS=ON
+          -DBoost_NO_BOOST_CMAKE=ON
+      - name: Build
+        run: cmake --build --preset native-release --parallel 3
+      - name: Test D comparisons, Boost.JSON settings, gettext and ImGui
+        run: ctest --preset native-release --output-junit "${{ github.workspace }}/build/native-release/test-results.xml"
+      - name: Upload test results and available GPU captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nijiexpose-native-windows-test-results
+          path: |
+            build/native-release/test-results.xml
+            build/native-release/visual-results/*.png
+            build/native-release/application-results/*.png
+            build/native-release/application-results/results.json
+            build/native-release/application-results/*.png
+            build/native-release/application-results/results.json
+          if-no-files-found: warn
+      - name: Stage development application
+        run: cmake --install build/native-release --prefix out/native
+      - name: Test staged binary
+        run: ./out/native/bin/nijiexpose-native.exe --version
+      - name: Upload development application (parity audit incomplete)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nijiexpose-native-windows-development
+          path: out/native/
+          if-no-files-found: error
