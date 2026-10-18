@@ -14,7 +14,19 @@ foreach ($nativeReferenceFile in $nativeReferenceManifest.files) {
     }
     $nativeReferenceHash = (Get-FileHash -LiteralPath $nativeReferencePath -Algorithm SHA256).Hash.ToLowerInvariant()
     if ($nativeReferenceHash -ne $nativeReferenceFile.sha256) {
-        throw "D reference changed; review its port mapping before updating the manifest: $($nativeReferenceFile.path)"
+        # Git's Windows checkout can convert LF to CRLF. Preserve the original
+        # manifest and accept only that byte-level transformation, not edits.
+        $referenceBytes = [System.IO.File]::ReadAllBytes($nativeReferencePath)
+        $referenceText = [System.Text.Encoding]::Latin1.GetString($referenceBytes).Replace("`r`n", "`n")
+        $lineEndingMatch = $false
+        foreach ($candidate in @($referenceText, $referenceText.Replace("`n", "`r`n"))) {
+            $candidateHash = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData(
+                [System.Text.Encoding]::Latin1.GetBytes($candidate))).ToLowerInvariant()
+            if ($candidateHash -eq $nativeReferenceFile.sha256) { $lineEndingMatch = $true }
+        }
+        if (-not $lineEndingMatch) {
+            throw "D reference changed; review its port mapping before updating the manifest: $($nativeReferenceFile.path)"
+        }
     }
 }
 # Use native PowerShell enumeration so verification does not require ripgrep on CI.

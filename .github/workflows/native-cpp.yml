@@ -45,6 +45,7 @@ jobs:
       - name: Enable MSVC command line
         uses: ilammy/msvc-dev-cmd@v1
       - name: Enable C and C++ compilation cache
+        id: sccache
         uses: mozilla-actions/sccache-action@v0.0.11
         with:
           version: v0.16.0
@@ -102,7 +103,7 @@ jobs:
           "Build seconds: $([math]::Round($timer.Elapsed.TotalSeconds, 2))" | Tee-Object -FilePath build/native-release/build-time.txt
           exit $buildExit
       - name: Report compilation cache statistics
-        if: always()
+        if: always() && steps.sccache.outcome == 'success'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force build/native-release | Out-Null
