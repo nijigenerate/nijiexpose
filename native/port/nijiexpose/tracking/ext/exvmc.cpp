@@ -7,6 +7,7 @@
 namespace nijiexpose::tracking {
 namespace {
 thread_local std::set<int> keyStatus;
+thread_local std::set<int> embeddedKeyStatus;
 int uppercase(int code) {
     uint32_t c=static_cast<uint32_t>(code);
     if(c<0xAA) { if(c<'a') return code; if(c<='z') return code-32; return code; }
@@ -76,5 +77,7 @@ void ExVMCAdaptor::poll() {
         }
     } else { ++dataLossCounter; if(dataLossCounter>RECV_TIMEOUT) gotDataFromFetch=false; }
 }
-bool neIsEventOn(int keyCode) { return keyStatus.contains(uppercase(keyCode)); }
+bool neIsEventOn(int keyCode) { return keyStatus.contains(uppercase(keyCode)) || embeddedKeyStatus.contains(uppercase(keyCode)); }
+void neSetEmbeddedKey(int keyCode,bool pressed){if(pressed)embeddedKeyStatus.insert(uppercase(keyCode));else embeddedKeyStatus.erase(uppercase(keyCode));}
+void neClearEmbeddedKeys(){embeddedKeyStatus.clear();}
 }

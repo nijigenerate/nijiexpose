@@ -72,3 +72,21 @@ SpriteBatch vertex bits and 950 animation interpolation/playback records. GPU
 hash comparisons are local-driver checks; hosted CI runs the non-GPU suite.
 Embedded fonts and dialog artwork are copied from the original nijiui resources.
 The bundled x64 Spout DLL is the unchanged bindbc-spout2 0.1.1 distribution.
+
+## Embedded nijitrack
+
+The native tracker runs in this process. `native/tracker` contains the adapted
+nijitrack inference/camera/preview code, copied face/hand task bundles and a
+checksummed Windows static SDK archive. The SDK uses /MT, so a same-process DLL
+with a C ABI isolates its CRT from the application's /MD runtime.
+
+Settings are passed as a structure. Inference publishes complete face/pose/gaze
+packets to a bounded latest-frame queue. The main thread drains it into the
+Embedded nijitrack input adaptor. Key events are delivered directly as callbacks.
+Neither a tracker subprocess nor OSC transport is used. SDL event dispatch and
+preview rendering remain on the host thread; workers are cancelled and joined
+before the tracker is destroyed. Python and executable-path settings are ignored
+when loading older tracker configurations.
+
+To enable the real-inference integration test, set NIJIEXPOSE_TRACKER_TEST_IMAGE
+to a local MediaPipe portrait.jpg fixture. No test image is downloaded by builds.

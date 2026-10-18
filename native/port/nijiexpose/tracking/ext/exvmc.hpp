@@ -18,4 +18,6 @@ public:
     std::vector<std::string> getOptionNames() override { return {"port","address"}; }
 };
 bool neIsEventOn(int keyCode);
+void neSetEmbeddedKey(int keyCode,bool pressed);
+void neClearEmbeddedKeys();
 }

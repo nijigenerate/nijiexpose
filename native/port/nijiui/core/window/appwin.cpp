@@ -110,6 +110,7 @@ void InApplicationWindow::update() {
     draggedFiles.clear();
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
+        if(onPlatformEvent(event))continue;
         switch(event.type) {
         case SDL_EVENT_QUIT: close(); break;
         case SDL_EVENT_DROP_FILE:
@@ -126,6 +127,8 @@ void InApplicationWindow::update() {
             break;
         }
     }
+    onPlatformUpdate();
+    SDL_GL_MakeCurrent(window,glctx);
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
@@ -148,6 +151,8 @@ void InApplicationWindow::update() {
         for(auto& win:inWindowListGet()) { win->onEarlyUpdate(); win->onUpdate(); }
     }
     ImGui::Render();
+    // Settings can create/destroy a tracker preview renderer during this frame.
+    SDL_GL_MakeCurrent(window,glctx);
     nijiexpose::ogl::glViewport(0,0,static_cast<int>(io->DisplaySize.x),static_cast<int>(io->DisplaySize.y));
     nijiexpose::ogl::glClearColor(0,0,0,0);
     nijiexpose::ogl::glClear(GL_COLOR_BUFFER_BIT);

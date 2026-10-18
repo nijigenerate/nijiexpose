@@ -4,7 +4,9 @@
 #include "dcompat/string.hpp"
 #include <imgui.h>
 #include <cstdio>
-int wmain(int argc,wchar_t** argv){
+#include <windows.h>
+#include <shellapi.h>
+static int runApplication(int argc,wchar_t** argv){
     std::vector<std::string> args;
     std::string controlDirectory;
     for(int i=1;i<argc;++i){
@@ -29,4 +31,13 @@ int wmain(int argc,wchar_t** argv){
         nijiexpose::shutdownApplication();
         return 0;
     }catch(const std::exception& ex){nijiexpose::insLogErr("%s",ex.what());return 1;}
+}
+
+int WINAPI WinMain(HINSTANCE,HINSTANCE,LPSTR,int){
+    // Preserve Unicode paths and Windows quoting despite WinMain's ANSI parameter.
+    int argc=0;
+    auto* argv=CommandLineToArgvW(GetCommandLineW(),&argc);
+    if(!argv)return 1;
+    struct Arguments { wchar_t** value; ~Arguments(){LocalFree(value);} } arguments{argv};
+    return runApplication(argc,argv);
 }

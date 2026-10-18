@@ -25,13 +25,11 @@ void SettingWindow::copyTrackerState(std::shared_ptr<Tracker>& dst, const std::s
         dst->enabled = src->enabled;
         dst->flipped = src->flipped;
         dst->showWindow = src->showWindow;
-        dst->hostname = src->hostname;
-        dst->port = src->port;
+        dst->keyboard = src->keyboard;
         dst->device = src->device;
-        dst->trackerPath = src->trackerPath;
-        dst->nativeExecutable = src->nativeExecutable;
-        dst->executablePath = src->executablePath;
-        dst->pythonExecutablePath = src->pythonExecutablePath;
+        dst->width = src->width;
+        dst->height = src->height;
+        dst->fps = src->fps;
     }
 
 void SettingWindow::ensureDraftLoaded() {
@@ -159,67 +157,12 @@ void SettingWindow::renderTrackingSettingsContent(bool embedded) {
                 openedEmbeddedCategory = uiImBeginCategory("##tracker");
             }
             if (!embedded || openedEmbeddedCategory) {
-                auto previousLaunchKey = tracker->launchConfigurationKey();
-                uiImLabel(_("Tracker launch mode"));
-                uiImSameLine();
-                if (uiImBeginComboBox("##trackerLaunchMode", tracker->nativeExecutable ? _("Executable").c_str() : _("Python").c_str())) {
-                    if (uiImSelectable(_("Python").c_str(), !tracker->nativeExecutable)) tracker->nativeExecutable = false;
-                    if (uiImSelectable(_("Executable").c_str(), tracker->nativeExecutable)) tracker->nativeExecutable = true;
-                    uiImEndComboBox();
-                }
-                if (tracker->nativeExecutable) {
-                    uiImLabel(_("Tracker executable path"));
-                    uiImSameLine();
-                    uiImInputText("##nativeTrackerPath", tracker->executablePath);
-                } else {
-                    uiImLabel(_("Python executable path (empty: auto-detect)"));
-                    uiImSameLine();
-                    auto previousPythonPath = tracker->pythonExecutablePath;
-                    auto previousTrackerPath = tracker->trackerPath;
-                    uiImInputText("##pythonExecutablePath", tracker->pythonExecutablePath);
-                    if (previousPythonPath != tracker->pythonExecutablePath) pythonPathTested = false;
-                    uiImLabel(_("Python path"));
-                    uiImSameLine();
-                    if (!pythonPathTested) {
-                        pythonPath = tracker->pythonPath();
-                        pythonPathTested = true;
-                    }
-                    if (!pythonPath) {
-                        uiImLabelColored(_("Python is not detected. Please install python (<=3.12) first."), vec4(0.9, 0.5, 0.5, 1));
-                    } else {
-                        uiImLabel(*pythonPath);
-                    }
-                    uiImLabel(_("Tracker script directory"));
-                    uiImSameLine();
-                    uiImInputText("##trackerPath", tracker->trackerPath);
-                    if (previousTrackerPath != tracker->trackerPath) pythonPathTested = false;
-                }
-                if (previousLaunchKey != tracker->launchConfigurationKey()) tracker->invalidateDeviceQuery();
+                uiImLabel(_("Embedded nijitrack"));
+                if(!neTracker()->launchError.empty())
+                    uiImLabelColored(neTracker()->launchError,vec4(0.95,0.5,0.5,1));
                 auto problem = tracker->validationError();
-                bool trackerAvailable = problem.empty();
-                if (!trackerAvailable) {
+                if (!problem.empty()) {
                     uiImLabelColored(problem, vec4(0.95, 0.5, 0.5, 1));
-                    if (!tracker->nativeExecutable && !std::filesystem::exists(std::filesystem::u8path(tracker->scriptPath()))) {
-                        uiImSameLine();
-                        if (uiImButton(__("Install"))) {
-                            try { tracker->install(); }
-                            catch (const std::exception& ex) { uiImDialog(__("Error"), ex.what()); }
-                        }
-                    }
-                } else if (!tracker->nativeExecutable && tracker->installProcess != nullptr) {
-                    tracker->installProcess->update();
-                    auto outputText = joinLines(tracker->installProcess->stdout());
-                    vec2 avail2 = uiImAvailableSpace();
-                    vec2 logAreaSize = vec2(avail2.x, avail2.y - 50);
-                    if (uiImBeginChild("##log_area", logAreaSize, true)) {
-                        ImGui::TextUnformatted(outputText.c_str());
-                    }
-                    uiImEndChild();
-                    if (!tracker->installProcess->running()) {
-                        if (uiImButton(__("OK"))) {
-                            tracker->installProcess.reset();
-                        }
-                    }
                 } else {
                     uiImLabel(_("Camera device"));
                     uiImSameLine();
@@ -243,14 +186,12 @@ void SettingWindow::renderTrackingSettingsContent(bool embedded) {
                         }
                         ImGui::EndCombo();
                     }
-                    uiImLabel(_("Host name"));
-                    uiImSameLine();
-                    uiImInputText("##host", tracker->hostname);
-                    uiImLabel(_("Port number"));
-                    uiImSameLine();
-                    ImGui::InputInt("##PortNumber", reinterpret_cast<int*>(&tracker->port));
+                    ImGui::InputInt("Camera width", &tracker->width);
+                    ImGui::InputInt("Camera height", &tracker->height);
+                    ImGui::InputDouble("Camera frame rate", &tracker->fps);
                     uiImCheckbox(__("Flip input"), tracker->flipped);
                     uiImCheckbox(__("Show camera tracking window"), tracker->showWindow);
+                    uiImCheckbox(__("Keyboard tracking"), tracker->keyboard);
                 }
                 if (embedded) {
                     ImGui::Dummy(ImVec2(0, 4));

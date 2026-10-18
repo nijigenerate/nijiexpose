@@ -29,6 +29,8 @@ public:
     ~InApplicationWindow() override;
     void onEarlyUpdate() override {}
     void onUpdate() override {}
+    virtual void onPlatformUpdate() {}
+    virtual bool onPlatformEvent(const SDL_Event&) {return false;}
     void setThrottlingRate(int rate=1);
     bool shouldProcess() override;
     void update();

@@ -910,6 +910,8 @@ protected:
         updateOverlayBlurTexture();
     }
 
+    void onPlatformUpdate() override { tracking::neTracker()->update(); }
+    bool onPlatformEvent(const SDL_Event& event) override { return tracking::neTracker()->handleEvent(event); }
     void onUpdate() {
         syncPanelVisibility();
         updateNavFadeState();

@@ -27,9 +27,9 @@ std::shared_ptr<nijiui::InApplicationWindow> initializeApplication(const std::ve
     nijiui::inInitUI();
     neLocaleInitFromSettings();
     tracking::insInitExpressions();
-    tracking::neInitTracker();
     auto window=windows::neCreateWindow(args);
     scene::insScene()->init();
+    tracking::neInitTracker();
     insInitFrameSending();
     ogl::oglAddBasicLightingPostProcess();
     bool fallback=nijiui::inSettingsGet<bool>("TripleBufferFallback",ogl::nlIsTripleBufferFallbackEnabled());
@@ -37,11 +37,11 @@ std::shared_ptr<nijiui::InApplicationWindow> initializeApplication(const std::ve
     return window;
 }
 void shutdownApplication(){
+    tracking::neShutdownTracker();
     tracking::insCleanupExpressions();
     plugins::insLuaUnload();
     insCleanupFrameSending();
     scene::insScene()->cleanup();
     nijiui::inSettingsSave();
-    tracking::neShutdownTracker();
 }
 }

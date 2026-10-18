@@ -72,12 +72,15 @@ jobs:
           compiler: ldc-1.41.0
       - name: Fetch pinned Boost headers
         run: cmake -DBOOST_DESTINATION="${{ github.workspace }}/build/boost" -P cmake/FetchBoostHeaders.cmake
+      - name: Fetch verified tracker test portrait
+        run: cmake -DDESTINATION="${{ github.workspace }}/out/tracker-test/portrait.jpg" -P native/tools/fetch-tracker-test-image.cmake
       - name: Configure Windows application
         run: >-
           cmake --preset native-release
           -DBOOST_ROOT="${{ github.workspace }}/build/boost/boost_1_90_0"
           -DBoost_NO_SYSTEM_PATHS=ON
           -DBoost_NO_BOOST_CMAKE=ON
+          -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg"
       - name: Build
         run: cmake --build --preset native-release --parallel 3
       - name: Test D comparisons, Boost.JSON settings, gettext and ImGui
@@ -92,6 +95,7 @@ jobs:
             build/native-release/visual-results/*.png
             build/native-release/application-results/*.png
             build/native-release/application-results/results.json
+            build/native-release/tracker-results/*
             build/native-release/application-results/*.png
             build/native-release/application-results/results.json
           if-no-files-found: warn

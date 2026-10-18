@@ -49,3 +49,8 @@ development harness. See [native build instructions](native/README.md) and the
 with the D code is required; the harness is not an equivalent application port.
 
 We have a quick start guide [BUILD.md](https://github.com/nijigenerate/nijigenerate/blob/main/BUILD.md) in the nijigenerate project. This file contains information on how to build nijiexpose.
+
+The C++ application now embeds nijitrack native in worker threads. Camera settings
+are passed directly and tracking frames enter the application through an in-process
+queue; no tracker subprocess or OSC connection is used. Bundled face/hand task files
+and the Windows SDK are verified during configuration.
