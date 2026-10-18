@@ -123,7 +123,9 @@ if(WIN32)
     add_library(nijiexpose_json STATIC port/nijiexpose/json.cpp)
     target_include_directories(nijiexpose_json PUBLIC port)
     target_link_libraries(nijiexpose_json PUBLIC nicxlive::nicxlive)
-    target_compile_definitions(nijiexpose_json PUBLIC BOOST_JSON_NO_LIB)
+    # JSON is compiled from src.hpp. Its PMR headers do not require linking
+    # Boost.Container; upstream headers otherwise request it via MSVC auto-link.
+    target_compile_definitions(nijiexpose_json PUBLIC BOOST_JSON_NO_LIB BOOST_CONTAINER_NO_LIB)
     target_compile_options(nijiexpose_json PRIVATE /utf-8 /W4 /fp:strict)
     add_library(nijiexpose_animation STATIC port/nijilive/animation/animation.cpp port/nijilive/animation/player.cpp)
     target_include_directories(nijiexpose_animation PUBLIC "${nicxlive_SOURCE_DIR}")
