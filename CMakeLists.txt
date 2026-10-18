@@ -12,5 +12,6 @@ include(CTest)
 option(NIJIEXPOSE_GPU_TESTS "Register tests requiring a working desktop OpenGL context" OFF)
 set(NIJIEXPOSE_NICXLIVE_SOURCE_DIR "" CACHE PATH "Optional local nicxlive checkout (otherwise use pinned source)")
 
+include(cmake/Vendor.cmake)
 include(cmake/Dependencies.cmake)
 add_subdirectory(native)

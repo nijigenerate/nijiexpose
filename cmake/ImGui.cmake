@@ -1,6 +1,6 @@
 # Official stable release; source and backends are updated together.
 FetchContent_Declare(imgui
-    URL https://codeload.github.com/ocornut/imgui/tar.gz/4e02e84cbb85d48881388e7090c2dfa1708c02a1
+    URL "${PROJECT_SOURCE_DIR}/vendor/imgui.tar.gz"
     URL_HASH SHA256=4737967e4a571038fc8310b355a79e2b3b86e30008f06db3dce812837789c9e9
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 FetchContent_MakeAvailable(imgui)

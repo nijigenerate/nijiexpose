@@ -31,6 +31,8 @@ jobs:
   windows-native:
     needs: translations
     runs-on: windows-2022
+    env:
+      SCCACHE_GHA_ENABLED: "true"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,8 +40,14 @@ jobs:
       - name: Verify D reference sources
         shell: pwsh
         run: ./native/tools/verify-reference.ps1
+      - name: Verify vendored dependencies and license notices
+        run: python native/tools/verify-vendor.py
       - name: Enable MSVC command line
         uses: ilammy/msvc-dev-cmd@v1
+      - name: Enable C and C++ compilation cache
+        uses: mozilla-actions/sccache-action@v0.0.11
+        with:
+          version: v0.16.0
       - uses: actions/checkout@v4
         with:
           repository: microsoft/vcpkg
@@ -80,9 +88,32 @@ jobs:
           -DBOOST_ROOT="${{ github.workspace }}/build/boost/boost_1_90_0"
           -DBoost_NO_SYSTEM_PATHS=ON
           -DBoost_NO_BOOST_CMAKE=ON
+          -DCMAKE_C_COMPILER_LAUNCHER=sccache
+          -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
           -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg"
       - name: Build
-        run: cmake --build --preset native-release --parallel 3
+        shell: pwsh
+        run: |
+          sccache --zero-stats
+          $timer = [Diagnostics.Stopwatch]::StartNew()
+          cmake --build --preset native-release --parallel 3
+          $buildExit = $LASTEXITCODE
+          $timer.Stop()
+          "Build seconds: $([math]::Round($timer.Elapsed.TotalSeconds, 2))" | Tee-Object -FilePath build/native-release/build-time.txt
+          exit $buildExit
+      - name: Report compilation cache statistics
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/native-release | Out-Null
+          sccache --show-stats | Tee-Object -FilePath build/native-release/sccache-stats.txt
+          '### Native compilation cache' >> $env:GITHUB_STEP_SUMMARY
+          '```text' >> $env:GITHUB_STEP_SUMMARY
+          if (Test-Path build/native-release/build-time.txt) {
+            Get-Content build/native-release/build-time.txt >> $env:GITHUB_STEP_SUMMARY
+          }
+          Get-Content build/native-release/sccache-stats.txt >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
       - name: Test D comparisons, Boost.JSON settings, gettext and ImGui
         run: ctest --preset native-release --output-junit "${{ github.workspace }}/build/native-release/test-results.xml"
       - name: Upload test results and available GPU captures
@@ -92,6 +123,8 @@ jobs:
           name: nijiexpose-native-windows-test-results
           path: |
             build/native-release/test-results.xml
+            build/native-release/build-time.txt
+            build/native-release/sccache-stats.txt
             build/native-release/visual-results/*.png
             build/native-release/application-results/*.png
             build/native-release/application-results/results.json

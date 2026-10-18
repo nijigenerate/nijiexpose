@@ -7,17 +7,20 @@ ImGui release; FreeType support is enabled. Translation uses GNU gettext
 libintl 0.22.5, and JSON uses Boost.JSON from Boost 1.90.0. These backend
 differences are explicitly authorized; their internals are not reimplemented.
 
-The executable is currently a development harness. The full D application,
-including its scene orchestration, tracking, Lua and product UI, is not yet ported.
-Model rendering, animation playback, INP loading and Spout now have ported
-implementations and tests, but are not all connected to the product loop.
+The executable includes the ported application loop, scene, tracking, Lua,
+product UI, model rendering, animation, INP loading and Spout. Full implementation
+parity and functional verification remain incomplete; see the current
+[remaining tasks and acceptance criteria](../NATIVE_CPP_TASKS.md).
 Application branches, calculations and update order must be retained during
 migration; see [the requirements](../NATIVE_CPP_DESIGN.md).
 
 ## Build
 
-Use a Visual Studio 2022 developer shell, CMake 3.24+, Ninja, Boost headers
-including Boost.JSON (CI uses 1.90.0), and an OpenGL 3.3 driver. Existing LDC is used for original
+Use a Visual Studio 2022 developer shell, CMake 3.24+, Ninja, Python,
+Boost 1.90.0 headers, and an OpenGL 3.3 driver. Selected dependencies are bundled
+in [vendor](../vendor/README.md). Unmodified Boost, gettext/libiconv and SDL3
+remain external dependencies.
+Existing LDC is used for original
 D comparison executables. No DMD installation is required.
 
 ```powershell
@@ -28,11 +31,10 @@ ctest --preset native-release
 cmake --install build/native-release --prefix out/native
 ```
 
-Use the existing vcpkg executable; CI pins it to the manifest baseline.
-An already built gettext prefix can be supplied with
-`-DNIJIEXPOSE_GETTEXT_PREFIX=/path/to/prefix`. Gettext and libiconv DLLs and
-their license texts are staged automatically. Boost.JSON is compiled from
-its supplied `src.hpp`; no separately built Boost.JSON library is needed.
+Use the existing vcpkg executable. An existing gettext prefix can be supplied
+with `-DNIJIEXPOSE_GETTEXT_PREFIX=/path/to/prefix`. Gettext and libiconv DLLs
+and license texts are staged automatically. Boost.JSON is compiled from its
+`src.hpp`; no separately built Boost.JSON library is needed.
 Compiled catalogs in `out/i18n` are installed beside the executable. CI
 compiles the existing `tl/*.po` files using GNU msgfmt.
 
@@ -46,6 +48,12 @@ frames, framebuffer readback, resizing and shutdown without saving a layout.
 Enable its CTest registration using `-DNIJIEXPOSE_GPU_TESTS=ON`.
 
 ## Verification
+
+Windows CI uses sccache with the GitHub Actions cache backend for C/C++
+compilation, alongside the existing vcpkg binary cache. Each run records build
+seconds and cache hit/miss statistics in its job summary and test artifacts.
+Source/compiler/options changes invalidate the affected compilation entries;
+linking and tests still run normally.
 
 The application links ImGui 1.93.0. Original ImGui 1.88 WIP is compiled
 only when BUILD_TESTING is enabled, for D comparison executables, and is
@@ -76,8 +84,9 @@ The bundled x64 Spout DLL is the unchanged bindbc-spout2 0.1.1 distribution.
 ## Embedded nijitrack
 
 The native tracker runs in this process. `native/tracker` contains the adapted
-nijitrack inference/camera/preview code, copied face/hand task bundles and a
-checksummed Windows static SDK archive. The SDK uses /MT, so a same-process DLL
+nijitrack inference/camera/preview code; `vendor/nijitrack` contains the copied
+face/hand task bundles and checksummed Windows static SDK archive.
+The SDK uses /MT, so a same-process DLL
 with a C ABI isolates its CRT from the application's /MD runtime.
 
 Settings are passed as a structure. Inference publishes complete face/pose/gaze
@@ -87,6 +96,9 @@ Neither a tracker subprocess nor OSC transport is used. SDL event dispatch and
 preview rendering remain on the host thread; workers are cancelled and joined
 before the tracker is destroyed. Python and executable-path settings are ignored
 when loading older tracker configurations.
+
+Tracker download and automatic installation code is not needed and has been
+removed. The application uses the bundled native tracker and task files.
 
 To enable the real-inference integration test, set NIJIEXPOSE_TRACKER_TEST_IMAGE
 to a local MediaPipe portrait.jpg fixture. No test image is downloaded by builds.

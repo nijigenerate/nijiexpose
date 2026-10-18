@@ -99,7 +99,7 @@
 
 - `src/app/main.cpp` は開発用起動ハーネスから本体の入口へ変更。元 `source/app.d` の初期化・終了順を `application.cpp` に移植し、同じ経路を本体と操作テストで使用。
 - `windows/main.cpp`, `settings.cpp`, `spaceedit.cpp` と `panels/tracking.cpp`, `animations.cpp`, `blends.cpp` を追加。元Dの分岐とUI処理を移植。SDL3/新版ImGuiのAPI差異に適応。旧ハーネスの `--smoke-test` をアプリの合否判定から削除。
-- `tracking/tracker.cpp`, `tracker_install.cpp`: 起動設定、Python検出、カメラ列挙、再起動、導入処理を追加。導入先への実ネットワークダウンロードとカメラ実機は未検証。
+- `tracking/tracker.cpp`: native Trackerを別スレッドで埋め込み、設定と入力を直接接続。`tracker_install.cpp`とTrackerのダウンロード・自動導入処理は削除済み。同梱taskを使用する。実カメラから実INP操作までの残検証は [T02](../NATIVE_CPP_TASKS.md) を参照。
 - 通常の `ft::VMCAdaptor` も移植。画面から生成する通常VMCとアプリ設定読込時のExVMCをDと同様に区別。
 - `native_application_actions`: 本体に検証用INPを読み込ませ、実際のマウス/キー入力を使用。モデル選択、式入力による100px移動、保存ボタンとINP再読込、アニメーション再生/一時停止/再開/Shift停止/Loop保存、localhost UDPから式・パラメータ・実描画までの200px移動、仮想空間ゾーン追加とApply保存を確認。
 - Spoutは独立したD3D11デバイスで共有テクスチャを開き、追跡後のモデル画素の中心が本体と一致することまで確認。単なる送信者登録を合格基準にしない。

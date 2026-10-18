@@ -1,4 +1,4 @@
-# CI helper: download the upstream header distribution without running installers.
+# CI helper: download the unmodified upstream header distribution.
 cmake_minimum_required(VERSION 3.24)
 if(NOT DEFINED BOOST_DESTINATION)
     message(FATAL_ERROR "Pass -DBOOST_DESTINATION=<directory>")

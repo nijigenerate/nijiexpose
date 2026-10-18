@@ -4,7 +4,7 @@ function(nijiexpose_add_reference_imgui)
     set(BUILD_SHARED_LIBS OFF)
     set(SKIP_INSTALL_ALL ON)
     FetchContent_Declare(d_freetype
-        URL https://codeload.github.com/freetype/freetype/tar.gz/d6857981239ea5f6e95cb4eb4402307f3527760a
+        URL "${PROJECT_SOURCE_DIR}/vendor/freetype.tar.gz"
         URL_HASH SHA256=6d47b210532abea9a39cee4286e9990bffcba2c5a392c8962c3758c7d6ca11dc
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
     FetchContent_MakeAvailable(d_freetype)
@@ -15,7 +15,7 @@ function(nijiexpose_add_reference_imgui)
         return()
     endif()
     FetchContent_Declare(d_imgui
-        URL https://codeload.github.com/Inochi2D/imgui/tar.gz/dd5b7c6847372016f45d5b5abda687bd5cd19224
+        URL "${PROJECT_SOURCE_DIR}/vendor/imgui-reference.tar.gz"
         URL_HASH SHA256=2d048af300b5d0e43b767c74c1d473155dd45a6f623a15eaaF7ff2fbaee1a051
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
     FetchContent_MakeAvailable(d_imgui)

@@ -25,7 +25,7 @@ if(NIJIEXPOSE_NICXLIVE_SOURCE_DIR)
     set(nicxlive_SOURCE_DIR "${NIJIEXPOSE_NICXLIVE_SOURCE_DIR}")
 else()
     FetchContent_Declare(nicxlive
-        URL https://codeload.github.com/nijigenerate/nicxlive/tar.gz/6ff544470b0f851ab998d8a12220aa750dac0d6b
+        URL "${PROJECT_SOURCE_DIR}/vendor/nicxlive.tar.gz"
         URL_HASH SHA256=685fd02d84c3e79b7e494cff36b173df37f159eed9eaed6c0c7f6e88e6676563
         DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
     FetchContent_MakeAvailable(nicxlive)

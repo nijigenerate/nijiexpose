@@ -1,5 +1,7 @@
 # Windows C++ / SDL3 実装移植方針
 
+現在の残作業と完了条件は [C++版のタスク](NATIVE_CPP_TASKS.md) を参照する。以下の初期設計の進捗記述より同タスク表を優先する。現行D版Weldingの拒否された変更は移植基準から除外する。
+
 ## 最優先条件
 
 Windowsの現行D実装を、実装構造を保ってC++へ移植する。基盤はnicxlive、ウィンドウ基盤はSDL3とする。機能仕様の簡略化、別のアルゴリズムへの置換、独自の既定値や制限の追加を行わない。Linux/macOS対応とCIはWindowsの実装移植後に扱う。
@@ -47,7 +49,7 @@ Windows Releaseでハーネスの4テスト（時刻、version、無効引数、
 - 初期値、enum数値、JSONキーと型、UUID、extData、デフォルト補完、未知項目、エラー時の振る舞いを保持する。
 - モデルのload/unload順、root構築、parameter/driver/animation更新、描画順、マスク・合成・blend・postprocessを保持する。
 - Dの現行UI構成と操作フローを移植する。小さな別UIで置き換えて機能対応済みにしない。
-- trackerのPython/Executable両経路、device列挙、起動引数、停止・再起動・自動導入、OSC/VMC、全bindingとLua式・プラグインAPIを対象とする。
+- nijitrackは同梱native実装を別スレッドで動かし、設定と入力を直接接続する。Python/Executable起動・Trackerダウンロード・自動導入コードは不要。device列挙、停止・再起動、全bindingとLua式・プラグインAPIを対象とする。独立した外部入力としてのOSC/VMC対応は維持する。
 - 設定パス・読み書き、ログ、画像保存、Spout、翻訳、同梱ファイルを対象とする。
 - 現行コードに不自然な挙動を見つけても、移植のついでに修正しない。不一致として記録し、変更が必要な場合は互換移植から分離する。
 
@@ -79,7 +81,7 @@ SDL2→SDL3のAPI差分は不可避な変換として台帳へ記録する。boo
 2. 文字列・数値・設定・OS補助処理などの土台を、Dの意味を保持して移植する。
 3. D版nijiuiの起動・入力・ウィンドウ・UI補助処理を、SDL3の必須差分だけを加えて移植する。
 4. D版のOpenGL backendとnicxliveを対応づけ、モデル読み込みから描画までの実装を移植する。
-5. Scene・全tracking binding・OSC/VMC・Lua式・animation・tracker launchを移植する。
+5. Scene・全tracking binding・OSC/VMC・Lua式・animation・埋め込みnative trackerを移植する。
 6. panels、settings、plugins、画像出力、Spout、ログ、翻訳と梱包を移植する。
 7. 全体をD版と比較し、未実装・不一致を解消してから製品ビルドとCIを切り替える。
 
