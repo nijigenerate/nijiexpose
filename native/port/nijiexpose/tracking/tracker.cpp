@@ -21,8 +21,10 @@ std::string Tracker::launchConfigurationKey()const{return "embedded-nijitrack";}
 std::string Tracker::modelPath()const{
 #ifdef _WIN32
 std::wstring exe(32768,L'\0');auto n=GetModuleFileNameW(nullptr,exe.data(),static_cast<DWORD>(exe.size()));exe.resize(n);return utf8(std::filesystem::path(exe).parent_path()/"models"/"face_landmarker.task");
-#else
+#elif defined(__APPLE__)
 const auto* base=SDL_GetBasePath(); if(!base)return {}; auto result=std::filesystem::path(base)/"../Resources/models/face_landmarker.task"; return utf8(result);
+#else
+const auto* base=SDL_GetBasePath(); if(!base)return {}; return utf8(std::filesystem::path(base)/"models/face_landmarker.task");
 #endif
 }
 std::string Tracker::validationError()const{if(width<1||height<1||width>8192||height>8192||!std::isfinite(fps)||fps<=0||fps>240)return "Invalid camera resolution or frame rate.";return std::filesystem::is_regular_file(path(modelPath()))?std::string{}:"Bundled face_landmarker.task is missing.";}

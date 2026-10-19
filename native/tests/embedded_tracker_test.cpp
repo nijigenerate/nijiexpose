@@ -1,4 +1,7 @@
 #include "embedded.h"
+#ifdef NIJIEXPOSE_TEST_BUNDLED_MODEL
+#include "nijiexpose/tracking/tracker.hpp"
+#endif
 #include "nijiexpose/tracking/ext/embedded_frame.hpp"
 #include <SDL3/SDL.h>
 #include <chrono>
@@ -17,7 +20,16 @@ int main(int argc,char** argv){
         std::filesystem::create_directories(argv[3]);
         auto output=(std::filesystem::path(argv[3])/"inference.jsonl").string();
         auto overlay=(std::filesystem::path(argv[3])/"landmarks.ppm").string();
-        NtConfig config{argv[1],0,0,0};config.image=argv[2];config.output=output.c_str();config.overlay=overlay.c_str();config.repeat=8;
+        std::string model=argv[1];
+#ifdef NIJIEXPOSE_TEST_BUNDLED_MODEL
+        if(model=="--bundled") {
+            nijiexpose::tracking::Tracker tracker;
+            require(tracker.validationError().empty(),tracker.validationError().c_str());
+            model=tracker.modelPath();
+            std::cout<<"Application-resolved model: "<<model<<std::endl;
+        }
+#endif
+        NtConfig config{model.c_str(),0,0,0};config.image=argv[2];config.output=output.c_str();config.overlay=overlay.c_str();config.repeat=8;
         for(int run=0;run<2;++run){
             config.preview=run;
             char error[2048]{};Session session{nt_start(&config,error,sizeof(error))};require(session.value,error);

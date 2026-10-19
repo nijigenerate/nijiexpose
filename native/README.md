@@ -238,3 +238,9 @@ window. AddressSanitizer passed the updated lifetime/property tests. The earlier
 Windows Loop checkbox failure did not reproduce in this run; its intermittent
 cause has not been established. macOS and Linux portal runtime checks remain
 outstanding.
+
+The Linux real-inference test now resolves its bundled model through the
+application's Tracker::modelPath and validates the configuration before starting
+inference. It runs beside the application with its copied models directory,
+instead of supplying a model path from the source tree. Linux uses models next
+to the executable; only macOS uses the bundle Resources/models directory.
