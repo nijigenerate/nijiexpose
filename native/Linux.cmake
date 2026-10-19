@@ -16,11 +16,9 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/res/fonts/NotoSansCJK-Regular-LICENSE
 if(BUILD_TESTING)
     add_executable(nijiexpose_file_dialog_test tests/file_dialog_test.cpp)
     target_link_libraries(nijiexpose_file_dialog_test PRIVATE nijiexpose_file_dialog)
-    target_link_options(nijiexpose_file_dialog_test PRIVATE "LINKER:--wrap=SDL_ShowOpenFileDialog")
+    target_link_options(nijiexpose_file_dialog_test PRIVATE "LINKER:--wrap=SDL_ShowFileDialogWithProperties")
     add_test(NAME native_file_dialog COMMAND nijiexpose_file_dialog_test)
     set_tests_properties(native_file_dialog PROPERTIES ENVIRONMENT "SDL_VIDEODRIVER=dummy")
-    add_executable(nijiexpose_file_dialog_manual tests/file_dialog_manual.cpp)
-    target_link_libraries(nijiexpose_file_dialog_manual PRIVATE nijiexpose_file_dialog)
     add_executable(nijiexpose_linux_path_test tests/linux_path_test.cpp)
     target_link_libraries(nijiexpose_linux_path_test PRIVATE nijiexpose_port)
     add_test(NAME native_linux_paths COMMAND "${Python3_EXECUTABLE}"

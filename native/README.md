@@ -226,3 +226,15 @@ dependency. macOS runtime behavior was not tested on this host.
 The Windows Release build succeeded; 36 of 37 tests passed. The application
 actions test failed at the animation Loop checkbox, including on an isolated
 rerun; this remains unresolved. Linux GitHub CI has not been added or verified.
+
+The file chooser now uses SDL_ShowFileDialogWithProperties on all platforms,
+including Windows. Titles, an explicit SDL parent window (or keyboard-focus
+fallback), extension filters, and an All Files filter share the same code.
+Windows GetOpenFileNameW-specific application code has been removed.
+After this unification, Windows Release passed 37/37 tests and Linux Release
+passed 14/14. Actual Windows and Linux (X11/Zenity) dialogs both selected
+Kurone.inp and canceled successfully using the shared function with a parent
+window. AddressSanitizer passed the updated lifetime/property tests. The earlier
+Windows Loop checkbox failure did not reproduce in this run; its intermittent
+cause has not been established. macOS and Linux portal runtime checks remain
+outstanding.

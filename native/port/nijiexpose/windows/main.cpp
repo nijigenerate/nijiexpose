@@ -697,8 +697,7 @@ private:
             if (compact) uiImSameLine();
             drawUtilityButton("\ue2c8", "Models", [&] {
                 const std::array<TFD_Filter,1> filters{{{{"*.inp","*.inx"},"Puppet Files (*.inp, *.inx)"}}};
-                std::string parentWindow;
-                auto file=insShowOpenDialog(filters,_("Open..."),parentWindow);
+                auto file=insShowOpenDialog(filters,_("Open..."));
                 if(!file.empty())loadModels({file});
             }, compact);
 
