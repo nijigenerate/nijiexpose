@@ -33,6 +33,9 @@ jobs:
     runs-on: windows-2022
     env:
       SCCACHE_GHA_ENABLED: "true"
+      # A cold MediaPipe build can exceed the default server idle timeout.
+      # Keep one statistics session for the entire application build.
+      SCCACHE_IDLE_TIMEOUT: "0"
     steps:
       - uses: actions/checkout@v4
         with:

@@ -105,6 +105,11 @@ FreeType are downloaded as binaries. Each run records build
 seconds and cache hit/miss statistics in its job summary and test artifacts.
 Source/compiler/options changes invalidate the affected compilation entries;
 linking and tests still run normally.
+MediaPipe uses Bazel's disk action cache, saved separately even after a failed
+build. The job records Bazel's actual cache-hit summary and fails if an exact
+cache key was restored but no compiler results were reused. Runner image,
+MSVC/Windows SDK identity and recipe changes are represented in cache keys;
+Bazel additionally checks each action's inputs before reuse.
 
 The application links ImGui 1.93.0. Original ImGui 1.88 WIP is compiled
 only when BUILD_TESTING is enabled, for D comparison executables, and is

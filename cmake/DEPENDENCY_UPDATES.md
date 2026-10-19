@@ -9,8 +9,9 @@ GNU gettext's [download page](https://www.gnu.org/software/gettext/) links to
 Michele Locati's Windows distribution; FreeType's
 [download page](https://freetype.org/download.html) links to
 ubawurinna/freetype-windows-binaries. The latter two are upstream-recommended
-distributors, not binaries built by this repository's developer. No locally
-built dependency SDK is uploaded or used.
+distributors, not binaries built by this repository's developer. No developer-built
+SDK is used as a downloaded dependency package. The tracker SDK is built from
+its pinned source recipe on both platforms, with compiler outputs cached by CI.
 
 1. Select a release from the recorded upstream or official download page.
    Check the x64 MSVC ABI, DLL/import-library pair, headers, CRT and transitive
