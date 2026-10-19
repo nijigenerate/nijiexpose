@@ -1,5 +1,9 @@
 set(tracker_vendor "${PROJECT_SOURCE_DIR}/vendor/nijitrack")
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    include("${CMAKE_CURRENT_LIST_DIR}/Linux.cmake")
+    return()
+endif()
 if(APPLE)
     include("${CMAKE_CURRENT_SOURCE_DIR}/NijitrackSource.cmake")
     add_library(nijiexpose_embedded_tracker SHARED

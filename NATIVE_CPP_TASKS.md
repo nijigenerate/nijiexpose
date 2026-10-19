@@ -113,6 +113,7 @@ Windows版を最優先とする。既存の差分監査のIDを引き継ぎ、�
 ## P2: Windows優先作業の後
 
 - [ ] **B01: Linux/macOS対応を移植する。** 非Windowsで停止するCMake、Linux portal、macOS Syphon・bundle等を扱う。Windows完了後に各OSでビルドと機能確認を実施する。
+  - 2026-10-20: WSL2 Ubuntu 24.04 x86_64でLinux Releaseビルドとインストールを確認。埋め込みTrackerは同じ固定版nijitrackからソースビルドし、X11キーボード実装を接続。Linuxの13テスト（実推論・アプリ操作を含む）はReleaseとASanで成功。実モデルKuroneのfit表示・複合描画初期化・目の開閉をWSLgで確認。Windows回帰テストも37件成功。Waylandのグローバルキー取得、Linux portalの対話検証、macOS Syphonなどは引き続き未完。
 - [ ] **W-D: D版Weldingの拒否された変更を整理する。** D版は後という指示に従い、今は変更しない。禁止された履歴の復元は行わず、許可された根拠から対象を特定する。C++へ現在のD版の変更を取り込む作業と混同しない。
 
 ## 旧監査からの状態更新

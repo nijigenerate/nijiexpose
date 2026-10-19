@@ -37,7 +37,11 @@ inline std::span<const uint8_t> embeddedResource(int id) {
         default: throw std::runtime_error("Missing nijiui resource id");
         }
         const auto* base=SDL_GetBasePath(); if(!base)throw std::runtime_error("Unable to locate application resources");
+#ifdef __APPLE__
         const auto filename=std::filesystem::path(base)/relative;
+#else
+        const auto filename=std::filesystem::path(base)/"../share/nijiexpose/ui"/std::filesystem::path(relative).filename();
+#endif
         std::ifstream input(filename,std::ios::binary|std::ios::ate);
         if(!input)throw std::runtime_error("Missing bundled nijiui resource");
         const auto size=input.tellg(); std::vector<uint8_t> data(static_cast<std::size_t>(size));

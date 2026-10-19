@@ -34,7 +34,12 @@ std::vector<std::byte> iconFont;
 std::span<std::byte> fontResource(int id) {
     const auto* base=SDL_GetBasePath();
     if (!base) throw std::runtime_error("Unable to locate application resources");
-    const auto filename=std::filesystem::path(base)/"../Resources/fonts"/(id==4101?"NotoSansCJK-Regular.ttc":"MaterialIcons.ttf");
+#ifdef __APPLE__
+    const auto directory=std::filesystem::path(base)/"../Resources/fonts";
+#else
+    const auto directory=std::filesystem::path(base)/"../share/nijiexpose/fonts";
+#endif
+    const auto filename=directory/(id==4101?"NotoSansCJK-Regular.ttc":"MaterialIcons.ttf");
     auto& bytes=id==4101?notoFont:iconFont;
     if(bytes.empty()) {
         std::ifstream input(filename,std::ios::binary|std::ios::ate);

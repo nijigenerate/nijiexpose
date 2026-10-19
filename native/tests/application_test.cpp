@@ -6,10 +6,14 @@
 #include "nijilive/model_io.hpp"
 #include "ft/udp.hpp"
 #include <bit>
+#ifdef _WIN32
 #include <d3d11.h>
 #include <wrl/client.h>
+#endif
 #include "nijiui/core/settings.hpp"
+#ifdef _WIN32
 #include "nijiexpose/spout.hpp"
+#endif
 #include "nijilive/opengl/api.hpp"
 #include "capture_frame.hpp"
 #include <SDL3/SDL.h>
@@ -93,7 +97,7 @@ int main(int argc,char** argv){try{
         auto binding=item->bindings[0];auto expression=std::dynamic_pointer_cast<tracking::ExpressionTrackingBinding>(binding->delegated);
         check(expression!=nullptr,"Real model expression menu failed");
         auto enter=[&](const char* value){click(110,294);ImGui::GetIO().AddKeyEvent(ImGuiMod_Ctrl,true);ImGui::GetIO().AddKeyEvent(ImGuiKey_A,true);frame(1);ImGui::GetIO().AddKeyEvent(ImGuiKey_A,false);ImGui::GetIO().AddKeyEvent(ImGuiMod_Ctrl,false);frame(1);ImGui::GetIO().AddInputCharactersUTF8(value);frame(3);click(300,350);frame(40);};
-        auto pixels=[&]{std::vector<unsigned char> p(window->width()*window->height()*3);ogl::glReadBuffer(GL_FRONT);::glReadPixels(0,0,window->width(),window->height(),GL_RGB,GL_UNSIGNED_BYTE,p.data());return p;};
+        auto pixels=[&]{std::vector<unsigned char> p(window->width()*window->height()*3);ogl::glReadBuffer(presentedReadBuffer());readPresentedPixels(0,0,window->width(),window->height(),GL_RGB,GL_UNSIGNED_BYTE,p.data());return p;};
         enter("-0.8");capture("real-expression-debug.png");std::cout<<"Expression: "<<expression->expr->expression()<<" parameter: "<<binding->param->value.x<<" error: "<<expression->expr->lastError()<<"\n";check(std::abs(binding->param->value.x+.8f)<.01f,"Real model negative face yaw failed");capture("real-face-left.png");auto left=pixels();
         enter("0.8");check(std::abs(binding->param->value.x-.8f)<.01f,"Real model positive face yaw failed");capture("real-face-right.png");auto right=pixels();
         size_t changed=0;for(int y=100;y<700;++y)for(int x=350;x<1000;++x){auto i=(y*window->width()+x)*3;if(std::abs(int(left[i])-right[i])+std::abs(int(left[i+1])-right[i+1])+std::abs(int(left[i+2])-right[i+2])>30)++changed;}
@@ -109,7 +113,7 @@ int main(int argc,char** argv){try{
     auto binding=scene::insScene()->selectedSceneItem()->bindings[0];
     check(binding->type()==tracking::BindingType::ExpressionBinding,"Expression menu action did not change binding type");
     std::cout<<"Expression binding selected through menu\n";
-    auto centroid=[&]{std::vector<unsigned char> px(window->width()*window->height()*4);ogl::glReadBuffer(GL_FRONT);::glReadPixels(0,0,window->width(),window->height(),GL_RGBA,GL_UNSIGNED_BYTE,px.data());double sum=0,count=0;for(int y=0;y<window->height();++y)for(int x=350;x<window->width();++x){auto i=(y*window->width()+x)*4;if(px[i]>230&&px[i+1]<40&&px[i+2]<40){sum+=x;++count;}}check(count>1000,"Rendered model pixels missing");return sum/count;};
+    auto centroid=[&]{std::vector<unsigned char> px(window->width()*window->height()*4);ogl::glReadBuffer(presentedReadBuffer());readPresentedPixels(0,0,window->width(),window->height(),GL_RGBA,GL_UNSIGNED_BYTE,px.data());double sum=0,count=0;for(int y=0;y<window->height();++y)for(int x=350;x<window->width();++x){auto i=(y*window->width()+x)*4;if(px[i]>230&&px[i+1]<40&&px[i+2]<40){sum+=x;++count;}}check(count>1000,"Rendered model pixels missing");return sum/count;};
     double before=centroid();
     click(110,294);ImGui::GetIO().AddInputCharactersUTF8("0.5");frame(3);click(300,350);frame(2);
     auto expression=std::dynamic_pointer_cast<tracking::ExpressionTrackingBinding>(binding->delegated);
@@ -149,6 +153,7 @@ int main(int argc,char** argv){try{
     sendBlend(1);check(std::abs(binding->param->value.x-1)<.0001f,"Tracking one did not reach model");double high=centroid();check(std::abs(high-low-200)<1,"Received tracking did not move rendered model by 200 pixels");capture("09-tracking-one.png");
     std::cout<<"Actual UDP -> expression -> model -> framebuffer: "<<low<<" -> "<<high<<" pixels\n";
     click(70,150);restored->puppet=model_io::inLoadPuppet(argv[1]);check(restored->tryLoadBindings(),"Tracking save failed");saved=std::dynamic_pointer_cast<tracking::ExpressionTrackingBinding>(restored->bindings[0]->delegated);check(saved&&saved->expr->expression()=="BLEND('Motion')","Tracking expression reload failed");
+#ifdef _WIN32
     check(insCanSendFrames(),"Application Spout output unavailable");auto observer=spout::spGetSpout();char senderName[]="nijiexpose";uint32_t sw=0,sh=0;HANDLE handle=nullptr;DWORD format=0;
     check(spout::spGetSenderInfo(observer,senderName,sw,sh,handle,format)&&sw==1024&&sh==768&&handle&&format==28,"Application Spout output dimensions/format wrong");
     // Open the application's published shared texture using an independent D3D11 device.
@@ -163,13 +168,16 @@ int main(int argc,char** argv){try{
     double receivedSum=0,receivedCount=0;for(unsigned y=0;y<sh;++y){auto row=static_cast<const uint8_t*>(mapped.pData)+y*mapped.RowPitch;for(unsigned x=0;x<sw;++x)if(row[x*4]>230&&row[x*4+1]<40&&row[x*4+2]<40){receivedSum+=x;++receivedCount;}}
     context->Unmap(staging.Get(),0);check(receivedCount>1000&&std::abs(receivedSum/receivedCount-high)<1,"Spout shared texture did not contain tracking-updated model pixels");
     std::cout<<"Independent D3D11 Spout readback centroid: "<<receivedSum/receivedCount<<"\n";
+#endif
     click(205,50);frame(3);capture("10-tracking-settings.png");
     click(400,332);ImGui::GetIO().AddInputCharactersUTF8("Added by UI");frame(2);click(738,332);
     check(scene::insScene()->space->getZones().size()==2&&scene::insScene()->space->getZones()[1]->name=="Added by UI","Virtual space add-zone UI failed");
     click(696,663);check(nijiui::inSettingsGetJson("space").as_object().at("zones").as_array().size()==2,"Virtual space Apply did not save new zone");
     capture("11-zone-added-and-saved.png");
     std::cout<<"Virtual space zone creation and Apply through UI passed\n";
+#ifdef _WIN32
     std::cout<<"Application Spout published actual scene at 1024x768 RGBA8\n";
+#endif
     check(plugins::insPlugins.size()==3,"Application plugin enumeration lost plugins");
     click(413,50);frame(3);
     click(319,168);click(319,255);click(319,342);
@@ -177,7 +185,7 @@ int main(int argc,char** argv){try{
     capture("12-plugin-buttons.png");std::cout<<"All three plugin UI buttons and update events verified\n";
     click(257,50);frame(3);click(360,378);click(696,663);click(743,102);frame(3);
     auto color=nijiui::inSettingsGetJson("bgColor").as_array();check(color[1].as_double()==1&&color[0].as_double()==0,"Background swatch did not update settings");
-    unsigned char corner[4]{};ogl::glReadBuffer(GL_FRONT);::glReadPixels(990,20,1,1,GL_RGBA,GL_UNSIGNED_BYTE,corner);check(corner[0]==0&&corner[1]==255&&corner[2]==0,"Background swatch did not update rendered background");
+    unsigned char corner[4]{};ogl::glReadBuffer(presentedReadBuffer());readPresentedPixels(990,20,1,1,GL_RGBA,GL_UNSIGNED_BYTE,corner);check(corner[0]==0&&corner[1]==255&&corner[2]==0,"Background swatch did not update rendered background");
     capture("13-background-green.png");
     SDL_WarpMouseInWindow(SDL_GL_GetCurrentWindow(),900,700);frame(2);
     SDL_Event drop{};drop.type=SDL_EVENT_DROP_FILE;drop.drop.windowID=SDL_GetWindowID(SDL_GL_GetCurrentWindow());drop.drop.data=argv[1];check(SDL_PushEvent(&drop),"Could not queue file-drop event");frame(3);

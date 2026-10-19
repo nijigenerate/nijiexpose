@@ -58,7 +58,11 @@ std::string inGetAppConfigPath() {
     inForcedConfigDir = environmentGet(L"IN_CONFIG_PATH");
     if (appDataDir.empty()) {
         const auto home=environmentGet(L"HOME");
+#ifdef __APPLE__
         if (!home.empty()) appDataDir=buildPath(home,"Library/Application Support");
+#else
+        appDataDir=buildPath(home,".config");
+#endif
     }
 #endif
     if (!inForcedConfigDir.empty()) return inForcedConfigDir;
@@ -67,7 +71,13 @@ std::string inGetAppConfigPath() {
 #else
     if (appDataDir.empty()) appDataDir = nijiexpose::dcompat::pathToUTF8(std::filesystem::current_path());
 #endif
+#ifdef __linux__
+    // Preserve the D Linux branch's legacy-directory preference.
+    const auto legacyDir=buildPath(appDataDir,"."+inGetApplication().configDirName);
+    appDataDir=exists(legacyDir)?legacyDir:buildPath(appDataDir,inGetApplication().configDirName);
+#else
     appDataDir = buildPath(appDataDir, "." + inGetApplication().configDirName);
+#endif
     // D returns a copied string slice; keep the local intact for scope(success).
     return std::string(appDataDir);
 }

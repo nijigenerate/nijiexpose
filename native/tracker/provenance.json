@@ -36,6 +36,10 @@
     {
       "source": "keyboard/macos.cpp",
       "sha256": "dc807eea44e25a8e7a4e589cd892a5a3887f64e9caf1b277db7d6ecb5e3345bf"
+    },
+    {
+      "source": "keyboard/x11.cpp",
+      "sha256": "30d12a8eb84c9a920f32bc01595a283bd12c2e71e5c6f8a9ce22a0c28329c258"
     }
   ],
   "adaptations": [
@@ -56,5 +60,11 @@
     "integration": "WindowsSource.cmake",
     "local_mediapipe_patches": false,
     "build_script_patch": "patches/enable-windows-cache.ps1 (first-run bundled Java initialization and Bazel action cache)"
+  },
+  "linux_sdk": {
+    "recipe": "native/build.sh setup / prepare / sdk",
+    "integration": "LinuxSource.cmake",
+    "local_mediapipe_patches": false,
+    "build_script_patch": "patches/linux-cache.cmake (Bazel action cache)"
   }
 }

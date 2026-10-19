@@ -116,6 +116,20 @@ void Drawable::finalizeDrawable() {''')
 code = (a.source / 'core/texture.cpp').read_text(encoding='utf-8')
 code = '#include "nicxlive/native_backend.hpp"\n' + code
 code = '#include <stdexcept>\n' + code
+# Global/TLS textures can outlive the deferred-disposal queue during C++ exit.
+# Keep normal frame disposal unchanged, but never append to destroyed storage.
+code = '#include <atomic>\n' + code
+code = replace(code, 'std::vector<PendingTextureDisposal> gPendingTextureDisposals;', '''std::atomic<bool> gPendingTextureDisposalsAlive{true};
+struct PendingTextureDisposalQueue : std::vector<PendingTextureDisposal> {
+    ~PendingTextureDisposalQueue() { gPendingTextureDisposalsAlive.store(false); }
+};
+PendingTextureDisposalQueue gPendingTextureDisposals;''')
+code = replace(code, 'void Texture::disposeDeferred() {', '''void Texture::disposeDeferred() {
+    if (!gPendingTextureDisposalsAlive.load()) {
+        backendId_ = 0;
+        backend_.reset();
+        return;
+    }''')
 # ShallowTexture retains decoded channels; conversion happens at GPU upload.
 code = replace(code, 'auto img = loadImage(file, w, h, comp, channels);\n    data = img;', 'auto img = loadImage(file, w, h, comp, 0);\n    if (img.empty()) throw std::runtime_error("Cannot decode image: " + file);\n    data = img;')
 code = replace(code, 'channels = channels == 0 ? comp : channels;\n    convChannels = channels;', 'this->channels = comp;\n    convChannels = channels == 0 ? comp : channels;')

@@ -1,5 +1,6 @@
 #pragma once
 #include "nijilive/opengl/api.hpp"
+#include "presented_frame.hpp"
 #include <algorithm>
 #include <stdexcept>
 #include <string>
@@ -18,8 +19,8 @@ inline void savePngRGB(const std::string& path,int width,int height,const std::v
 }
 inline void captureFrontBuffer(const std::string& path,int width,int height){
     nijiexpose::ogl::loadApi();
-    nijiexpose::ogl::glBindFramebuffer(GL_FRAMEBUFFER,0);nijiexpose::ogl::glReadBuffer(GL_FRONT);nijiexpose::ogl::glPixelStorei(GL_PACK_ALIGNMENT,1);
-    std::vector<unsigned char> pixels(static_cast<size_t>(width)*height*3);glReadPixels(0,0,width,height,GL_RGB,GL_UNSIGNED_BYTE,pixels.data());
+    nijiexpose::ogl::glBindFramebuffer(GL_FRAMEBUFFER,0);nijiexpose::ogl::glReadBuffer(presentedReadBuffer());nijiexpose::ogl::glPixelStorei(GL_PACK_ALIGNMENT,1);
+    std::vector<unsigned char> pixels(static_cast<size_t>(width)*height*3);readPresentedPixels(0,0,width,height,GL_RGB,GL_UNSIGNED_BYTE,pixels.data());
     for(int y=0;y<height/2;++y)for(int x=0;x<width*3;++x)std::swap(pixels[static_cast<size_t>(y)*width*3+x],pixels[static_cast<size_t>(height-1-y)*width*3+x]);
     savePngRGB(path,width,height,pixels);
 }

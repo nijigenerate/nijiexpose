@@ -16,6 +16,51 @@ migration; see [the requirements](../NATIVE_CPP_DESIGN.md).
 
 ## Build
 
+### Linux (x86_64, Ubuntu 24.04 / WSL2)
+
+Install distribution binaries for the development dependencies:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y build-essential cmake ninja-build clang lld git jq curl \
+  pkg-config python3 openjdk-21-jdk-headless libboost-json-dev libfreetype-dev \
+  gettext liblua5.1-0-dev libgl-dev libegl-dev libx11-dev libxi-dev libxtst-dev \
+  libxrandr-dev libxcursor-dev libxfixes-dev libxinerama-dev libwayland-dev \
+  libxkbcommon-dev libasound2-dev libpulse-dev libudev-dev
+cmake -S . -B "$HOME/build-nijiexpose-linux" -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build "$HOME/build-nijiexpose-linux" --parallel 6
+ctest --test-dir "$HOME/build-nijiexpose-linux" --output-on-failure
+cmake --install "$HOME/build-nijiexpose-linux" --prefix "$HOME/nijiexpose-linux"
+"$HOME/nijiexpose-linux/bin/nijiexpose-native"
+```
+
+Keep Linux build outputs on the WSL Linux filesystem, separate from Windows
+build directories. CMake uses an installed SDL3 >=3.4 if available; otherwise
+it builds the SHA256-verified official SDL 3.4.18 source release (Ubuntu 24.04
+does not provide SDL3). Boost, gettext, FreeType and Lua use system packages.
+The application uses the CMake-selected C++ compiler; the pinned nijitrack
+SDK recipe uses Clang, official Bazel/Halide binaries and MediaPipe source.
+The SDK is embedded in the same process through a shared library. Its Bazel
+action cache persists in `<build>/tracker-cache`.
+
+Fonts/icons install in `share/nijiexpose`, tracker models in `bin/models`,
+and shared libraries in `lib`. Linux settings default to
+`$XDG_CONFIG_HOME/nijiexpose` or `$HOME/.config/nijiexpose`, preferring an
+existing `.nijiexpose` directory at the same location just like the D version.
+`IN_CONFIG_PATH` still overrides this location. Enable `NIJIEXPOSE_GPU_TESTS` for desktop
+OpenGL tests and set `NIJIEXPOSE_TRACKER_TEST_IMAGE` to a local portrait to
+enable the real MediaPipe inference test. WSLg supplies the test display.
+For headless desktop tests install `xvfb xauth` and run
+`LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x1024x24" ctest --test-dir "$HOME/build-nijiexpose-linux" --output-on-failure`.
+The Linux application test captures the actual framebuffer just before swap;
+this avoids relying on front-buffer readback after presentation while preserving
+the same pixel and interaction assertions as the Windows test.
+The upstream global keyboard backend uses X11 RECORD; global Wayland keyboard
+capture is not supported. Spout output is Windows-only.
+
+### Windows
+
 On Windows, use a Visual Studio 2022 developer shell, PowerShell 7, Git, CMake 3.24+, Ninja, Python,
 Boost headers and an OpenGL 3.3 driver. LDC is used for original D comparison
 executables; no DMD installation is required.
@@ -163,3 +208,21 @@ without enabling the Windows comparison suite. Run it with the model path,
 portrait path and output directory, using `SDL_VIDEODRIVER=dummy` and
 `SDL_RENDER_DRIVER=software`. It checks real face inference, pose/blendshape
 packets, preview, restart, cancellation and error propagation.
+
+Linux file-dialog verification uses `nijiexpose_file_dialog_test` for cross-thread
+completion, cancellation, errors, immediate completion, late completion after
+quit, filter lifetime, and preservation of queued application events. The
+`nijiexpose_file_dialog_manual <expected-path>` executable opens the actual SDL
+file chooser; pass an empty expected path to check cancellation. Linux needs
+an available XDG desktop portal or Zenity. MediaPipe itself is statically linked
+into the embedded tracker shared library (the latter remains a shared library).
+
+Local verification on 2026-10-20: Ubuntu 24.04 / WSL2 x86_64 Release build,
+installation, all 14 CTest cases, real portrait inference, and Kurone INP
+rendering passed. The actual Zenity chooser selected Kurone.inp and canceled
+successfully under Xvfb. AddressSanitizer passed the dialog lifetime tests.
+MediaPipe symbols are defined in the tracker library, with no dynamic MediaPipe
+dependency. macOS runtime behavior was not tested on this host.
+The Windows Release build succeeded; 36 of 37 tests passed. The application
+actions test failed at the animation Loop checkbox, including on an isolated
+rerun; this remains unresolved. Linux GitHub CI has not been added or verified.

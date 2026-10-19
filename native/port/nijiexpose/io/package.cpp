@@ -9,8 +9,8 @@
 #include <objbase.h>
 #else
 #include <SDL3/SDL.h>
-#include <thread>
-#include <chrono>
+#include <atomic>
+#include <memory>
 #endif
 #include <array>
 #include <cstdio>
@@ -30,9 +30,17 @@ std::string insShowOpenDialog(std::span<const TFD_Filter> filters,const std::str
     bool selected=GetOpenFileNameW(&ofn)!=0;if(initialized==S_OK||initialized==S_FALSE)CoUninitialize();if(!selected)return {};
     auto path=dcompat::toUTF8(std::wstring_view(buffer.data()));DWORD attrs=GetFileAttributesW(buffer.data());if((attrs&FILE_ATTRIBUTE_DEVICE)||(attrs&FILE_ATTRIBUTE_DIRECTORY))return {};return path;
 #else
-    struct Result { bool done=false; std::string path; } result;
-    std::vector<std::string> descriptions,patterns;
-    std::vector<SDL_DialogFileFilter> nativeFilters;
+    // The callback may run on another thread, including after a quit request.
+    struct Result {
+        std::atomic<bool> done{false};
+        std::string path;
+        std::vector<std::string> descriptions,patterns;
+        std::vector<SDL_DialogFileFilter> filters;
+    };
+    auto result=std::make_shared<Result>();
+    auto& descriptions=result->descriptions;
+    auto& patterns=result->patterns;
+    auto& nativeFilters=result->filters;
     for(const auto& filter:filters) {
         std::string pattern;
         for(const auto& item:filter.patterns) {
@@ -50,17 +58,19 @@ std::string insShowOpenDialog(std::span<const TFD_Filter> filters,const std::str
     for(std::size_t i=0;i<patterns.size();++i)
         nativeFilters.push_back({descriptions[i].empty()?"Files":descriptions[i].c_str(),patterns[i].c_str()});
     auto callback=[](void* userdata,const char* const* files,int) {
-        auto& result=*static_cast<Result*>(userdata);
+        std::unique_ptr<std::shared_ptr<Result>> owner(static_cast<std::shared_ptr<Result>*>(userdata));
+        auto& result=**owner;
         if(files&&files[0]) result.path=files[0];
-        result.done=true;
+        result.done.store(true,std::memory_order_release);
     };
-    SDL_ShowOpenFileDialog(callback,&result,nullptr,nativeFilters.data(),static_cast<int>(nativeFilters.size()),nullptr,false);
-    while(!result.done) {
-        SDL_Event event{};
-        if(!SDL_WaitEventTimeout(&event,50)) continue;
-        if(event.type==SDL_EVENT_QUIT) { SDL_PushEvent(&event); return {}; }
+    SDL_ShowOpenFileDialog(callback,new std::shared_ptr<Result>(result),nullptr,nativeFilters.data(),static_cast<int>(nativeFilters.size()),nullptr,false);
+    while(!result->done.load(std::memory_order_acquire)) {
+        // Pump platform events without consuming input intended for the app.
+        SDL_PumpEvents();
+        if(SDL_HasEvent(SDL_EVENT_QUIT)) return {};
+        SDL_Delay(10);
     }
-    return result.path;
+    return result->path;
 #endif
 }
 }

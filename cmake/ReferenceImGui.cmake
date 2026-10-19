@@ -17,15 +17,24 @@ function(nijiexpose_add_reference_imgui)
         set(NIJIEXPOSE_FREETYPE_LICENSE "${NIJIEXPOSE_FREETYPE_LICENSE}" PARENT_SCOPE)
         return()
     endif()
-    nijiexpose_dependency(freetype)
-    FetchContent_Declare(freetype_binary URL "${dependency_url}" URL_HASH "SHA256=${dependency_hash}" DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
-    FetchContent_MakeAvailable(freetype_binary)
-    add_library(freetype SHARED IMPORTED GLOBAL)
-    set_target_properties(freetype PROPERTIES
-        IMPORTED_IMPLIB "${freetype_binary_SOURCE_DIR}/release dll/win64/freetype.lib"
-        IMPORTED_LOCATION "${freetype_binary_SOURCE_DIR}/release dll/win64/freetype.dll"
-        INTERFACE_INCLUDE_DIRECTORIES "${freetype_binary_SOURCE_DIR}/include")
-    set(NIJIEXPOSE_FREETYPE_LICENSE "${freetype_binary_SOURCE_DIR}/FTL.TXT" PARENT_SCOPE)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        find_package(Freetype REQUIRED)
+        add_library(freetype INTERFACE)
+        target_link_libraries(freetype INTERFACE Freetype::Freetype)
+        set(NIJIEXPOSE_FREETYPE_LICENSE "/usr/share/doc/libfreetype6/copyright" PARENT_SCOPE)
+        # Legacy ImGui snapshot executables are currently Windows-only.
+        return()
+    else()
+        nijiexpose_dependency(freetype)
+        FetchContent_Declare(freetype_binary URL "${dependency_url}" URL_HASH "SHA256=${dependency_hash}" DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+        FetchContent_MakeAvailable(freetype_binary)
+        add_library(freetype SHARED IMPORTED GLOBAL)
+        set_target_properties(freetype PROPERTIES
+            IMPORTED_IMPLIB "${freetype_binary_SOURCE_DIR}/release dll/win64/freetype.lib"
+            IMPORTED_LOCATION "${freetype_binary_SOURCE_DIR}/release dll/win64/freetype.dll"
+            INTERFACE_INCLUDE_DIRECTORIES "${freetype_binary_SOURCE_DIR}/include")
+        set(NIJIEXPOSE_FREETYPE_LICENSE "${freetype_binary_SOURCE_DIR}/FTL.TXT" PARENT_SCOPE)
+    endif()
     if(NOT BUILD_TESTING)
         return()
     endif()

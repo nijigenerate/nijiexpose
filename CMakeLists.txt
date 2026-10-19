@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(nijiexpose_native VERSION 0.1.0 LANGUAGES C CXX)
-if(NOT WIN32 AND NOT APPLE)
-    message(FATAL_ERROR "The native application currently supports Windows and macOS.")
+if(NOT WIN32 AND NOT APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(FATAL_ERROR "The native application currently supports Windows, macOS and Linux.")
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
