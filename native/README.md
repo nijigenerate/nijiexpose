@@ -28,6 +28,9 @@ The SDK uses clang-cl and `/MT`; the application remains MSVC with `/MD`.
 No prebuilt tracker SDK is vendored or downloaded. Keep the build directory
 for incremental builds. CI preserves Bazel's compiler action cache in
 `build/native-release/tracker-cache`; compiler inputs and options determine reuse.
+The SDK workspace defaults to `<build>/nt`. For a deeply nested checkout, use
+`-DNIJIEXPOSE_TRACKER_SOURCE_DIR=<short-absolute-path>`: upstream Windows
+generators still have path length limits. Use a separate path per concurrent build.
 
 ```powershell
 cmake -DBOOST_DESTINATION="$PWD/build/boost" -P cmake/FetchBoostHeaders.cmake

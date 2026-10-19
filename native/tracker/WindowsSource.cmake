@@ -21,6 +21,6 @@ ExternalProject_Add_Step(nijitrack_source_sdk prepare
     COMMAND "${NIJIEXPOSE_PWSH}" -NoProfile -File
         <SOURCE_DIR>/native/scripts/prepare_mediapipe_halide.ps1
     DEPENDEES configure DEPENDERS build)
-ExternalProject_Add_StepTargets(nijitrack_source_sdk configure prepare)
+ExternalProject_Add_StepTargets(nijitrack_source_sdk download configure prepare)
 ExternalProject_Add_StepDependencies(nijitrack_source_sdk patch
     "${CMAKE_CURRENT_LIST_DIR}/patches/enable-windows-cache.ps1")

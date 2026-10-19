@@ -67,25 +67,33 @@ jobs:
         run: cmake -DBOOST_DESTINATION="${{ github.workspace }}/build/boost" -P cmake/FetchBoostHeaders.cmake
       - name: Fetch verified tracker test portrait
         run: cmake -DDESTINATION="${{ github.workspace }}/out/tracker-test/portrait.jpg" -P native/tools/fetch-tracker-test-image.cmake
+      - name: Identify tracker build environment
+        id: tracker-environment
+        shell: pwsh
+        run: |
+          $identity = "$env:ImageVersion|$env:VCToolsVersion|$env:WindowsSDKVersion"
+          $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($identity)))
+          "id=$hash" >> $env:GITHUB_OUTPUT
       - name: Cache nijitrack source compilation
         id: tracker-cache
         uses: actions/cache/restore@v4
         with:
           path: build/native-release/tracker-cache
-          key: nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-${{ github.sha }}
+          key: nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ steps.tracker-environment.outputs.id }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-${{ github.sha }}
           restore-keys: |
-            nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-
+            nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ steps.tracker-environment.outputs.id }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-
+            nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-
       - name: Configure Windows application
         shell: pwsh
         run: |
           $boostRoot = Get-Content build/boost/prefix.txt -Raw
-          cmake --preset native-release -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg"
+          cmake --preset native-release -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg" -DNIJIEXPOSE_TRACKER_SOURCE_DIR="${{ github.workspace }}/build/nt"
       - name: Build
         shell: pwsh
         run: |
           sccache --zero-stats
           $timer = [Diagnostics.Stopwatch]::StartNew()
-          cmake --build --preset native-release --parallel 3
+          cmake --build --preset native-release --parallel 3 2>&1 | Tee-Object -FilePath build/native-release/build.log
           $buildExit = $LASTEXITCODE
           $timer.Stop()
           "Build seconds: $([math]::Round($timer.Elapsed.TotalSeconds, 2))" | Tee-Object -FilePath build/native-release/build-time.txt
@@ -103,12 +111,28 @@ jobs:
           }
           Get-Content build/native-release/sccache-stats.txt >> $env:GITHUB_STEP_SUMMARY
           '```' >> $env:GITHUB_STEP_SUMMARY
+          '### Tracker Bazel compilation cache' >> $env:GITHUB_STEP_SUMMARY
+          'Restore matched key: ${{ steps.tracker-cache.outputs.cache-matched-key }}' >> $env:GITHUB_STEP_SUMMARY
+          if (Test-Path build/native-release/build.log) {
+            '```text' >> $env:GITHUB_STEP_SUMMARY
+            Select-String -Path build/native-release/build.log -Pattern 'INFO: .*processes:|INFO: Elapsed time:|disk cache hit' |
+              ForEach-Object { $_.Line } >> $env:GITHUB_STEP_SUMMARY
+            '```' >> $env:GITHUB_STEP_SUMMARY
+          }
       - name: Save nijitrack compiler outputs
         if: always() && steps.tracker-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: build/native-release/tracker-cache
           key: ${{ steps.tracker-cache.outputs.cache-primary-key }}
+      - name: Verify restored tracker cache was used
+        if: success() && steps.tracker-cache.outputs.cache-hit == 'true'
+        shell: pwsh
+        run: |
+          $log = Get-Content build/native-release/build.log -Raw
+          if ($log -notmatch '[1-9][0-9]* disk cache hit') {
+            throw 'An exact tracker cache was restored, but Bazel reported no cached compiler results.'
+          }
       - name: Test D comparisons, Boost.JSON settings, gettext and ImGui
         run: ctest --preset native-release --output-junit "${{ github.workspace }}/build/native-release/test-results.xml"
       - name: Upload test results and available GPU captures
@@ -119,6 +143,7 @@ jobs:
           path: |
             build/native-release/test-results.xml
             build/native-release/build-time.txt
+            build/native-release/build.log
             build/native-release/sccache-stats.txt
             build/native-release/visual-results/*.png
             build/native-release/application-results/*.png
