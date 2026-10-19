@@ -1,5 +1,14 @@
 # Build the pinned nijitrack SDK using its own verified patches and scripts.
 include(ExternalProject)
+set(tracker_source_url "https://codeload.github.com/nijigenerate/nijitrack/tar.gz/ac76c322aedd62740eee01c3ea1c528f7de51f6c")
+set(tracker_source_hash bb5f1f25f8d1849f9bee94d9858fdc96bbe84249bcc8d1c7b06762824cea916d)
+set(tracker_source "${CMAKE_BINARY_DIR}/_deps/nijitrack-main-src")
+set(tracker_native "${tracker_source}/native")
+set(tracker_sdk "${tracker_native}/vendor/sdk-halide")
+if(WIN32)
+    include("${CMAKE_CURRENT_LIST_DIR}/WindowsSource.cmake")
+    return()
+endif()
 find_program(NIJIEXPOSE_BASH bash REQUIRED)
 foreach(tool cmake ninja clang clang++ git jq curl tar pkg-config)
     find_program(tracker_tool_${tool} NAMES ${tool} REQUIRED)
@@ -25,9 +34,6 @@ if(NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64" OR
    (CMAKE_OSX_ARCHITECTURES AND NOT CMAKE_OSX_ARCHITECTURES STREQUAL "arm64"))
     message(FATAL_ERROR "The pinned nijitrack macOS source recipe supports arm64")
 endif()
-set(tracker_source "${CMAKE_BINARY_DIR}/_deps/nijitrack-main-src")
-set(tracker_native "${tracker_source}/native")
-set(tracker_sdk "${tracker_native}/vendor/sdk-halide")
 execute_process(COMMAND xcrun --sdk macosx --show-sdk-version
     OUTPUT_VARIABLE tracker_sdk_version OUTPUT_STRIP_TRAILING_WHITESPACE
     COMMAND_ERROR_IS_FATAL ANY)
@@ -42,8 +48,8 @@ set(tracker_environment "${CMAKE_COMMAND}" -E env
     "JAVA_HOME=${NIJIEXPOSE_JAVA_HOME}"
     "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin")
 ExternalProject_Add(nijitrack_source_sdk
-    URL "https://codeload.github.com/nijigenerate/nijitrack/tar.gz/ac76c322aedd62740eee01c3ea1c528f7de51f6c"
-    URL_HASH SHA256=bb5f1f25f8d1849f9bee94d9858fdc96bbe84249bcc8d1c7b06762824cea916d
+    URL "${tracker_source_url}"
+    URL_HASH "SHA256=${tracker_source_hash}"
     SOURCE_DIR "${tracker_source}"
     UPDATE_COMMAND ""
     PATCH_COMMAND "${CMAKE_COMMAND}" -DNIJITRACK_SOURCE=<SOURCE_DIR>

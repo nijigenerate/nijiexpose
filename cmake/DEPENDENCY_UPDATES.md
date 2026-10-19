@@ -22,9 +22,11 @@ built dependency SDK is uploaded or used.
    for those files. Keep the upstream source archive intact.
 3. If a package changes its directory layout, update the corresponding CMake
    import/install paths. Stage its notices and every required runtime DLL.
-   Update version statements in the README. Tracker SDK and task bundles keep
-   their own `vendor/nijitrack/sdk.sha256` and `models/models.lock.json`; update
-   their provenance and licenses together when changing those packages.
+   Update version statements in the README. Both platforms build the tracker SDK
+   from the source pin in `native/tracker/NijitrackSource.cmake`; update the
+   recipe integrations and provenance together. Task bundles retain their
+   `vendor/nijitrack/models/models.lock.json`. SDK notices are installed from
+   the source build outputs. Never replace this build with a packaged SDK.
 4. Configure a fresh build directory, compile the application, run comparisons
    and functional tests, then install into an empty staging directory and test
    the staged executable. Compare rendered output when changing graphics/font

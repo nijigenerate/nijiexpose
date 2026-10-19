@@ -50,5 +50,11 @@
     "integration": "NijitrackSource.cmake",
     "local_mediapipe_patches": false,
     "build_script_patch": "patches/nijitrack-macos-sdk.patch (installed SDK detection and analysis-only preflight)"
+  },
+  "windows_sdk": {
+    "recipe": "native/scripts/setup_tracking_toolchain.ps1 / prepare_mediapipe_halide.ps1 / build_mediapipe_halide.ps1",
+    "integration": "WindowsSource.cmake",
+    "local_mediapipe_patches": false,
+    "build_script_patch": "patches/enable-windows-cache.ps1 (Bazel action cache only)"
   }
 }

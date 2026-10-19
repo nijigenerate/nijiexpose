@@ -16,9 +16,18 @@ migration; see [the requirements](../NATIVE_CPP_DESIGN.md).
 
 ## Build
 
-On Windows, use a Visual Studio 2022 developer shell, CMake 3.24+, Ninja, Python,
+On Windows, use a Visual Studio 2022 developer shell, PowerShell 7, Git, CMake 3.24+, Ninja, Python,
 Boost headers and an OpenGL 3.3 driver. LDC is used for original D comparison
 executables; no DMD installation is required.
+
+Windows builds the MediaPipe/Halide SDK from the same pinned nijitrack source
+as macOS. CMake runs upstream `setup_tracking_toolchain.ps1`,
+`prepare_mediapipe_halide.ps1`, and `build_mediapipe_halide.ps1` in that order.
+Setup downloads and verifies the upstream LLVM 19.1.7, Bazel and Halide tools.
+The SDK uses clang-cl and `/MT`; the application remains MSVC with `/MD`.
+No prebuilt tracker SDK is vendored or downloaded. Keep the build directory
+for incremental builds. CI preserves Bazel's compiler action cache in
+`build/native-release/tracker-cache`; compiler inputs and options determine reuse.
 
 ```powershell
 cmake -DBOOST_DESTINATION="$PWD/build/boost" -P cmake/FetchBoostHeaders.cmake
@@ -123,9 +132,9 @@ The bundled x64 Spout DLL is the unchanged bindbc-spout2 0.1.1 distribution.
 ## Embedded nijitrack
 
 The native tracker runs in this process. `native/tracker` contains the adapted
-nijitrack inference/camera/preview code. On Windows, `vendor/nijitrack` provides
-the checksummed static SDK archive, isolated behind a same-process DLL with a C
-ABI because that SDK uses `/MT`. On macOS, CMake runs the pinned nijitrack source build recipe and links its
+nijitrack inference/camera/preview code. On Windows, CMake builds the pinned
+nijitrack source recipe and links the generated static SDK into a same-process
+DLL with a C ABI because that SDK uses `/MT`. On macOS, CMake runs the pinned nijitrack source build recipe and links its
 static SDK and Halide AOT archive into the adapter `.dylib`.
 
 Settings are passed as a structure. Inference publishes complete face/pose/gaze

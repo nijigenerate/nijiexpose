@@ -67,6 +67,14 @@ jobs:
         run: cmake -DBOOST_DESTINATION="${{ github.workspace }}/build/boost" -P cmake/FetchBoostHeaders.cmake
       - name: Fetch verified tracker test portrait
         run: cmake -DDESTINATION="${{ github.workspace }}/out/tracker-test/portrait.jpg" -P native/tools/fetch-tracker-test-image.cmake
+      - name: Cache nijitrack source compilation
+        id: tracker-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build/native-release/tracker-cache
+          key: nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-${{ github.sha }}
+          restore-keys: |
+            nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-
       - name: Configure Windows application
         shell: pwsh
         run: |
@@ -95,6 +103,12 @@ jobs:
           }
           Get-Content build/native-release/sccache-stats.txt >> $env:GITHUB_STEP_SUMMARY
           '```' >> $env:GITHUB_STEP_SUMMARY
+      - name: Save nijitrack compiler outputs
+        if: always() && steps.tracker-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/native-release/tracker-cache
+          key: ${{ steps.tracker-cache.outputs.cache-primary-key }}
       - name: Test D comparisons, Boost.JSON settings, gettext and ImGui
         run: ctest --preset native-release --output-junit "${{ github.workspace }}/build/native-release/test-results.xml"
       - name: Upload test results and available GPU captures
