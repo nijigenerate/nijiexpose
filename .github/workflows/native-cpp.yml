@@ -36,6 +36,9 @@ jobs:
       # A cold MediaPipe build can exceed the default server idle timeout.
       # Keep one statistics session for the entire application build.
       SCCACHE_IDLE_TIMEOUT: "0"
+      # Also cover the upstream Halide generator's nested CMake build.
+      CMAKE_C_COMPILER_LAUNCHER: sccache
+      CMAKE_CXX_COMPILER_LAUNCHER: sccache
     steps:
       - uses: actions/checkout@v4
         with:
