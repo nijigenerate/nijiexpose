@@ -55,6 +55,6 @@
     "recipe": "native/scripts/setup_tracking_toolchain.ps1 / prepare_mediapipe_halide.ps1 / build_mediapipe_halide.ps1",
     "integration": "WindowsSource.cmake",
     "local_mediapipe_patches": false,
-    "build_script_patch": "patches/enable-windows-cache.ps1 (Bazel action cache only)"
+    "build_script_patch": "patches/enable-windows-cache.ps1 (first-run bundled Java initialization and Bazel action cache)"
   }
 }

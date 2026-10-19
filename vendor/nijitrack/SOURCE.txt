@@ -14,7 +14,7 @@ Windows uses clang-cl and the static MSVC CRT (/MT).
 Halide 15.0.1 provides the upstream arbitrary-angle ROI implementation.
 Pinned tools and sources are verified by the upstream toolchain locks and recipe.
 
-Local Windows script patch enables only the Bazel compiler action cache.
+Local Windows script patch initializes bundled Java on first use and enables the Bazel compiler action cache.
 Local macOS script patch selects the installed SDK and enables analysis preflight.
 No prebuilt tracker SDK is vendored or downloaded.
 Generated SDK provenance and transitive licenses are installed from build outputs.
