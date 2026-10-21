@@ -449,9 +449,10 @@ if(BUILD_TESTING)
         add_executable(nijiexpose_category_oracle tests/category_oracle.cpp)
         target_link_libraries(nijiexpose_category_oracle PRIVATE nijiexpose_reference_ui_port)
         add_test(NAME native_category_d_parity COMMAND "${Python3_EXECUTABLE}"
-            "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_output.py" --cpp "$<TARGET_FILE:nijiexpose_category_oracle>"
-            --reference "${CMAKE_CURRENT_SOURCE_DIR}/tests/category_reference.txt")
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_category.py" --cpp "$<TARGET_FILE:nijiexpose_category_oracle>")
         set_tests_properties(native_category_d_parity PROPERTIES LABELS parity)
+        add_test(NAME native_category_comparator COMMAND "${Python3_EXECUTABLE}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/tests/test_category_comparison.py")
         add_executable(nijiexpose_modern_category_test tests/category_oracle.cpp)
         target_compile_definitions(nijiexpose_modern_category_test PRIVATE NIJIEXPOSE_MODERN_IMGUI_TEST=1)
         target_link_libraries(nijiexpose_modern_category_test PRIVATE nijiexpose_ui_port)

@@ -6,7 +6,10 @@ std::uint64_t hashBytes(std::uint64_t hash, const unsigned char* bytes, std::siz
     for (std::size_t i = 0; i < size; ++i) { hash ^= bytes[i]; hash *= 1099511628211ULL; }
     return hash;
 }
-int main() {
+int main(int argc, char** argv) {
+    // Optional raw geometry output for cross-CPU comparison diagnostics.
+    FILE* geometry = argc == 2 ? std::fopen(argv[1], "wb") : nullptr;
+    if (argc == 2 && !geometry) return 3;
     using namespace nijiui;
     ImGui::CreateContext();
     auto& io = ImGui::GetIO();
@@ -55,6 +58,13 @@ int main() {
 #endif
         for (int i = 0; i < count; ++i) {
             const auto* list = data->CmdLists[i];
+            if (geometry) {
+                const std::uint32_t sizes[] = {static_cast<std::uint32_t>(frame),
+                    static_cast<std::uint32_t>(list->VtxBuffer.Size), static_cast<std::uint32_t>(list->IdxBuffer.Size)};
+                std::fwrite(sizes, sizeof(sizes), 1, geometry);
+                std::fwrite(list->VtxBuffer.Data, sizeof(ImDrawVert), list->VtxBuffer.Size, geometry);
+                std::fwrite(list->IdxBuffer.Data, sizeof(ImDrawIdx), list->IdxBuffer.Size, geometry);
+            }
             hash = hashBytes(hash, reinterpret_cast<const unsigned char*>(list->VtxBuffer.Data), list->VtxBuffer.Size * sizeof(ImDrawVert));
             hash = hashBytes(hash, reinterpret_cast<const unsigned char*>(list->IdxBuffer.Data), list->IdxBuffer.Size * sizeof(ImDrawIdx));
         }
@@ -64,4 +74,5 @@ int main() {
     for (auto* texture : ImGui::GetPlatformIO().Textures) texture->SetStatus(ImTextureStatus_Destroyed);
 #endif
     ImGui::DestroyContext();
+    if (geometry && std::fclose(geometry) != 0) return 4;
 }
