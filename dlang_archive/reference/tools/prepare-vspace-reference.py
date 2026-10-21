@@ -5,8 +5,8 @@ JSON integration is exercised separately against the Boost implementation.
 """
 from pathlib import Path
 import re
-root=Path(__file__).resolve().parents[2]
-text=(root/'source/nijiexpose/tracking/vspace.d').read_text(encoding='utf-8')
+root=Path(__file__).resolve().parents[3]
+text=(root/'dlang_archive/source/nijiexpose/tracking/vspace.d').read_text(encoding='utf-8')
 text=text[text.index('class VirtualSpace {'):]
 for pattern in [r'    void serialize\(S\)',r'    SerdeException deserializeFromFghj']:
     while match:=re.search(pattern,text):

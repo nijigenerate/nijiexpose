@@ -24,13 +24,13 @@ Windows Releaseでハーネスの4テスト（時刻、version、無効引数、
 
 `native/reference-sources.json` は、参照する現行DファイルのSHA-256一覧。Git履歴を読み戻して生成せず、現在の作業ツリーから採取する。`native/tools/verify-reference.ps1` で差分・欠落・追加を検出する。
 
-このハッシュ検査は参照元の固定だけを検証する。DとC++の等価性を証明するものではない。生成される `source/nijiexpose/ver.d` は対象外とし、バージョン情報生成の移植を別途追跡する。参照元を更新する場合は、その変更と対応する移植箇所を明示する。
+このハッシュ検査は参照元の固定だけを検証する。DとC++の等価性を証明するものではない。生成される `dlang_archive/source/nijiexpose/ver.d` は対象外とし、バージョン情報生成の移植を別途追跡する。参照元を更新する場合は、その変更と対応する移植箇所を明示する。
 
 参照禁止の境界は継続する。使用するのは独自プロジェクトの許可されたソースと公式API資料であり、禁止された資料や履歴から復元しない。
 
 ## 移植単位と対応台帳
 
-原則として `source/nijiexpose/<module>.d` に対して `native/port/nijiexpose/<module>.cpp/.hpp` を対応させる。移植元の関数と対応する関数を追跡できるようにする。関数の統合・削除・順序変更を最適化目的で行わない。
+原則として `dlang_archive/source/nijiexpose/<module>.d` に対して `native/port/nijiexpose/<module>.cpp/.hpp` を対応させる。移植元の関数と対応する関数を追跡できるようにする。関数の統合・削除・順序変更を最適化目的で行わない。
 
 各移植単位には以下の情報が揃うまで「移植・検証済み」を付けない。
 

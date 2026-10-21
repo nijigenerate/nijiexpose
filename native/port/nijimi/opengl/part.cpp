@@ -70,7 +70,7 @@ void oglInitPartBackendResources() {
         gEmissionStrength = partShader.getUniformLocation("emissionStrength");
 
         partShaderStage1.use();
-        partShaderStage1.setUniform(partShader.getUniformLocation("albedo"), 0);
+        partShaderStage1.setUniform(partShaderStage1.getUniformLocation("albedo"), 0);
         gs1mvp = partShaderStage1.getUniformLocation("mvp");
         gs1offset = partShaderStage1.getUniformLocation("offset");
         gs1opacity = partShaderStage1.getUniformLocation("opacity");
@@ -134,7 +134,7 @@ void oglExecutePartPacket(const PartDrawPacket& packet) {
 
             renderStage(packet, false);
         } else {
-            if (packet.useMultistageBlend) {
+            if (inUseMultistageBlending(packet.blendMode)) {
                 setupShaderStage(packet, 0, matrix, renderMatrix);
                 renderStage(packet, true);
 

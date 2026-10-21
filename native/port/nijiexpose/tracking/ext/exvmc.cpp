@@ -1,4 +1,4 @@
-// Direct port of source/nijiexpose/tracking/ext/exvmc.d.
+// Direct port of dlang_archive/source/nijiexpose/tracking/ext/exvmc.d.
 #include "exvmc.hpp"
 #include <charconv>
 #include <set>
@@ -43,11 +43,12 @@ void ExVMCAdaptor::poll() {
                     const auto& pattern=path[4];
                     if(pattern.size()>1) {
                         if(msg.typeTags.size()!=7) continue;
-                        // Original pattern[$..1] is an invalid slice for this branch.
-                        throw std::out_of_range("D VMC bone pattern[$..1] range");
+                        // This unsupported form previously threw on the UI thread.
+                        // Reject it at the untrusted input boundary.
+                        continue;
                     }
                 } else {
-                    if(msg.typeTags.size()!=8) continue;
+                    if(msg.typeTags!="sfffffff") continue;
                     auto boneName=msg.arg<std::string>(0);
                     if(!bones.contains(boneName)) {
                         float nan=std::numeric_limits<float>::quiet_NaN(); bones[boneName]={{nan,nan,nan},{}};
@@ -59,16 +60,17 @@ void ExVMCAdaptor::poll() {
                 if(path.size()>3) {
                     auto pattern=path[3];
                     if(pattern=="/Val") {
-                        if(msg.typeTags.size()==2) {
+                        if(msg.typeTags=="sf") {
                             if(!msg.arg<std::string>(0).empty()) blendshapes[msg.arg<std::string>(0)]=msg.arg<float>(1);
                         } else if(msg.typeTags.size()==1) {
-                            if(path.size()!=4) continue;
-                            pattern=path.at(4); // Original checks length==4 before reading element 4.
-                            if(pattern.size()>1) blendshapes[pattern.substr(1)]=msg.arg<float>(0);
+                            // The original branch indexed beyond the path.
+                            // Do not let an unsupported network message throw.
+                            continue;
                         }
                     }
                 }
             } else if(path[2]=="/Key") {
+                if(msg.typeTags!="isi")continue;
                 auto active=msg.arg<int>(0);
                 [[maybe_unused]] auto name=msg.arg<std::string>(1);
                 auto keyCode=msg.arg<int>(2);

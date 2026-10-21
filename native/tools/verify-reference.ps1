@@ -30,9 +30,9 @@ foreach ($nativeReferenceFile in $nativeReferenceManifest.files) {
     }
 }
 # Use native PowerShell enumeration so verification does not require ripgrep on CI.
-Get-ChildItem -LiteralPath (Join-Path $nativeRepositoryRoot 'source') -Recurse -File -Filter '*.d' | ForEach-Object {
+Get-ChildItem -LiteralPath (Join-Path $nativeRepositoryRoot 'dlang_archive/source') -Recurse -File -Filter '*.d' | ForEach-Object {
     $nativeReferenceRelativePath = [System.IO.Path]::GetRelativePath($nativeRepositoryRoot, $_.FullName).Replace('\', '/')
-    if ($nativeReferenceRelativePath -ne 'source/nijiexpose/ver.d' -and -not $nativeReferencePaths.ContainsKey($nativeReferenceRelativePath)) {
+    if ($nativeReferenceRelativePath -ne 'dlang_archive/source/nijiexpose/ver.d' -and -not $nativeReferencePaths.ContainsKey($nativeReferenceRelativePath)) {
         throw "D source is not yet in the reference manifest: $nativeReferenceRelativePath"
     }
 }

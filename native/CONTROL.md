@@ -17,7 +17,9 @@ python native/tools/control.py --directory C:\work\control fit 0 --margin 90
 親モデルに取り付けた子は直接変更できない。グループの親を指定する。
 変更対象は実行中のシーンで、INPファイルへの保存は行わない。
 
-プロトコルはUTF-8 JSON。任意の一意なIDに対し、一時ファイルを同じフォルダーの `<id>.request.json` へrenameして要求を確定する。アプリはメインスレッドで約100msごとに処理し、`<id>.response.json` に `{"ok":true,"result":...}` または `{"ok":false,"error":"..."}` をatomic renameで返す。クライアントが応答を削除する。要求は16 KiB以下。1アプリにつき専用フォルダーを使用する。
+プロトコルはUTF-8 JSON。任意の一意なIDに対し、一時ファイルを同じフォルダーの `<id>.request.json` へrenameして要求を確定する。アプリはメインスレッドで約100msごとに処理し、`<id>.response.json` に `{"ok":true,"result":...}` または `{"ok":false,"error":"..."}` を原子的に公開して返す。クライアントが応答を削除する。要求は16 KiB以下。1アプリにつき専用フォルダーを使用する。
+
+応答の一時ファイル `<id>.response.json.tmp` は排他的に新規作成し、既存のファイルやリンクを開いて上書きしない。応答ファイル自体が既に存在する場合も置換しない。競合時は要求を残すため、IDを再利用せず、残存した応答や一時ファイルはクライアント側で確認して処理する。
 
 要求例: `{"command":"set_transform","index":0,"scale":0.25}`。
 タイムアウト時は適用済みの可能性があるため、`list` で状態を確認してから再試行する。

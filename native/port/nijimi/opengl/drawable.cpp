@@ -8,6 +8,8 @@ GLuint drawableVAO;
 bool drawableBuffersInitialized = false;
 GLuint sharedDeformBuffer, sharedVertexBuffer, sharedUvBuffer, sharedIndexBuffer;
 size_t sharedIndexCapacity, sharedIndexOffset;
+size_t vertexBytes{},uvBytes{},deformBytes{};
+bool indexCollectionPending=false;
 GLuint nextIndexHandle = 1;
 struct IndexRange {
     size_t offset{}, count{}, capacity{};
@@ -59,6 +61,51 @@ void oglCreateDrawableBuffers(GLuint& ibo) {
     oglInitDrawableBackend();
     if (ibo == 0) ibo = nextIndexHandle++;
 }
+static void compactIndexBuffer();
+void oglDisposeDrawableBuffers(GLuint id) {
+    if(sharedIndexRanges.erase(id))indexCollectionPending=true;
+    // Release the last GPU allocation immediately; survivor compaction is batched
+    // until the next upload/draw, entirely inside this backend.
+    if(sharedIndexRanges.empty())compactIndexBuffer();
+}
+static void compactIndexBuffer() {
+    if(!indexCollectionPending)return;
+    indexCollectionPending=false;
+    GLint previousVao=0;glGetIntegerv(GL_VERTEX_ARRAY_BINDING,&previousVao);
+    oglBindDrawableVao();
+    size_t bytes=0;for(auto& [id,range]:sharedIndexRanges)bytes+=range.data.size()*sizeof(uint16_t);
+    sharedIndexOffset=0;sharedIndexCapacity=bytes;
+    if(!bytes) {
+        if(sharedIndexBuffer)glDeleteBuffers(1,&sharedIndexBuffer);
+        sharedIndexBuffer=0;
+        decltype(sharedIndexRanges)().swap(sharedIndexRanges);
+    } else {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,sharedIndexBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER,bytes,nullptr,GL_DYNAMIC_DRAW);
+        for(auto& [id,range]:sharedIndexRanges) {
+            range.offset=sharedIndexOffset;range.count=range.data.size();range.capacity=range.count*sizeof(uint16_t);
+            glBufferSubData(GL_ELEMENT_ARRAY_BUFFER,range.offset,range.capacity,range.data.data());
+            sharedIndexOffset+=range.capacity;
+        }
+    }
+    glBindVertexArray(static_cast<GLuint>(previousVao));
+}
+DrawableResourceUsage oglDrawableResourceUsage() {
+    size_t cpu=0;for(auto& [id,range]:sharedIndexRanges)cpu+=range.data.capacity()*sizeof(uint16_t);
+    return {sharedIndexRanges.size(),cpu,sharedIndexCapacity,vertexBytes,uvBytes,deformBytes};
+}
+void uploadOrRelease(GLuint& buffer,const Vec2Array& data,size_t& bytes) {
+    bytes=data.rawStorage().length*sizeof(float);
+    if(!bytes) {
+        GLint previousVao=0;glGetIntegerv(GL_VERTEX_ARRAY_BINDING,&previousVao);
+        oglBindDrawableVao();
+        if(buffer)glDeleteBuffers(1,&buffer);buffer=0;
+        glBindVertexArray(static_cast<GLuint>(previousVao));
+        return;
+    }
+    if(!buffer)glGenBuffers(1,&buffer);
+    glUploadFloatVecArray(buffer,data,GL_DYNAMIC_DRAW);
+}
 void oglUploadDrawableIndices(GLuint ibo, std::span<const uint16_t> indices) {
     if (ibo == 0 || indices.empty()) return;
     auto bytes = indices.size() * sizeof(uint16_t);
@@ -80,19 +127,14 @@ void oglUploadDrawableIndices(GLuint ibo, std::span<const uint16_t> indices) {
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, range.offset, bytes, indices.data());
 }
 void oglUploadSharedVertexBuffer(const Vec2Array& vertices) {
-    if (vertices.size() == 0) return;
-    if (sharedVertexBuffer == 0) glGenBuffers(1, &sharedVertexBuffer);
-    glUploadFloatVecArray(sharedVertexBuffer, vertices, GL_DYNAMIC_DRAW);
+    compactIndexBuffer();
+    uploadOrRelease(sharedVertexBuffer,vertices,vertexBytes);
 }
 void oglUploadSharedUvBuffer(const Vec2Array& uvs) {
-    if (uvs.size() == 0) return;
-    if (sharedUvBuffer == 0) glGenBuffers(1, &sharedUvBuffer);
-    glUploadFloatVecArray(sharedUvBuffer, uvs, GL_DYNAMIC_DRAW);
+    uploadOrRelease(sharedUvBuffer,uvs,uvBytes);
 }
 void oglUploadSharedDeformBuffer(const Vec2Array& deformation) {
-    if (deformation.size() == 0) return;
-    if (sharedDeformBuffer == 0) glGenBuffers(1, &sharedDeformBuffer);
-    glUploadFloatVecArray(sharedDeformBuffer, deformation, GL_DYNAMIC_DRAW);
+    uploadOrRelease(sharedDeformBuffer,deformation,deformBytes);
 }
 GLuint oglGetSharedVertexBuffer() {
     if (sharedVertexBuffer == 0) glGenBuffers(1, &sharedVertexBuffer);
@@ -107,6 +149,7 @@ GLuint oglGetSharedDeformBuffer() {
     return sharedDeformBuffer;
 }
 void oglDrawDrawableElements(GLuint ibo, size_t indexCount) {
+    compactIndexBuffer();
     if (ibo == 0 || indexCount == 0) return;
     auto range = sharedIndexRanges.find(ibo);
     if (range == sharedIndexRanges.end() || sharedIndexBuffer == 0) return;

@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#: source/nijiexpose/animation/package.d:57
+#: dlang_archive/source/nijiexpose/animation/package.d:57
 #, fuzzy
 msgid ""
 msgstr ""
@@ -18,639 +18,639 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: source/nijiexpose/plugins/plugin.d:63
+#: dlang_archive/source/nijiexpose/plugins/plugin.d:63
 #, c-format
 msgid "Attempted to load invalid module specifier %s"
 msgstr ""
 
-#: source/nijiexpose/plugins/plugin.d:81
+#: dlang_archive/source/nijiexpose/plugins/plugin.d:81
 #, c-format
 msgid "Module %s not found"
 msgstr ""
 
-#: source/nijiexpose/plugins/plugin.d:93
+#: dlang_archive/source/nijiexpose/plugins/plugin.d:93
 msgid "Attempted to require a symlink, this is not allowed."
 msgstr ""
 
-#: source/nijiexpose/plugins/plugin.d:164
+#: dlang_archive/source/nijiexpose/plugins/plugin.d:164
 #, c-format
 msgid "Loaded plugin %s %s..."
 msgstr ""
 
 #. Error display for plugins erroring out
-#: source/nijiexpose/plugins/plugin.d:174 source/nijiexpose/panels/plugin.d:45
+#: dlang_archive/source/nijiexpose/plugins/plugin.d:174 dlang_archive/source/nijiexpose/panels/plugin.d:45
 #, c-format
 msgid "%s (plugin): %s"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:81
-#: source/nijiexpose/panels/tracking.d:309
+#: dlang_archive/source/nijiexpose/panels/tracking.d:81
+#: dlang_archive/source/nijiexpose/panels/tracking.d:309
 msgid "Ratio Binding"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:83
-#: source/nijiexpose/panels/tracking.d:315
+#: dlang_archive/source/nijiexpose/panels/tracking.d:83
+#: dlang_archive/source/nijiexpose/panels/tracking.d:315
 msgid "Expression Binding"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:85
-#: source/nijiexpose/panels/tracking.d:322
+#: dlang_archive/source/nijiexpose/panels/tracking.d:85
+#: dlang_archive/source/nijiexpose/panels/tracking.d:322
 msgid "Event Binding"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:87
-#: source/nijiexpose/panels/tracking.d:329
+#: dlang_archive/source/nijiexpose/panels/tracking.d:87
+#: dlang_archive/source/nijiexpose/panels/tracking.d:329
 msgid "Compound Binding"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:89
+#: dlang_archive/source/nijiexpose/panels/tracking.d:89
 msgid "External Binding"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:307
+#: dlang_archive/source/nijiexpose/panels/tracking.d:307
 msgid "Type"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:357
-#: source/nijiexpose/panels/tracking.d:474
-#: source/nijiexpose/panels/tracking.d:526
+#: dlang_archive/source/nijiexpose/panels/tracking.d:357
+#: dlang_archive/source/nijiexpose/panels/tracking.d:474
+#: dlang_archive/source/nijiexpose/panels/tracking.d:526
 msgid "Dampen"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:371
-#: source/nijiexpose/panels/tracking.d:556
-#: source/nijiexpose/panels/tracking.d:638
+#: dlang_archive/source/nijiexpose/panels/tracking.d:371
+#: dlang_archive/source/nijiexpose/panels/tracking.d:556
+#: dlang_archive/source/nijiexpose/panels/tracking.d:638
 msgid "Value out of range, clamped to 0..1 range."
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:374
-#: source/nijiexpose/panels/tracking.d:559
-#: source/nijiexpose/panels/tracking.d:641
+#: dlang_archive/source/nijiexpose/panels/tracking.d:374
+#: dlang_archive/source/nijiexpose/panels/tracking.d:559
+#: dlang_archive/source/nijiexpose/panels/tracking.d:641
 #, c-format
 msgid "Output (%s)"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:394
-#: source/nijiexpose/panels/animations.d:89
+#: dlang_archive/source/nijiexpose/panels/tracking.d:394
+#: dlang_archive/source/nijiexpose/panels/animations.d:89
 msgid "Not tracked"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:409
-#: source/nijiexpose/panels/animations.d:104
+#: dlang_archive/source/nijiexpose/panels/tracking.d:409
+#: dlang_archive/source/nijiexpose/panels/animations.d:104
 msgid "X"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:415
-#: source/nijiexpose/panels/animations.d:110
+#: dlang_archive/source/nijiexpose/panels/tracking.d:415
+#: dlang_archive/source/nijiexpose/panels/animations.d:110
 msgid "Y"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:421
-#: source/nijiexpose/panels/animations.d:116
+#: dlang_archive/source/nijiexpose/panels/tracking.d:421
+#: dlang_archive/source/nijiexpose/panels/animations.d:116
 msgid "Z"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:427
-#: source/nijiexpose/panels/animations.d:122
+#: dlang_archive/source/nijiexpose/panels/tracking.d:427
+#: dlang_archive/source/nijiexpose/panels/animations.d:122
 msgid "Roll"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:433
-#: source/nijiexpose/panels/animations.d:128
+#: dlang_archive/source/nijiexpose/panels/tracking.d:433
+#: dlang_archive/source/nijiexpose/panels/animations.d:128
 msgid "Pitch"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:439
-#: source/nijiexpose/panels/animations.d:134
+#: dlang_archive/source/nijiexpose/panels/tracking.d:439
+#: dlang_archive/source/nijiexpose/panels/animations.d:134
 msgid "Yaw"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:467
-#: source/nijiexpose/panels/tracking.d:540
-#: source/nijiexpose/panels/tracking.d:604 source/nijiexpose/panels/scene.d:154
+#: dlang_archive/source/nijiexpose/panels/tracking.d:467
+#: dlang_archive/source/nijiexpose/panels/tracking.d:540
+#: dlang_archive/source/nijiexpose/panels/tracking.d:604 dlang_archive/source/nijiexpose/panels/scene.d:154
 msgid ""
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:472
+#: dlang_archive/source/nijiexpose/panels/tracking.d:472
 msgid "Inverse"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:477
+#: dlang_archive/source/nijiexpose/panels/tracking.d:477
 msgid "Tracking In"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:506
+#: dlang_archive/source/nijiexpose/panels/tracking.d:506
 msgid "Tracking Out"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:216
-#: source/nijiexpose/windows/spaceedit.d:300
-#: source/nijiexpose/windows/spaceedit.d:362
-#: source/nijiexpose/panels/tracking.d:549
-#: source/nijiexpose/panels/tracking.d:631
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:216
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:300
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:362
+#: dlang_archive/source/nijiexpose/panels/tracking.d:549
+#: dlang_archive/source/nijiexpose/panels/tracking.d:631
 msgid ""
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:576
+#: dlang_archive/source/nijiexpose/panels/tracking.d:576
 msgid "Weighted Sum"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:577
+#: dlang_archive/source/nijiexpose/panels/tracking.d:577
 msgid "Weighted Multiply"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:578
+#: dlang_archive/source/nijiexpose/panels/tracking.d:578
 msgid "Ordered"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:654
-#: source/nijiexpose/panels/animations.d:425
+#: dlang_archive/source/nijiexpose/panels/tracking.d:654
+#: dlang_archive/source/nijiexpose/panels/animations.d:425
 msgid ""
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:658
-#: source/nijiexpose/panels/animations.d:429
+#: dlang_archive/source/nijiexpose/panels/tracking.d:658
+#: dlang_archive/source/nijiexpose/panels/animations.d:429
 msgid "Refresh"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:413
-#: source/nijiexpose/panels/tracking.d:662
-#: source/nijiexpose/panels/animations.d:433
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:413
+#: dlang_archive/source/nijiexpose/panels/tracking.d:662
+#: dlang_archive/source/nijiexpose/panels/animations.d:433
 msgid ""
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:34
-#: source/nijiexpose/windows/spaceedit.d:282
-#: source/nijiexpose/windows/spaceedit.d:419
-#: source/nijiexpose/windows/settings.d:65
-#: source/nijiexpose/windows/settings.d:75
-#: source/nijiexpose/windows/settings.d:225
-#: source/nijiexpose/windows/main.d:943 source/nijiexpose/windows/main.d:947
-#: source/nijiexpose/panels/tracking.d:666 source/nijiexpose/panels/scene.d:43
-#: source/nijiexpose/panels/scene.d:144
-#: source/nijiexpose/panels/animations.d:437
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:34
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:282
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:419
+#: dlang_archive/source/nijiexpose/windows/settings.d:65
+#: dlang_archive/source/nijiexpose/windows/settings.d:75
+#: dlang_archive/source/nijiexpose/windows/settings.d:225
+#: dlang_archive/source/nijiexpose/windows/main.d:943 dlang_archive/source/nijiexpose/windows/main.d:947
+#: dlang_archive/source/nijiexpose/panels/tracking.d:666 dlang_archive/source/nijiexpose/panels/scene.d:43
+#: dlang_archive/source/nijiexpose/panels/scene.d:144
+#: dlang_archive/source/nijiexpose/panels/animations.d:437
 msgid "Error"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:669
-#: source/nijiexpose/panels/animations.d:440
+#: dlang_archive/source/nijiexpose/panels/tracking.d:669
+#: dlang_archive/source/nijiexpose/panels/animations.d:440
 msgid "Save to File"
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:695
+#: dlang_archive/source/nijiexpose/panels/tracking.d:695
 msgid "No settings available."
 msgstr ""
 
-#: source/nijiexpose/panels/tracking.d:702
-#: source/nijiexpose/panels/animations.d:495
+#: dlang_archive/source/nijiexpose/panels/tracking.d:702
+#: dlang_archive/source/nijiexpose/panels/animations.d:495
 msgid "No puppet selected"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:281
-#: source/nijiexpose/windows/settings.d:350
-#: source/nijiexpose/animation/package.d:53
-#: source/nijiexpose/panels/tracking.d:707
+#: dlang_archive/source/nijiexpose/windows/settings.d:281
+#: dlang_archive/source/nijiexpose/windows/settings.d:350
+#: dlang_archive/source/nijiexpose/animation/package.d:53
+#: dlang_archive/source/nijiexpose/panels/tracking.d:707
 msgid "Tracking"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:88
+#: dlang_archive/source/nijiexpose/panels/animations.d:88
 msgid "Tracking Parameter"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:156
+#: dlang_archive/source/nijiexpose/panels/animations.d:156
 msgid "Reset"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:164
+#: dlang_archive/source/nijiexpose/panels/animations.d:164
 msgid "Default Thresholds"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:168
+#: dlang_archive/source/nijiexpose/panels/animations.d:168
 msgid "Use Hold Delay"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:173
+#: dlang_archive/source/nijiexpose/panels/animations.d:173
 msgid "Play Threshold"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:207
-#: source/nijiexpose/panels/animations.d:255
-#: source/nijiexpose/panels/animations.d:302
+#: dlang_archive/source/nijiexpose/panels/animations.d:207
+#: dlang_archive/source/nijiexpose/panels/animations.d:255
+#: dlang_archive/source/nijiexpose/panels/animations.d:302
 msgid "Hold Delay (ms):"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:221
+#: dlang_archive/source/nijiexpose/panels/animations.d:221
 msgid "Stop Threshold"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:268
+#: dlang_archive/source/nijiexpose/panels/animations.d:268
 msgid "Full Stop Threshold"
 msgstr ""
 
-#: source/nijiexpose/animation/package.d:55
-#: source/nijiexpose/panels/animations.d:324
+#: dlang_archive/source/nijiexpose/animation/package.d:55
+#: dlang_archive/source/nijiexpose/panels/animations.d:324
 msgid "Event"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:327
+#: dlang_archive/source/nijiexpose/panels/animations.d:327
 msgid "Play on"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:329
+#: dlang_archive/source/nijiexpose/panels/animations.d:329
 msgid "Stop on"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:331
+#: dlang_archive/source/nijiexpose/panels/animations.d:331
 msgid "Full stop on"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:340
+#: dlang_archive/source/nijiexpose/panels/animations.d:340
 msgid "Load"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:346
-#: source/nijiexpose/panels/animations.d:375
-#: source/nijiexpose/panels/animations.d:399
+#: dlang_archive/source/nijiexpose/panels/animations.d:346
+#: dlang_archive/source/nijiexpose/panels/animations.d:375
+#: dlang_archive/source/nijiexpose/panels/animations.d:399
 msgid "Idle"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:354
-#: source/nijiexpose/panels/animations.d:381
-#: source/nijiexpose/panels/animations.d:405
+#: dlang_archive/source/nijiexpose/panels/animations.d:354
+#: dlang_archive/source/nijiexpose/panels/animations.d:381
+#: dlang_archive/source/nijiexpose/panels/animations.d:405
 msgid "Sleep"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:459
+#: dlang_archive/source/nijiexpose/panels/animations.d:459
 msgid "Loop"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:463
+#: dlang_archive/source/nijiexpose/panels/animations.d:463
 msgid "Trigger"
 msgstr ""
 
-#: source/nijiexpose/panels/animations.d:501
+#: dlang_archive/source/nijiexpose/panels/animations.d:501
 msgid "Animations"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:43
+#: dlang_archive/source/nijiexpose/panels/scene.d:43
 #, c-format
 msgid "Could not load %s, %s"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:57
+#: dlang_archive/source/nijiexpose/panels/scene.d:57
 msgid "Post Processing"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:60
+#: dlang_archive/source/nijiexpose/panels/scene.d:60
 msgid "Enabled###POST_PROCESSING"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:65
+#: dlang_archive/source/nijiexpose/panels/scene.d:65
 msgid "Lighting"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:75
+#: dlang_archive/source/nijiexpose/panels/scene.d:75
 msgid "Background Color"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:83
+#: dlang_archive/source/nijiexpose/panels/scene.d:83
 msgid "Color Swatches"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:86
+#: dlang_archive/source/nijiexpose/panels/scene.d:86
 msgid "Full Transparent"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:92
+#: dlang_archive/source/nijiexpose/panels/scene.d:92
 msgid "Chroma Key Red"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:98
+#: dlang_archive/source/nijiexpose/panels/scene.d:98
 msgid "Chroma Key Green"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:104
+#: dlang_archive/source/nijiexpose/panels/scene.d:104
 msgid "Chroma Key Blue"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:110
+#: dlang_archive/source/nijiexpose/panels/scene.d:110
 msgid "Background Image"
 msgstr ""
 
-#: source/nijiexpose/panels/scene.d:113
+#: dlang_archive/source/nijiexpose/panels/scene.d:113
 msgid "Select Background"
 msgstr ""
 
-#: source/nijiexpose/windows/main.d:741 source/nijiexpose/panels/scene.d:120
+#: dlang_archive/source/nijiexpose/windows/main.d:741 dlang_archive/source/nijiexpose/panels/scene.d:120
 msgid "Open..."
 msgstr ""
 
-#: source/nijiexpose/windows/main.d:947 source/nijiexpose/panels/scene.d:144
+#: dlang_archive/source/nijiexpose/windows/main.d:947 dlang_archive/source/nijiexpose/panels/scene.d:144
 #, c-format
 msgid "Could not load %s, unsupported file format."
 msgstr ""
 
-#: source/nijiexpose/windows/main.d:889 source/nijiexpose/panels/scene.d:167
+#: dlang_archive/source/nijiexpose/windows/main.d:889 dlang_archive/source/nijiexpose/panels/scene.d:167
 msgid "Scene Settings"
 msgstr ""
 
-#: source/nijiexpose/panels/plugin.d:37
+#: dlang_archive/source/nijiexpose/panels/plugin.d:37
 #, c-format
 msgid "%s has crashed, options are disabled."
 msgstr ""
 
-#: source/nijiexpose/panels/plugin.d:49
+#: dlang_archive/source/nijiexpose/panels/plugin.d:49
 msgid "Plugin cannot be configured."
 msgstr ""
 
-#: source/nijiexpose/panels/plugin.d:61
+#: dlang_archive/source/nijiexpose/panels/plugin.d:61
 msgid "Plugins"
 msgstr ""
 
-#: source/nijiexpose/panels/blends.d:35
+#: dlang_archive/source/nijiexpose/panels/blends.d:35
 msgid "Blendshapes"
 msgstr ""
 
-#: source/nijiexpose/animation/package.d:51
+#: dlang_archive/source/nijiexpose/animation/package.d:51
 msgid "None"
 msgstr ""
 
-#: source/nijiexpose/tracking/ratiobinding.d:197
-#: source/nijiexpose/animation/package.d:510
+#: dlang_archive/source/nijiexpose/tracking/ratiobinding.d:197
+#: dlang_archive/source/nijiexpose/animation/package.d:510
 #, c-format
 msgid "%s (X)"
 msgstr ""
 
-#: source/nijiexpose/tracking/ratiobinding.d:200
-#: source/nijiexpose/animation/package.d:513
+#: dlang_archive/source/nijiexpose/tracking/ratiobinding.d:200
+#: dlang_archive/source/nijiexpose/animation/package.d:513
 #, c-format
 msgid "%s (Y)"
 msgstr ""
 
-#: source/nijiexpose/tracking/ratiobinding.d:203
-#: source/nijiexpose/animation/package.d:516
+#: dlang_archive/source/nijiexpose/tracking/ratiobinding.d:203
+#: dlang_archive/source/nijiexpose/animation/package.d:516
 #, c-format
 msgid "%s (Z)"
 msgstr ""
 
-#: source/nijiexpose/tracking/ratiobinding.d:206
-#: source/nijiexpose/animation/package.d:519
+#: dlang_archive/source/nijiexpose/tracking/ratiobinding.d:206
+#: dlang_archive/source/nijiexpose/animation/package.d:519
 #, c-format
 msgid "%s (Roll)"
 msgstr ""
 
-#: source/nijiexpose/tracking/ratiobinding.d:209
-#: source/nijiexpose/animation/package.d:522
+#: dlang_archive/source/nijiexpose/tracking/ratiobinding.d:209
+#: dlang_archive/source/nijiexpose/animation/package.d:522
 #, c-format
 msgid "%s (Pitch)"
 msgstr ""
 
-#: source/nijiexpose/tracking/ratiobinding.d:212
-#: source/nijiexpose/animation/package.d:525
+#: dlang_archive/source/nijiexpose/tracking/ratiobinding.d:212
+#: dlang_archive/source/nijiexpose/animation/package.d:525
 #, c-format
 msgid "%s (Yaw)"
 msgstr ""
 
-#: source/nijiexpose/tracking/ratiobinding.d:215
+#: dlang_archive/source/nijiexpose/tracking/ratiobinding.d:215
 #, c-format
 msgid "%s (Key)"
 msgstr ""
 
-#: source/nijiexpose/tracking/expr.d:197
+#: dlang_archive/source/nijiexpose/tracking/expr.d:197
 #, c-format
 msgid "Expected %s, got %s"
 msgstr ""
 
-#: source/nijiexpose/windows/main.d:880
+#: dlang_archive/source/nijiexpose/windows/main.d:880
 msgid "Tracking Settings"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:481
-#: source/nijiexpose/windows/main.d:885
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:481
+#: dlang_archive/source/nijiexpose/windows/main.d:885
 msgid "Virtual Space"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:353
-#: source/nijiexpose/windows/main.d:898
+#: dlang_archive/source/nijiexpose/windows/settings.d:353
+#: dlang_archive/source/nijiexpose/windows/main.d:898
 msgid "Rendering"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:311
-#: source/nijiexpose/windows/settings.d:378
-#: source/nijiexpose/windows/main.d:913
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:311
+#: dlang_archive/source/nijiexpose/windows/settings.d:378
+#: dlang_archive/source/nijiexpose/windows/main.d:913
 msgid "Apply"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:132
-#: source/nijiexpose/windows/settings.d:142
-#: source/nijiexpose/windows/settings.d:146
+#: dlang_archive/source/nijiexpose/windows/settings.d:132
+#: dlang_archive/source/nijiexpose/windows/settings.d:142
+#: dlang_archive/source/nijiexpose/windows/settings.d:146
 msgid "Language"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:149
-#: source/nijiexpose/windows/settings.d:154
+#: dlang_archive/source/nijiexpose/windows/settings.d:149
+#: dlang_archive/source/nijiexpose/windows/settings.d:154
 msgid "English"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:164
+#: dlang_archive/source/nijiexpose/windows/settings.d:164
 msgid "Restart may be required for all text to update."
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:173
+#: dlang_archive/source/nijiexpose/windows/settings.d:173
 msgid "Enable tracking"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:200
+#: dlang_archive/source/nijiexpose/windows/settings.d:200
 msgid "Python path"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:207
+#: dlang_archive/source/nijiexpose/windows/settings.d:207
 msgid "Python is not detected. Please install python (<=3.12) first."
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:190
+#: dlang_archive/source/nijiexpose/windows/settings.d:190
 msgid "Tracker executable path"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:223
+#: dlang_archive/source/nijiexpose/windows/settings.d:223
 msgid "Install"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:238
+#: dlang_archive/source/nijiexpose/windows/settings.d:238
 msgid "OK"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:243
+#: dlang_archive/source/nijiexpose/windows/settings.d:243
 msgid "Camera device"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:250
+#: dlang_archive/source/nijiexpose/windows/settings.d:250
 msgid "Select device..."
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:261
+#: dlang_archive/source/nijiexpose/windows/settings.d:261
 msgid "Host name"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:264
+#: dlang_archive/source/nijiexpose/windows/settings.d:264
 msgid "Port number"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:267
+#: dlang_archive/source/nijiexpose/windows/settings.d:267
 msgid "Flip input"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:268
+#: dlang_archive/source/nijiexpose/windows/settings.d:268
 msgid "Show camera tracking window"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:291
-#: source/nijiexpose/windows/settings.d:310
+#: dlang_archive/source/nijiexpose/windows/settings.d:291
+#: dlang_archive/source/nijiexpose/windows/settings.d:310
 msgid "V-Sync throttling"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:294
-#: source/nijiexpose/windows/settings.d:312
+#: dlang_archive/source/nijiexpose/windows/settings.d:294
+#: dlang_archive/source/nijiexpose/windows/settings.d:312
 msgid "Throtting interval"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:294
-#: source/nijiexpose/windows/settings.d:312
+#: dlang_archive/source/nijiexpose/windows/settings.d:294
+#: dlang_archive/source/nijiexpose/windows/settings.d:312
 msgid "Experimental"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:301
-#: source/nijiexpose/windows/settings.d:318
+#: dlang_archive/source/nijiexpose/windows/settings.d:301
+#: dlang_archive/source/nijiexpose/windows/settings.d:318
 msgid "Triple buffer fallback"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:304
-#: source/nijiexpose/windows/settings.d:320
+#: dlang_archive/source/nijiexpose/windows/settings.d:304
+#: dlang_archive/source/nijiexpose/windows/settings.d:320
 msgid "Enable triple buffer fallback"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:305
-#: source/nijiexpose/windows/settings.d:321
+#: dlang_archive/source/nijiexpose/windows/settings.d:305
+#: dlang_archive/source/nijiexpose/windows/settings.d:321
 msgid "Use when advanced blend is unavailable or causes issues."
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:347
+#: dlang_archive/source/nijiexpose/windows/settings.d:347
 msgid "General"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:391
+#: dlang_archive/source/nijiexpose/windows/settings.d:391
 msgid "Settings"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:78
-#: source/nijiexpose/windows/spaceedit.d:88
-#: source/nijiexpose/windows/spaceedit.d:287
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:78
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:88
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:287
 msgid "Delete"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:101
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:101
 msgid "iFacialMocap Adpator would listen on udp port 49983"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:104
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:104
 msgid "Make sure the port is not blocked by firewall."
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:224
-#: source/nijiexpose/windows/spaceedit.d:368
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:224
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:368
 msgid "No zone selected for editing..."
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:243
-#: source/nijiexpose/windows/spaceedit.d:380
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:243
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:380
 msgid "Unset"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:276
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:276
 msgid "Save Changes"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:321
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:321
 msgid "Zone"
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:332
-#: source/nijiexpose/windows/spaceedit.d:392
-#: source/nijiexpose/windows/spaceedit.d:423
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:332
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:392
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:423
 msgid ""
 msgstr ""
 
-#: source/nijiexpose/windows/spaceedit.d:454
+#: dlang_archive/source/nijiexpose/windows/spaceedit.d:454
 msgid "Add Source"
 msgstr ""
 
-#: source/nijiexpose/framesend.d:50
+#: dlang_archive/source/nijiexpose/framesend.d:50
 msgid ""
 "Could not start texture sharing, it will be disabled. Is the library missing?"
 msgstr ""
 
-#: source/nijiexpose/framesend.d:51
+#: dlang_archive/source/nijiexpose/framesend.d:51
 msgid "Frame-sending started successfully!"
 msgstr ""
 
-#: source/nijiexpose/i18n.d:18
+#: dlang_archive/source/nijiexpose/i18n.d:18
 msgid "LANG_NAME"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:182
+#: dlang_archive/source/nijiexpose/windows/settings.d:182
 msgid "Tracker launch mode"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:184
-#: source/nijiexpose/windows/settings.d:186
+#: dlang_archive/source/nijiexpose/windows/settings.d:184
+#: dlang_archive/source/nijiexpose/windows/settings.d:186
 msgid "Executable"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:184
-#: source/nijiexpose/windows/settings.d:185
+#: dlang_archive/source/nijiexpose/windows/settings.d:184
+#: dlang_archive/source/nijiexpose/windows/settings.d:185
 msgid "Python"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:194
+#: dlang_archive/source/nijiexpose/windows/settings.d:194
 msgid "Python executable path (empty: auto-detect)"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:211
+#: dlang_archive/source/nijiexpose/windows/settings.d:211
 msgid "Tracker script directory"
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d:297
-#: source/nijiexpose/windows/settings.d:315
+#: dlang_archive/source/nijiexpose/windows/settings.d:297
+#: dlang_archive/source/nijiexpose/windows/settings.d:315
 #, c-format
 msgid "Frame rate: %.2f fps"
 msgstr ""
 
-#: source/nijiexpose/tracking/tracker.d:89
+#: dlang_archive/source/nijiexpose/tracking/tracker.d:89
 msgid "Tracker executable is missing or cannot be executed."
 msgstr ""
 
-#: source/nijiexpose/tracking/tracker.d:92
+#: dlang_archive/source/nijiexpose/tracking/tracker.d:92
 msgid "Python executable is missing or cannot be executed."
 msgstr ""
 
-#: source/nijiexpose/tracking/tracker.d:95
-#: source/nijiexpose/tracking/tracker.d:97
+#: dlang_archive/source/nijiexpose/tracking/tracker.d:95
+#: dlang_archive/source/nijiexpose/tracking/tracker.d:97
 msgid "Tracker script was not found."
 msgstr ""
 
-#: source/nijiexpose/tracking/tracker.d:194
-#: source/nijiexpose/tracking/tracker.d:230
+#: dlang_archive/source/nijiexpose/tracking/tracker.d:194
+#: dlang_archive/source/nijiexpose/tracking/tracker.d:230
 msgid "Could not start the tracker."
 msgstr ""
 
-#: source/nijiexpose/tracking/tracker.d:203
+#: dlang_archive/source/nijiexpose/tracking/tracker.d:203
 msgid "Could not list tracker cameras."
 msgstr ""
 
-#: source/nijiexpose/tracking/tracker.d:246
+#: dlang_archive/source/nijiexpose/tracking/tracker.d:246
 msgid "Python executable was not found."
 msgstr ""
 
-#: source/nijiexpose/windows/settings.d
+#: dlang_archive/source/nijiexpose/windows/settings.d
 msgid "Retry camera detection"
 msgstr ""

@@ -1,4 +1,4 @@
-// Host adapter binding the nijimi OpenGL implementation to nicxlive NativeBackend.
+// nijimi OpenGL host: resource operations and playback of nicxlive command queues.
 #include "backend.hpp"
 #include "probes.hpp"
 #include "runtime.hpp"
@@ -8,12 +8,38 @@
 #include "mask.hpp"
 #include "blending.hpp"
 #include "draw_texture.hpp"
-#include "render_queue.hpp"
+#include <core/render/backend_queue.hpp>
+#include <core/render/shared_deform_buffer.hpp>
 #include "difference.hpp"
 #include <algorithm>
 #include <stdexcept>
 namespace nijiexpose::ogl {
 void Backend::initializeRenderer() {
+    resourceCallbacks.userData=this;
+    resourceCallbacks.createTexture=[](int w,int h,int channels,int,int,bool,bool stencil,void* user)->size_t {
+        auto& self=*static_cast<Backend*>(user);
+        GLuint id{}; oglCreateTextureHandle(id);
+        self.textures.emplace(id,TextureInfo{w,h,channels,stencil,false});
+        oglUploadTextureData(id,w,h,channels,channels,stencil,{});
+        self.setTextureParams(id,nicxlive::core::Filtering::Linear,nicxlive::core::Wrapping::Clamp,oglMaxTextureAnisotropy()/2.0f);
+        return id;
+    };
+    resourceCallbacks.updateTexture=[](size_t handle,const uint8_t* data,size_t length,int w,int h,int channels,void* user) {
+        auto& self=*static_cast<Backend*>(user);
+        auto it=self.textures.find(static_cast<uint32_t>(handle));
+        if(it==self.textures.end() || !data || w<=0 || h<=0 || channels<1 || channels>4)return;
+        const auto expected=static_cast<size_t>(w)*h*channels;
+        if(length<expected)return;
+        std::vector<uint8_t> pixels(data,data+expected);
+        const auto& info=it->second;
+        oglUploadTextureData(static_cast<uint32_t>(handle),w,h,channels,info.channels,info.stencil,pixels);
+        oglRecordCpuTexture(static_cast<uint32_t>(handle),w,h,channels,pixels);
+    };
+    resourceCallbacks.releaseTexture=[](size_t handle,void* user) {
+        auto& self=*static_cast<Backend*>(user);
+        auto id=static_cast<uint32_t>(handle);
+        if(self.textures.erase(id)) { oglReleaseCpuTexture(id); oglDeleteTextureHandle(id); }
+    };
     loadApi();
     oglInitRenderer();
     oglInitDrawableBackend();
@@ -23,6 +49,7 @@ void Backend::initializeRenderer() {
 void Backend::initializeDrawableResources() { oglInitDrawableBackend(); }
 void Backend::bindDrawableVao() { oglBindDrawableVao(); }
 void Backend::createDrawableBuffers(uint32_t& id) { oglCreateDrawableBuffers(id); }
+void Backend::disposeDrawableBuffers(uint32_t id) { oglDisposeDrawableBuffers(id); }
 void Backend::uploadDrawableIndices(uint32_t id, const std::vector<uint16_t>& data) { oglUploadDrawableIndices(id,data); }
 void Backend::uploadSharedVertexBuffer(const Vec2Array& data) { oglUploadSharedVertexBuffer(data); }
 void Backend::uploadSharedUvBuffer(const Vec2Array& data) { oglUploadSharedUvBuffer(data); }
@@ -38,55 +65,53 @@ void Backend::applyMask(const MaskApplyPacket& packet) { oglExecuteMaskApplyPack
 void Backend::beginMaskContent() { oglBeginMaskContent(); }
 void Backend::endMask() { oglEndMask(); }
 uint32_t Backend::createTexture(const std::vector<uint8_t>& data,int w,int h,int channels,bool stencil) {
-    return createNativeTexture(data,w,h,channels,channels,stencil,true);
-}
-uint32_t Backend::createNativeTexture(const std::vector<uint8_t>& data,int w,int h,int inChannels,int outChannels,bool stencil,bool mipmaps) {
-    // nijimi initOpenGLBackend.createTexture: all callback textures use level 0.
-    mipmaps=false;
-    GLuint id{};
-    oglCreateTextureHandle(id);
-    textures.emplace(id, TextureInfo{w,h,outChannels,stencil,mipmaps});
-    setNativeTextureData(id,data,inChannels);
-    setNativeTextureFiltering(id,nicxlive::core::Filtering::Linear,mipmaps);
-    setNativeTextureWrapping(id,nicxlive::core::Wrapping::Clamp);
-    setNativeTextureAnisotropy(id,oglMaxTextureAnisotropy()/2.0f);
+    auto id=static_cast<uint32_t>(resourceCallbacks.createTexture(w,h,channels,1,0,false,stencil,resourceCallbacks.userData));
+    updateTexture(id,data,w,h,channels);
     return id;
 }
-void Backend::setNativeTextureData(uint32_t id,const std::vector<uint8_t>& data,int inChannels) {
-    const auto& info = textures.at(id);
-    oglUploadTextureData(id,info.width,info.height,inChannels,info.channels,info.stencil,data);
-    oglRecordCpuTexture(id,info.width,info.height,inChannels,data);
-    if (!info.stencil && info.mipmaps) oglGenerateTextureMipmap(id);
+void Backend::updateTexture(uint32_t id,const std::vector<uint8_t>& data,int w,int h,int channels) {
+    resourceCallbacks.updateTexture(id,data.data(),data.size(),w,h,channels,resourceCallbacks.userData);
 }
-void Backend::setNativeTextureFiltering(uint32_t id,nicxlive::core::Filtering value,bool mipmaps) {
-    mipmaps=textures.at(id).mipmaps;
-    oglApplyTextureFiltering(id,value == nicxlive::core::Filtering::Linear ? Filtering::Linear : Filtering::Nearest,mipmaps);
+
+void Backend::setTextureParams(uint32_t id,nicxlive::core::Filtering filter,nicxlive::core::Wrapping wrap,float anisotropy) {
+    oglApplyTextureFiltering(id,filter==nicxlive::core::Filtering::Linear ? Filtering::Linear : Filtering::Nearest,false);
+    oglApplyTextureWrapping(id,static_cast<Wrapping>(wrap));
+    oglApplyTextureAnisotropy(id,std::clamp(anisotropy,1.f,oglMaxTextureAnisotropy()));
 }
-void Backend::setNativeTextureWrapping(uint32_t id,nicxlive::core::Wrapping value) {
-    oglApplyTextureWrapping(id,static_cast<Wrapping>(value));
-}
-void Backend::setNativeTextureAnisotropy(uint32_t id,float value) {
-    oglApplyTextureAnisotropy(id,std::clamp(value,1.f,oglMaxTextureAnisotropy()));
-}
-std::vector<uint8_t> Backend::readNativeTexture(uint32_t id) {
-    const auto& info = textures.at(id);
+std::vector<uint8_t> Backend::readTexture(uint32_t id) {
+    const auto& info=textures.at(id);
     std::vector<uint8_t> data(static_cast<size_t>(info.width)*info.height*info.channels);
     oglReadTextureData(id,info.channels,info.stencil,data);
     return data;
 }
-void Backend::updateTexture(uint32_t id,const std::vector<uint8_t>& data,int w,int h,int channels) {
-    auto& info = textures.at(id);
-    info.width=w; info.height=h;
-    setNativeTextureData(id,data,channels);
+void Backend::disposeTexture(uint32_t id) { resourceCallbacks.releaseTexture(id,resourceCallbacks.userData); }
+void Backend::drawPuppet(nicxlive::core::Puppet& puppet) {
+    using namespace nicxlive::core;
+    using namespace nicxlive::core::render;
+    // The core produces its standard command queue; OpenGL only consumes it,
+    // as renderCommands does in nijimi/source/render/opengl/opengl_backend.d.
+    auto host=getCurrentRenderBackend();
+    auto queue=std::make_shared<QueueRenderBackend>();
+    puppet.setRenderBackend(queue);
+    setCurrentRenderBackend(host);
+    puppet.draw();
+    uploadSharedVertexBuffer(sharedVertexBufferData());
+    uploadSharedUvBuffer(sharedUvBufferData());
+    uploadSharedDeformBuffer(sharedDeformBufferData());
+    sharedVertexMarkUploaded(); sharedUvMarkUploaded(); sharedDeformMarkUploaded();
+    for(const auto& cmd:queue->queue) {
+        switch(cmd.kind) {
+            case RenderCommandKind::DrawPart: drawPartPacket(cmd.partPacket); break;
+            case RenderCommandKind::BeginMask: beginMask(cmd.usesStencil); break;
+            case RenderCommandKind::ApplyMask: applyMask(cmd.maskApplyPacket); break;
+            case RenderCommandKind::BeginMaskContent: beginMaskContent(); break;
+            case RenderCommandKind::EndMask: endMask(); break;
+            case RenderCommandKind::BeginDynamicComposite: beginDynamicComposite(cmd.dynamicPass); break;
+            case RenderCommandKind::EndDynamicComposite: endDynamicComposite(cmd.dynamicPass); break;
+        }
+    }
+    queue->clear();
 }
-void Backend::setTextureParams(uint32_t id,nicxlive::core::Filtering filter,nicxlive::core::Wrapping wrap,float anisotropy) {
-    setNativeTextureFiltering(id,filter,textures.at(id).mipmaps);
-    setNativeTextureWrapping(id,wrap);
-    setNativeTextureAnisotropy(id,anisotropy);
-}
-void Backend::disposeTexture(uint32_t id) { textures.erase(id); oglReleaseCpuTexture(id); oglDeleteTextureHandle(id); }
-bool Backend::useNativeMultistageBlend(BlendMode mode) { return inUseMultistageBlending(mode); }
-std::unique_ptr<nicxlive::core::RenderCommandEmitter> Backend::createNativeCommandEmitter() { return std::make_unique<RenderQueue>(); }
 void Backend::beginDynamicComposite(const DynamicCompositePass& pass) {
     composites.push_back(pass);
     oglBeginDynamicComposite(composites.back());

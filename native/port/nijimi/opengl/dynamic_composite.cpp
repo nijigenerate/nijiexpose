@@ -12,19 +12,20 @@ GLuint textureId(const std::shared_ptr<Texture>& texture) {
     if (handle == 0) return 0;
     return handle;
 }
-// nijimi's FBO cache is keyed by texture handles and invalidated on texture disposal.
-using FramebufferKey = std::array<size_t, 5>;
-std::map<FramebufferKey, GLuint> framebufferCache;
-GLuint acquireFramebuffer(const DynamicCompositeSurface& surface) {
-    FramebufferKey key{};
-    for (size_t i=0; i<surface.textureCount; ++i) key[i]=textureId(surface.textures[i]);
-    key[3]=surface.textureCount;
-    key[4]=textureId(surface.stencil);
-    auto found=framebufferCache.find(key);
-    if (found!=framebufferCache.end()) return found->second;
+// Surfaces own independent FBOs, even when their attachments are shared.
+// Weak owners let the rendering thread collect expired surfaces safely.
+struct FramebufferEntry {
+    std::weak_ptr<DynamicCompositeSurface> owner;
+    GLuint handle;
+};
+std::map<const DynamicCompositeSurface*, FramebufferEntry> framebuffers;
+GLuint acquireFramebuffer(const std::shared_ptr<DynamicCompositeSurface>& surface) {
+    oglCollectDynamicFramebuffers();
+    auto found=framebuffers.find(surface.get());
+    if(found!=framebuffers.end())return found->second.handle;
     GLuint fbo{};
     glGenFramebuffers(1,&fbo);
-    framebufferCache.emplace(key,fbo);
+    framebuffers.emplace(surface.get(),FramebufferEntry{surface,fbo});
     return fbo;
 }
 }
@@ -35,7 +36,7 @@ void oglBeginDynamicComposite(DynamicCompositePass& pass) {
     auto tex = surface->textures[0];
     if (!tex) return;
     if (surface->framebuffer == 0) {
-        surface->framebuffer = acquireFramebuffer(*surface);
+        surface->framebuffer = acquireFramebuffer(surface);
     }
     GLint previousReadFramebuffer;
     glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previousReadFramebuffer);
@@ -89,18 +90,19 @@ void oglEndDynamicComposite(DynamicCompositePass& pass) {
 }
 void oglDestroyDynamicComposite(const std::shared_ptr<DynamicCompositeSurface>& surface) {
     if (!surface) return;
-    // The cache owns the GL object until its textures are released.
+    auto found=framebuffers.find(surface.get());
+    if(found!=framebuffers.end()) {
+        glDeleteFramebuffers(1,&found->second.handle);
+        framebuffers.erase(found);
+    }
     surface->framebuffer = 0;
 }
-void oglReleaseDynamicFramebuffersForTexture(GLuint handle) {
-    if (!handle) return;
-    for (auto it=framebufferCache.begin(); it!=framebufferCache.end();) {
-        const auto& key=it->first;
-        bool uses=key[4]==handle;
-        for(size_t i=0; i<key[3]; ++i) uses=uses || key[i]==handle;
-        if (uses) {
-            if(it->second) glDeleteFramebuffers(1,&it->second);
-            it=framebufferCache.erase(it);
+void oglCollectDynamicFramebuffers(bool all) {
+    for(auto it=framebuffers.begin();it!=framebuffers.end();) {
+        if(all || it->second.owner.expired()) {
+            if(auto owner=it->second.owner.lock())owner->framebuffer=0;
+            glDeleteFramebuffers(1,&it->second.handle);
+            it=framebuffers.erase(it);
         } else ++it;
     }
 }

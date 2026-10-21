@@ -53,7 +53,7 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:freetype> $<TARGET_FILE_DIR:nijiexpose_native>
         COMMAND ${CMAKE_COMMAND} -E copy_if_different "${native_spout_dll}" $<TARGET_FILE_DIR:nijiexpose_native>)
     install(FILES "${native_spout_dll}" DESTINATION bin)
-    install(FILES "${PROJECT_SOURCE_DIR}/res/licenses/LICENSE-Spout2" "${CMAKE_CURRENT_SOURCE_DIR}/licenses/bindbc-spout2.txt"
+    install(FILES "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Spout2" "${CMAKE_CURRENT_SOURCE_DIR}/licenses/bindbc-spout2.txt"
         "${CMAKE_CURRENT_SOURCE_DIR}/licenses/nijiui.txt"
         "${CMAKE_CURRENT_SOURCE_DIR}/licenses/facetrack-d.txt"
         "${CMAKE_CURRENT_SOURCE_DIR}/licenses/vmc-d.txt"
@@ -123,8 +123,8 @@ if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
     else()
         target_compile_options(nijiexpose_gl_resources PRIVATE -Wall -Wextra -Wpedantic)
     endif()
-    file(READ "${PROJECT_SOURCE_DIR}/res/shaders/batch.vert" native_batch_vertex)
-    file(READ "${PROJECT_SOURCE_DIR}/res/shaders/batch.frag" native_batch_fragment)
+    file(READ "${PROJECT_SOURCE_DIR}/native/res/shaders/batch.vert" native_batch_vertex)
+    file(READ "${PROJECT_SOURCE_DIR}/native/res/shaders/batch.frag" native_batch_fragment)
     file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/spritebatch_assets.hpp"
         "#pragma once\n#include \"nijilive/opengl/shader.hpp\"\nnamespace nijiexpose { inline const ogl::ShaderAsset SpriteBatchShaderSource{R\"NIJIGLSL(${native_batch_vertex})NIJIGLSL\",R\"NIJIGLSL(${native_batch_fragment})NIJIGLSL\"}; }\n")
     add_library(nijiexpose_render_port STATIC port/nijiexpose/render/spritebatch.cpp port/nijiexpose/io/image.cpp)
@@ -279,7 +279,7 @@ if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_compile_options(nijiexpose_expressions PRIVATE /utf-8 /W4 /fp:strict)
     endif()
     install(FILES "${PROJECT_SOURCE_DIR}/vendor/runtime/lua51.dll" DESTINATION bin)
-    install(FILES "${PROJECT_SOURCE_DIR}/res/licenses/LICENSE-Lua" DESTINATION share/licenses/nijiexpose)
+    install(FILES "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua" DESTINATION share/licenses/nijiexpose)
     endif()
     add_library(nijiexpose_settings STATIC port/nijiui/core/settings.cpp)
     target_link_libraries(nijiexpose_settings PUBLIC nijiexpose_json nijiexpose_port)
@@ -315,14 +315,14 @@ if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
             "${PROJECT_SOURCE_DIR}/native/res/ui/ui-info.png"
             "${PROJECT_SOURCE_DIR}/native/res/ui/ui-warning.png"
             "${PROJECT_SOURCE_DIR}/native/res/ui/ui-error.png"
-            "${PROJECT_SOURCE_DIR}/res/tex/logo.png"
-            "${PROJECT_SOURCE_DIR}/res/icon_x256.png")
+            "${PROJECT_SOURCE_DIR}/native/res/tex/logo.png"
+            "${PROJECT_SOURCE_DIR}/native/res/icon_x256.png")
         set_source_files_properties(
             "${PROJECT_SOURCE_DIR}/native/res/ui/ui-info.png"
             "${PROJECT_SOURCE_DIR}/native/res/ui/ui-warning.png"
             "${PROJECT_SOURCE_DIR}/native/res/ui/ui-error.png"
-            "${PROJECT_SOURCE_DIR}/res/tex/logo.png"
-            "${PROJECT_SOURCE_DIR}/res/icon_x256.png"
+            "${PROJECT_SOURCE_DIR}/native/res/tex/logo.png"
+            "${PROJECT_SOURCE_DIR}/native/res/icon_x256.png"
             PROPERTIES MACOSX_PACKAGE_LOCATION Resources/ui HEADER_FILE_ONLY TRUE)
         target_sources(nijiexpose_native PRIVATE
             "${PROJECT_SOURCE_DIR}/vendor/nijitrack/models/face_landmarker.task"
@@ -351,6 +351,20 @@ if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(BUILD_TESTING)
+    add_executable(nijiexpose_resource_lifetime_test "${nicxlive_SOURCE_DIR}/tests/render_resource_lifetime_test.cpp")
+    target_link_libraries(nijiexpose_resource_lifetime_test PRIVATE nicxlive::nicxlive)
+    add_test(NAME native_resource_lifetime COMMAND nijiexpose_resource_lifetime_test)
+    add_executable(nijiexpose_security_receiver tests/security_receiver.cpp)
+    target_include_directories(nijiexpose_security_receiver PRIVATE port)
+    target_link_libraries(nijiexpose_security_receiver PRIVATE nijiexpose_tracking_input)
+    if(WIN32)
+        target_link_libraries(nijiexpose_security_receiver PRIVATE ws2_32)
+    endif()
+    add_executable(nijiexpose_security_output tests/security_output.cpp)
+    target_include_directories(nijiexpose_security_output PRIVATE port)
+    add_test(NAME native_security_regression COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/tests/security_regression.py"
+        "$<TARGET_FILE:nijiexpose_security_receiver>" "$<TARGET_FILE:nijiexpose_security_output>")
         add_executable(nijiexpose_plugin_test tests/plugin_test.cpp)
         add_executable(nijiexpose_plugin_oracle tests/plugin_oracle.cpp)
         target_link_libraries(nijiexpose_plugin_oracle PRIVATE nijiexpose_plugins)
@@ -453,21 +467,21 @@ if(BUILD_TESTING)
             find_package(Python3 REQUIRED COMPONENTS Interpreter)
             add_test(NAME native_style_d_parity COMMAND "${Python3_EXECUTABLE}"
                 "${CMAKE_CURRENT_SOURCE_DIR}/tests/compare_style.py"
-                --source "${PROJECT_SOURCE_DIR}/source/nijiexpose/windows/utils.d"
+                --source "${PROJECT_SOURCE_DIR}/dlang_archive/source/nijiexpose/windows/utils.d"
                 --cpp "$<TARGET_FILE:nijiexpose_style_oracle>")
             set_tests_properties(native_style_d_parity PROPERTIES LABELS parity)
             foreach(module IN ITEMS launchpath subprocess log)
                 if(module STREQUAL "log")
-                    set(reference_source "${PROJECT_SOURCE_DIR}/source/nijiexpose/log.d")
+                    set(reference_source "${PROJECT_SOURCE_DIR}/dlang_archive/source/nijiexpose/log.d")
                 else()
-                    set(reference_source "${PROJECT_SOURCE_DIR}/source/nijiexpose/utils/${module}.d")
+                    set(reference_source "${PROJECT_SOURCE_DIR}/dlang_archive/source/nijiexpose/utils/${module}.d")
                 endif()
                 set(reference_binary "${CMAKE_CURRENT_BINARY_DIR}/reference-${module}.exe")
                 add_custom_command(OUTPUT "${reference_binary}"
-                    COMMAND "${NIJIEXPOSE_LDC_EXECUTABLE}" "-I${PROJECT_SOURCE_DIR}/source"
-                        "${CMAKE_CURRENT_SOURCE_DIR}/tests/reference_${module}.d" "${reference_source}"
+                    COMMAND "${NIJIEXPOSE_LDC_EXECUTABLE}" "-I${PROJECT_SOURCE_DIR}/dlang_archive/source"
+                        "${PROJECT_SOURCE_DIR}/dlang_archive/reference/tests/reference_${module}.d" "${reference_source}"
                         "-of=${reference_binary}"
-                    DEPENDS "tests/reference_${module}.d" "${reference_source}"
+                    DEPENDS "${PROJECT_SOURCE_DIR}/dlang_archive/reference/tests/reference_${module}.d" "${reference_source}"
                     VERBATIM)
                 add_custom_target(nijiexpose_reference_${module} ALL DEPENDS "${reference_binary}")
                 set(parity_arguments

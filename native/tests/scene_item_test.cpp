@@ -25,8 +25,64 @@ int main(int argc,char** argv){
         check(reload->bindings.size()==1&&reload->animations.size()==1,"Loaded controls missing");auto restored=std::dynamic_pointer_cast<tracking::RatioTrackingBinding>(reload->bindings[0]->delegated);
         check(restored->inverse&&restored->dampenLevel==7&&restored->sourceName=="EyeBlinkLeft","Binding configuration lost");check(reload->animations[0]->type==animation::TriggerType::Event&&reload->animations[0]->playEvent==1,"Animation events lost");
         core::nodes::inSetUpdateBounds(true);item->puppet->update();auto bounds=item->getBounds();check(item->intersects({(bounds[0]+bounds[2])/2,(bounds[1]+bounds[3])/2}),"Bounds center rejected");check(!item->intersects({bounds[0],bounds[1]}),"D excludes rectangle edges");
-        auto child=make();child->puppet->update();check(child->attachTo(item),"Mesh attachment failed");check(child->attachedParent==item&&item->children.size()==1&&child->puppetRoot->pinToMesh,"Attachment state incomplete");
-        check(child->detach(),"Detach failed");check(!child->attachedParent&&item->children.empty()&&!child->puppetRoot->pinToMesh,"Detach state incomplete");
+        auto child=make();child->puppet->update();check(child->attachTo(item),"Mesh attachment failed");check(child->attachedParent.lock()==item&&item->children.size()==1&&child->puppetRoot->pinToMesh,"Attachment state incomplete");
+        auto meshParent=child->puppetRoot->parentPtr();
+        check(child->detach(),"Detach failed");check(child->attachedParent.expired()&&item->children.empty()&&!child->puppetRoot->pinToMesh,"Detach state incomplete");
+        check(std::find(meshParent->children.begin(),meshParent->children.end(),child->puppetRoot)==meshParent->children.end(),"Detached root remained owned by old mesh");
+        check(!child->detach(),"Unattached detach must return false");
+        check(!item->attachTo(item),"Self attachment accepted");
+        check(child->attachTo(item),"Second attachment failed");
+        check(!item->attachTo(child),"Cyclic attachment accepted");
+        auto distant=make();distant->puppet->transform.translation.x=100000;distant->puppet->transform.update();distant->puppet->update();
+        check(!child->attachTo(distant),"Unexpected distant attachment");
+        check(child->attachedParent.lock()==item&&item->children.size()==1,"Failed reattach damaged ownership");
+        check(child->detach(),"Second detach failed");
+        {
+            auto parent=make(),attached=make();parent->puppet->update();attached->puppet->update();
+            check(attached->attachTo(parent),"Lifetime attachment failed");
+            std::weak_ptr<scene::SceneItem> wp=parent,wc=attached;
+            parent.reset();attached.reset();
+            check(wp.expired()&&wc.expired(),"SceneItem ownership cycle retained objects");
+        }
+        {
+            scene::Scene testScene;
+            auto parent=make(),attached=make();parent->puppet->update();attached->puppet->update();
+            check(attached->attachTo(parent),"Removal attachment failed");
+            testScene.sceneItems={parent,attached};
+            check(testScene.removeSceneItem(parent),"Parent removal failed");
+            check(attached->attachedParent.expired()&&!attached->puppetRoot->pinToMesh,"Parent removal did not detach child");
+            check(testScene.sceneItems.size()==1,"Parent removal removed child from scene");
+            std::weak_ptr<scene::SceneItem> wp=parent;parent.reset();check(wp.expired(),"Removed parent retained");
+            parent=make();parent->puppet->update();attached->puppet->update();
+            check(attached->attachTo(parent),"Child removal attachment failed");
+            testScene.sceneItems.push_back(parent);
+            check(testScene.removeSceneItem(attached)&&parent->children.empty(),"Child removal left owning parent link");
+            std::weak_ptr<scene::SceneItem> wc=attached;
+            std::weak_ptr<core::Puppet> puppet=attached->puppet;
+            std::weak_ptr<core::nodes::Node> root=attached->puppetRoot;
+            attached.reset();
+            check(wc.expired()&&puppet.expired()&&root.expired(),"Removed child model remained owned");
+        }
+        {
+            auto isFramebuffer=reinterpret_cast<PFNGLISFRAMEBUFFERPROC>(SDL_GL_GetProcAddress("glIsFramebuffer"));
+            check(isFramebuffer!=nullptr,"glIsFramebuffer unavailable");
+            auto texture=std::make_shared<core::Texture>(16,16);
+            auto makeSurface=[&]{auto s=std::make_shared<core::DynamicCompositeSurface>();s->textures[0]=texture;s->textureCount=1;return s;};
+            auto first=makeSurface(),second=makeSurface();
+            auto render=[&](const auto& surface){core::DynamicCompositePass pass;pass.surface=surface;backend->beginDynamicComposite(pass);backend->endDynamicComposite(pass);};
+            render(first);render(second);
+            auto firstId=first->framebuffer,secondId=second->framebuffer;
+            check(firstId!=secondId&&isFramebuffer(firstId)&&isFramebuffer(secondId),"Shared textures must not share FBO ownership");
+            backend->destroyDynamicComposite(first);
+            check(first->framebuffer==0&&!isFramebuffer(firstId)&&isFramebuffer(secondId),"Surface destruction invalidated wrong FBO");
+            backend->destroyDynamicComposite(first); // Idempotent.
+            second.reset();ogl::oglCollectDynamicFramebuffers();
+            check(!isFramebuffer(secondId),"Expired surface retained FBO while texture remained alive");
+            render(first);auto recreated=first->framebuffer;
+            check(isFramebuffer(recreated),"FBO recreation failed");
+            ogl::oglCollectDynamicFramebuffers(true);
+            check(first->framebuffer==0&&!isFramebuffer(recreated),"Renderer cleanup retained FBO");
+        }
         item->sleep();item->awake();check(item->animations[0]->eventQueue.size()>=2,"Sleep/wake events missing");
         item->updateTransform();check(item->targetScale==item->puppet->transform.scale.x,"Target scale not initialized");
         auto scene=scene::insScene();scene->space=std::make_shared<tracking::VirtualSpace>();scene->shouldPostProcess=false;

@@ -1,4 +1,5 @@
 #include "control.hpp"
+#include "control_output.hpp"
 #include "json.hpp"
 #include "scene/package.hpp"
 #include <core/runtime_state.hpp>
@@ -43,7 +44,7 @@ json::Value execute(const json::Value& request) {
         for(auto& p:item->puppet->parameters)values.push_back(json::Object{{"uuid",p->uuid},{"name",p->name},{"value",json::Array{p->value.x,p->value.y}},{"defaults",json::Array{p->defaults.x,p->defaults.y}}});
         return values;
     }
-    if(item->attachedParent)throw std::runtime_error("Adjust the root model of an attached group");
+    if(!item->attachedParent.expired())throw std::runtime_error("Adjust the root model of an attached group");
     auto& t=item->puppet->transform;
     float scale=t.scale.x,x=t.translation.x,y=t.translation.y;
     if(command=="set_transform") {
@@ -79,9 +80,9 @@ void poll() {
             std::ifstream input(path,std::ios::binary);std::string text((std::istreambuf_iterator<char>(input)),{});
             response=json::Object{{"ok",true},{"result",execute(json::parse(text))}};
         }catch(const std::exception& ex){response=json::Object{{"ok",false},{"error",ex.what()}};}
-        auto result=inbox/(name.substr(0,name.size()-13)+".response.json");auto temporary=result;temporary+=".tmp";
-        std::ofstream out(temporary,std::ios::binary);out<<json::serialize(response);out.close();
-        if(out){std::filesystem::rename(temporary,result,error);if(!error)std::filesystem::remove(path,error);}
+        auto result=name.substr(0,name.size()-13)+".response.json";
+        if(writeResponse(inbox,result,json::serialize(response)))
+            std::filesystem::remove(path,error);
     }
 }
 }

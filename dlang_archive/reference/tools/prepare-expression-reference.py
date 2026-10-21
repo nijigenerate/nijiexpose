@@ -1,7 +1,7 @@
 from pathlib import Path
 import re
-root=Path(__file__).resolve().parents[2]
-text=(root/'source/nijiexpose/tracking/expr.d').read_text(encoding='utf-8')
+root=Path(__file__).resolve().parents[3]
+text=(root/'dlang_archive/source/nijiexpose/tracking/expr.d').read_text(encoding='utf-8')
 text=text.replace('module nijiexpose.tracking.expr;','module reference_expression_impl;\nimport expression_context;')
 for module in ['nijiexpose.tracking','nijiexpose.scene','ft','nijilive','i18n']:
     text=text.replace('import '+module+';','')

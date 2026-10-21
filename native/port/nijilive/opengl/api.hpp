@@ -26,6 +26,7 @@ extern decltype(&::glColorMask) glColorMask;
 extern decltype(&::glCompileShader) glCompileShader;
 extern decltype(&::glCreateProgram) glCreateProgram;
 extern decltype(&::glCreateShader) glCreateShader;
+extern decltype(&::glDeleteBuffers) glDeleteBuffers;
 extern decltype(&::glDeleteFramebuffers) glDeleteFramebuffers;
 extern decltype(&::glDeleteProgram) glDeleteProgram;
 extern decltype(&::glDeleteShader) glDeleteShader;

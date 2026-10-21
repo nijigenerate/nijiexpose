@@ -85,9 +85,14 @@ Server::Server(const std::string& address,uint16_t port):impl(std::make_unique<I
         while(impl->shouldRun) {
             int size=static_cast<int>(recv(impl->socket,reinterpret_cast<char*>(impl->recvBuffer.data()),impl->recvBuffer.size(),0));
             if(size!=SOCKET_ERROR) {
-                auto packet=messages(std::span<const uint8_t>(impl->recvBuffer.data(),size));
-                std::lock_guard lock(impl->mutex);
-                impl->contents.insert(impl->contents.end(),packet.begin(),packet.end());
+                try {
+                    auto packet=messages(std::span<const uint8_t>(impl->recvBuffer.data(),size));
+                    std::lock_guard lock(impl->mutex);
+                    impl->contents.insert(impl->contents.end(),packet.begin(),packet.end());
+                } catch(const std::exception&) {
+                    // Untrusted UDP datagrams must not escape the worker and
+                    // terminate the process. Discard this entire packet.
+                }
             }
         }
     });

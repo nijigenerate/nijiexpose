@@ -1,17 +1,21 @@
 #pragma once
-#include "nicxlive/native_backend.hpp"
+#include <core/render/common.hpp>
+#include <core/puppet.hpp>
+#include <core/unity_native.hpp>
 #include "dynamic_composite.hpp"
 #include <unordered_map>
 namespace nijiexpose::ogl {
-class Backend final : public nicxlive::core::RenderBackend, public nicxlive::core::NativeBackend {
+class Backend final : public nicxlive::core::RenderBackend {
     struct TextureInfo { int width, height, channels; bool stencil, mipmaps; };
     std::unordered_map<uint32_t, TextureInfo> textures;
     std::vector<DynamicCompositePass> composites;
+    UnityResourceCallbacks resourceCallbacks{};
 public:
     void initializeRenderer() override;
     void initializeDrawableResources() override;
     void bindDrawableVao() override;
     void createDrawableBuffers(uint32_t&) override;
+    void disposeDrawableBuffers(uint32_t) override;
     void uploadDrawableIndices(uint32_t, const std::vector<uint16_t>&) override;
     void uploadSharedVertexBuffer(const nicxlive::core::common::Vec2Array&) override;
     void uploadSharedUvBuffer(const nicxlive::core::common::Vec2Array&) override;
@@ -30,14 +34,8 @@ public:
     void updateTexture(uint32_t, const std::vector<uint8_t>&, int, int, int) override;
     void setTextureParams(uint32_t, nicxlive::core::Filtering, nicxlive::core::Wrapping, float) override;
     void disposeTexture(uint32_t) override;
-    uint32_t createNativeTexture(const std::vector<uint8_t>&, int, int, int, int, bool, bool) override;
-    void setNativeTextureFiltering(uint32_t, nicxlive::core::Filtering, bool) override;
-    void setNativeTextureWrapping(uint32_t, nicxlive::core::Wrapping) override;
-    void setNativeTextureAnisotropy(uint32_t, float) override;
-    void setNativeTextureData(uint32_t, const std::vector<uint8_t>&, int) override;
-    std::vector<uint8_t> readNativeTexture(uint32_t) override;
-    bool useNativeMultistageBlend(nicxlive::core::nodes::BlendMode) override;
-    std::unique_ptr<nicxlive::core::RenderCommandEmitter> createNativeCommandEmitter() override;
+    std::vector<uint8_t> readTexture(uint32_t);
+    void drawPuppet(nicxlive::core::Puppet&);
     void beginDynamicComposite(const DynamicCompositePass&) override;
     void endDynamicComposite(const DynamicCompositePass&) override;
     void destroyDynamicComposite(const std::shared_ptr<DynamicCompositeSurface>&) override;

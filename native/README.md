@@ -244,3 +244,25 @@ application's Tracker::modelPath and validates the configuration before starting
 inference. It runs beside the application with its copied models directory,
 instead of supplying a model path from the source tree. Linux uses models next
 to the executable; only macOS uses the bundle Resources/models directory.
+
+## D archive layout
+
+The old D application, dub files, packaging assets, legacy workflows and D
+reference programs are preserved in `../dlang_archive`. Active native builds
+use `native/res`; shared gettext catalogs remain in the root `tl` directory.
+The reference manifest and CMake parity targets now use `dlang_archive/source`
+and `dlang_archive/reference/tests`. Relocation does not change the D source
+hashes or disable C++ parity checks. Archived workflows are not active GitHub
+Actions workflows. No D application build was run for this reorganization.
+
+### Shared render resource lifetime
+
+nicxlive owns Drawable retirement and CPU shared-atlas lifetime. Normal updates and DLL unload/failure handling process deferred releases internally, including empty shared arrays when the last model is deleted. Hosts do not call a shared-buffer collection API.
+
+RenderBackend receives individual `disposeDrawableBuffers(id)` notifications on the rendering thread. The OpenGL backend releases an empty index buffer immediately and batches survivor compaction internally before its next upload/draw. There is no separate collection hook in RenderBackend. Tests use ordinary updates, unloads and drawing to verify automatic cleanup.
+
+The vendored nicxlive source snapshot contains the same changes as the local `resource-lifetime` branch (see dependencies.lock.json). It is a source archive with its license, not a prebuilt library. Publication of a new upstream revision can replace this snapshot with a normal immutable source pin.
+
+The OpenGL host consumes the standard nicxlive command queue and uses the existing UnityResourceCallbacks create/update/release contract, following nijimi. The separate NativeBackend interface and custom emitter factory have been removed. nicxlive changes address resource lifetime, texture channel handling, bounds and initialization defects; GPU-specific implementation remains in the host. The application build override retains only its existing Welding exclusion.
+
+KHR advanced blending is selected by the OpenGL host from its actual capabilities and blend mode, ignoring the core multistage hint. The host implements all 11 KHR equations, coherent enable/disable, and non-coherent barriers. The Windows model-render test checks all 11 equations against framebuffer values in both coherent modes and checks forced fallback.

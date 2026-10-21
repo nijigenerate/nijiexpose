@@ -5,7 +5,10 @@
 #include <limits>
 #include <stdexcept>
 namespace nijiexpose::ogl {
-void oglSetAdvancedBlendCoherent(bool enable) { (void)enable; }
+void oglSetAdvancedBlendCoherent(bool enable) {
+    if (enable) glEnable(GL_BLEND_ADVANCED_COHERENT_KHR);
+    else glDisable(GL_BLEND_ADVANCED_COHERENT_KHR);
+}
 
 void oglSetLegacyBlendMode(BlendMode blendingMode) {
         switch (blendingMode) {
@@ -69,9 +72,23 @@ void oglSetLegacyBlendMode(BlendMode blendingMode) {
     }
 
 void oglSetAdvancedBlendEquation(BlendMode blendingMode) {
-        // Fallback: use legacy equation path.
-        oglSetLegacyBlendMode(blendingMode);
+    switch (blendingMode) {
+        case BlendMode::Multiply: glBlendEquation(GL_MULTIPLY_KHR); break;
+        case BlendMode::Screen: glBlendEquation(GL_SCREEN_KHR); break;
+        case BlendMode::Overlay: glBlendEquation(GL_OVERLAY_KHR); break;
+        case BlendMode::Darken: glBlendEquation(GL_DARKEN_KHR); break;
+        case BlendMode::Lighten: glBlendEquation(GL_LIGHTEN_KHR); break;
+        case BlendMode::ColorDodge: glBlendEquation(GL_COLORDODGE_KHR); break;
+        case BlendMode::ColorBurn: glBlendEquation(GL_COLORBURN_KHR); break;
+        case BlendMode::HardLight: glBlendEquation(GL_HARDLIGHT_KHR); break;
+        case BlendMode::SoftLight: glBlendEquation(GL_SOFTLIGHT_KHR); break;
+        case BlendMode::Difference: glBlendEquation(GL_DIFFERENCE_KHR); break;
+        case BlendMode::Exclusion: glBlendEquation(GL_EXCLUSION_KHR); break;
+        default:
+            oglSetLegacyBlendMode(blendingMode);
+            break;
     }
+}
 
 
 }

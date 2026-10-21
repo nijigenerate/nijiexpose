@@ -64,7 +64,7 @@ int main(int argc,char** argv) {
         check(anim->lanes[0].get(2.5f)==.5f,"Loaded interpolation differs");
         nijiexpose::animation::AnimationPlayer player(puppet);
         auto playback=player.play("Move"); player.update(anim->timestep); check(playback->frame()==1,"Loaded animation did not advance");
-        puppet->update(); backend->beginScene(); puppet->draw();
+        puppet->update(); backend->beginScene(); backend->drawPuppet(*puppet);
         std::vector<uint8_t> frame(32*32*4); backend->dumpViewport(frame,32,32);
         size_t red=0; for(size_t i=0;i<frame.size();i+=4) if(frame[i]==255 && frame[i+3]==255) ++red;
         check(red==64,"Loaded D model did not render its 8x8 part");

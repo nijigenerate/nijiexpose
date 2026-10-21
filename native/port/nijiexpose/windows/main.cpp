@@ -1,5 +1,5 @@
 #include "nijimi/opengl/present.hpp"
-// Direct translation of source/nijiexpose/windows/main.d (Windows).
+// Direct translation of dlang_archive/source/nijiexpose/windows/main.d (Windows).
 #include "main.hpp"
 #include "nijiexpose/control.hpp"
 #include "settings.hpp"

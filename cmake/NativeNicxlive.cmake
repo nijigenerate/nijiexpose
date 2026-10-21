@@ -7,19 +7,8 @@ execute_process(COMMAND "${Python3_EXECUTABLE}"
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${PROJECT_SOURCE_DIR}/native/tools/prepare-nicxlive-native.py")
 get_target_property(native_nicxlive_sources nicxlive SOURCES)
-list(FILTER native_nicxlive_sources EXCLUDE REGEX "(^|/)core/(texture|puppet|nodes/part)\\.cpp$")
-set(native_nicxlive_overlay_sources)
-foreach(source IN LISTS native_nicxlive_sources)
-    if(source MATCHES "^core/")
-        list(APPEND native_nicxlive_overlay_sources "${native_nicxlive_dir}/${source}")
-    else()
-        list(APPEND native_nicxlive_overlay_sources "${source}")
-    endif()
-endforeach()
-set_property(TARGET nicxlive PROPERTY SOURCES "${native_nicxlive_overlay_sources}")
-include_directories(BEFORE "${native_nicxlive_dir}" "${native_nicxlive_dir}/core")
-target_include_directories(nicxlive BEFORE PUBLIC "${native_nicxlive_dir}" "${native_nicxlive_dir}/core"
-    PRIVATE "${native_nicxlive_dir}/core/nodes")
-target_sources(nicxlive PRIVATE "${native_nicxlive_dir}/texture.cpp" "${native_nicxlive_dir}/part.cpp" "${native_nicxlive_dir}/puppet.cpp")
-target_include_directories(nicxlive PRIVATE "${PROJECT_SOURCE_DIR}/native/port"
-    "${nicxlive_SOURCE_DIR}" "${nicxlive_SOURCE_DIR}/core/nodes")
+list(FILTER native_nicxlive_sources EXCLUDE REGEX "(^|/)core/nodes/drawable\\.cpp$")
+set_property(TARGET nicxlive PROPERTY SOURCES "${native_nicxlive_sources}")
+target_sources(nicxlive PRIVATE "${native_nicxlive_dir}/drawable.cpp")
+target_include_directories(nicxlive PUBLIC "${nicxlive_SOURCE_DIR}" "${nicxlive_SOURCE_DIR}/core"
+    PRIVATE "${nicxlive_SOURCE_DIR}/core/nodes")

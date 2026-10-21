@@ -9,7 +9,7 @@ public:
     std::string filePath;
     std::shared_ptr<Puppet> puppet;
     std::shared_ptr<Node> puppetRoot;
-    std::shared_ptr<SceneItem> attachedParent;
+    std::weak_ptr<SceneItem> attachedParent;
     std::vector<std::shared_ptr<tracking::TrackingBinding>> bindings;
     std::vector<std::shared_ptr<animation::AnimationControl>> animations;
     std::unique_ptr<animation::AnimationPlayer> player;

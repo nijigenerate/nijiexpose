@@ -5,10 +5,10 @@ integration is checked separately in the native host.
 """
 from pathlib import Path
 import re
-root=Path(__file__).resolve().parents[2]
+root=Path(__file__).resolve().parents[3]
 parts=[]
 for name in ['package','ratiobinding','exprbinding','eventbinding','compoundbinding']:
-    text=(root/f'source/nijiexpose/tracking/{name}.d').read_text(encoding='utf-8')
+    text=(root/f'dlang_archive/source/nijiexpose/tracking/{name}.d').read_text(encoding='utf-8')
     text=re.sub(r'^(?:public )?import [^;]+;|^module [^;]+;','',text,flags=re.M)
     text=re.sub(r'^alias Serializer = [^;]+;','',text,flags=re.M)
     for pattern in [r'(?:    override\s*)?    void serializeSelf\(',r'    void serialize\(S\)',r'(?:    override\s*)?    SerdeException deserializeFromFghj\(']:

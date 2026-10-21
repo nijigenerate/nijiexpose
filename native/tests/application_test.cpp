@@ -8,6 +8,7 @@
 #include <bit>
 #ifdef _WIN32
 #include <d3d11.h>
+#include <psapi.h>
 #include <wrl/client.h>
 #endif
 #include "nijiui/core/settings.hpp"
@@ -15,6 +16,7 @@
 #include "nijiexpose/spout.hpp"
 #endif
 #include "nijilive/opengl/api.hpp"
+#include "nijilive/opengl/drawable.hpp"
 #include "capture_frame.hpp"
 #include <SDL3/SDL.h>
 #include <imgui_internal.h>
@@ -32,6 +34,47 @@ int main(int argc,char** argv){try{
     click(window->width()/2.f,window->height()/2.f);check(scene::insScene()->selectedSceneItem()!=nullptr,"Model selection through mouse failed");
     capture("01-model-selected.png");
     std::cout<<"Selected model through application mouse interaction\n";
+    if(std::getenv("NIJI_DELETE_REAL")) {
+        namespace core=nicxlive::core;
+        auto memory=[](const char* stage){
+#ifdef _WIN32
+            PROCESS_MEMORY_COUNTERS_EX info{};info.cb=sizeof(info);
+            if(K32GetProcessMemoryInfo(GetCurrentProcess(),reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&info),sizeof(info)))
+                std::cout<<"MEMORY "<<stage<<" privateBytes="<<info.PrivateUsage<<" workingSet="<<info.WorkingSetSize<<std::endl;
+#endif
+        };
+        const char* alternate=std::getenv("NIJI_DELETE_ALTERNATE_MODEL");
+        for(int cycle=0;cycle<(alternate?7:3);++cycle) {
+        if(cycle) {
+            const char* path=(alternate && cycle%2)?alternate:argv[1];
+            scene::insScene()->addPuppet(path,model_io::inLoadPuppet(path));
+            frame(4);click(window->width()/2.f,window->height()/2.f);
+            check(scene::insScene()->selectedSceneItem()!=nullptr,"Reloaded model not selectable");
+        }
+        std::cout<<"CYCLE "<<cycle<<std::endl;
+        capture(("cycle-"+std::to_string(cycle)+"-added.png").c_str());
+        memory("displayed");
+        auto item=scene::insScene()->selectedSceneItem();
+        std::weak_ptr<scene::SceneItem> weakItem=item;
+        std::weak_ptr<core::Puppet> weakPuppet=item->puppet;
+        std::weak_ptr<core::nodes::Node> weakRoot=item->puppetRoot;
+        std::vector<std::weak_ptr<core::Texture>> textures;
+        std::vector<GLuint> ids;
+        for(auto& tex:item->puppet->textureSlots)if(tex){textures.push_back(tex);ids.push_back(tex->backendId());}
+        item.reset();
+        check(scene::insScene()->deleteSelectedSceneItem(),"Selected delete failed");
+        frame(10);
+        glFinish();memory("deleted");
+        auto usage=ogl::oglDrawableResourceUsage();
+        std::cout<<"BUFFERS ranges="<<usage.indexRanges<<" indexCpu="<<usage.indexCpuBytes<<" indexGpu="<<usage.indexGpuBytes<<" vertex="<<usage.vertexGpuBytes<<" uv="<<usage.uvGpuBytes<<" deform="<<usage.deformGpuBytes<<std::endl;
+        check(!usage.indexRanges&&!usage.indexCpuBytes&&!usage.indexGpuBytes&&!usage.vertexGpuBytes&&!usage.uvGpuBytes&&!usage.deformGpuBytes,"Shared GPU/CPU buffers retained after last model deletion");
+        size_t alive=0,gpu=0;for(auto& tex:textures)alive+=!tex.expired();for(auto id:ids)gpu+=glIsTexture(id)!=0;
+        std::cout<<"DELETE item="<<!weakItem.expired()<<" puppet="<<!weakPuppet.expired()<<" root="<<!weakRoot.expired()<<" textures="<<alive<<" gpuTextures="<<gpu<<" total="<<textures.size()<<std::endl;
+        check(weakItem.expired()&&weakPuppet.expired()&&weakRoot.expired()&&alive==0&&gpu==0,"Rendered model resources remain after deletion");
+        capture(("cycle-"+std::to_string(cycle)+"-deleted.png").c_str());
+        }
+        window->close();shutdownApplication();return 0;
+    }
     if(std::getenv("NIJI_PERF_REAL")) {
         scene::neSetMeasureFPS(true);
         for(int rate:{0,1,2,6}) {
@@ -154,7 +197,7 @@ int main(int argc,char** argv){try{
     std::cout<<"Actual UDP -> expression -> model -> framebuffer: "<<low<<" -> "<<high<<" pixels\n";
     click(70,150);restored->puppet=model_io::inLoadPuppet(argv[1]);check(restored->tryLoadBindings(),"Tracking save failed");saved=std::dynamic_pointer_cast<tracking::ExpressionTrackingBinding>(restored->bindings[0]->delegated);check(saved&&saved->expr->expression()=="BLEND('Motion')","Tracking expression reload failed");
 #ifdef _WIN32
-    check(insCanSendFrames(),"Application Spout output unavailable");auto observer=spout::spGetSpout();char senderName[]="nijiexpose";uint32_t sw=0,sh=0;HANDLE handle=nullptr;DWORD format=0;
+    check(insCanSendFrames(),"Application Spout output unavailable");auto observer=spout::spGetSpout();std::string actualSenderName=insFrameSenderName();char* senderName=actualSenderName.data();uint32_t sw=0,sh=0;HANDLE handle=nullptr;DWORD format=0;
     check(spout::spGetSenderInfo(observer,senderName,sw,sh,handle,format)&&sw==1024&&sh==768&&handle&&format==28,"Application Spout output dimensions/format wrong");
     // Open the application's published shared texture using an independent D3D11 device.
     Microsoft::WRL::ComPtr<ID3D11Device> device;Microsoft::WRL::ComPtr<ID3D11DeviceContext> context;

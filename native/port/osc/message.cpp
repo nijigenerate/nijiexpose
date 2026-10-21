@@ -44,7 +44,9 @@ Message::Message(std::span<const uint8_t> bytes) {
         args.emplace_back(data.begin(),data.end());
     }
 }
-std::vector<Message> messages(std::span<const uint8_t> packet) {
+namespace {
+std::vector<Message> parsePacket(std::span<const uint8_t> packet,size_t depth) {
+    if(depth>32) throw std::out_of_range("OSC bundle nesting limit");
     if(packet.empty()) throw std::out_of_range("Empty OSC packet");
     if(packet[0]!=0x23) return {Message(packet)};
     take(packet,16);
@@ -52,9 +54,13 @@ std::vector<Message> messages(std::span<const uint8_t> packet) {
     do {
         auto sizeData=take(packet,4);
         uint32_t size=0; for(auto byte:sizeData) size=(size<<8)|byte;
-        auto nested=messages(take(packet,size));
+        auto nested=parsePacket(take(packet,size),depth+1);
         result.insert(result.end(),nested.begin(),nested.end());
     } while(!packet.empty());
     return result;
+}
+}
+std::vector<Message> messages(std::span<const uint8_t> packet) {
+    return parsePacket(packet,0);
 }
 }

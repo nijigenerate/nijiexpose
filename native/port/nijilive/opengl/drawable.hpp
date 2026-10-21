@@ -6,6 +6,9 @@ namespace nijiexpose::ogl {
 using nicxlive::core::math::Vec2Array;
 void oglInitDrawableBackend();
 void oglBindDrawableVao();
+struct DrawableResourceUsage { size_t indexRanges{},indexCpuBytes{},indexGpuBytes{},vertexGpuBytes{},uvGpuBytes{},deformGpuBytes{}; };
+DrawableResourceUsage oglDrawableResourceUsage();
+void oglDisposeDrawableBuffers(GLuint id);
 void oglCreateDrawableBuffers(GLuint& ibo);
 void oglUploadDrawableIndices(GLuint ibo, std::span<const uint16_t> indices);
 void oglUploadSharedVertexBuffer(const Vec2Array& vertices);

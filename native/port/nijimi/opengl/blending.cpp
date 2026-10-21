@@ -4,13 +4,18 @@
 #include <SDL3/SDL.h>
 #include <unordered_map>
 #include <array>
+#include <stdexcept>
 namespace nijiexpose::ogl {
 static bool hasAdvancedBlendSupport() { return SDL_GL_ExtensionSupported("GL_KHR_blend_equation_advanced"); }
 static bool hasAdvancedBlendCoherentSupport() { return SDL_GL_ExtensionSupported("GL_KHR_blend_equation_advanced_coherent"); }
 static void setAdvancedBlendCoherent(bool e) { oglSetAdvancedBlendCoherent(e); }
 static void setLegacyBlendMode(BlendMode m) { oglSetLegacyBlendMode(m); }
 static void setAdvancedBlendEquation(BlendMode m) { oglSetAdvancedBlendEquation(m); }
-static void issueBlendBarrier() {} // nijimi fallback backend
+static void issueBlendBarrier() {
+    auto barrier = reinterpret_cast<PFNGLBLENDBARRIERKHRPROC>(SDL_GL_GetProcAddress("glBlendBarrierKHR"));
+    if (!barrier) throw std::runtime_error("Missing glBlendBarrierKHR");
+    barrier();
+}
 
 namespace {
     thread_local bool inAdvancedBlending;
@@ -22,7 +27,7 @@ namespace {
 
     void inApplyBlendingCapabilities() {
         bool desiredAdvanced = inAdvancedBlendingAvailable && !inForceTripleBufferFallback;
-        bool desiredCoherent = inAdvancedBlendingCoherentAvailable && !inForceTripleBufferFallback;
+        bool desiredCoherent = desiredAdvanced && inAdvancedBlendingCoherentAvailable;
 
         if (desiredCoherent != inAdvancedBlendingCoherent) {
             setAdvancedBlendCoherent(desiredCoherent);

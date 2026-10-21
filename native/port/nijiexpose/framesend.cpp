@@ -1,4 +1,4 @@
-// Windows port of source/nijiexpose/framesend.d.
+// Windows port of dlang_archive/source/nijiexpose/framesend.d.
 #include "framesend.hpp"
 #include "log.hpp"
 #include "i18n/tr.hpp"
@@ -18,7 +18,7 @@ void insInitFrameSending() {
         std::string senderName="nijiexpose";
         spHandle=spGetSpout();
         int i=1;
-        while(spFindSenderName(spHandle,senderName.data())) senderName="nijiexpose ("+std::to_string(i)+")";
+        while(spFindSenderName(spHandle,senderName.data())) senderName="nijiexpose ("+std::to_string(i++)+")";
         spSetSenderName(spHandle,senderName.c_str());
         spSetSenderFormat(spHandle,28);
     }
@@ -34,5 +34,6 @@ void insSendFrame() {
         if(spHandle) spout::spSendTexture(spHandle,ogl::oglGetRenderImage(),GL_TEXTURE_2D,w,h,true,ogl::oglGetFramebuffer());
     }
 }
+const char* insFrameSenderName() { return spHandle ? spout::spGetName(spHandle) : ""; }
 bool insCanSendFrames() { return loadSuccessful; }
 }

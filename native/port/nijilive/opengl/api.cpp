@@ -25,6 +25,7 @@ decltype(&::glColorMask) glColorMask = nullptr;
 decltype(&::glCompileShader) glCompileShader = nullptr;
 decltype(&::glCreateProgram) glCreateProgram = nullptr;
 decltype(&::glCreateShader) glCreateShader = nullptr;
+decltype(&::glDeleteBuffers) glDeleteBuffers = nullptr;
 decltype(&::glDeleteFramebuffers) glDeleteFramebuffers = nullptr;
 decltype(&::glDeleteProgram) glDeleteProgram = nullptr;
 decltype(&::glDeleteShader) glDeleteShader = nullptr;
@@ -129,7 +130,9 @@ void loadApi() {
     if (!glCreateProgram) throw std::runtime_error("Missing GL entry point: glCreateProgram");
     glCreateShader = reinterpret_cast<decltype(glCreateShader)>(SDL_GL_GetProcAddress("glCreateShader"));
     if (!glCreateShader) throw std::runtime_error("Missing GL entry point: glCreateShader");
+    glDeleteBuffers = reinterpret_cast<decltype(glDeleteBuffers)>(SDL_GL_GetProcAddress("glDeleteBuffers"));
     glDeleteFramebuffers = reinterpret_cast<decltype(glDeleteFramebuffers)>(SDL_GL_GetProcAddress("glDeleteFramebuffers"));
+    if (!glDeleteBuffers) throw std::runtime_error("Missing GL entry point: glDeleteBuffers");
     if (!glDeleteFramebuffers) throw std::runtime_error("Missing GL entry point: glDeleteFramebuffers");
     glDeleteProgram = reinterpret_cast<decltype(glDeleteProgram)>(SDL_GL_GetProcAddress("glDeleteProgram"));
     if (!glDeleteProgram) throw std::runtime_error("Missing GL entry point: glDeleteProgram");

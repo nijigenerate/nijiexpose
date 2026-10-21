@@ -4,7 +4,6 @@
 #include <limits>
 #include <stdexcept>
 namespace nijiexpose::ogl {
-void oglReleaseDynamicFramebuffersForTexture(GLuint);
 static GLuint channelFormat(int channels) {
     switch (channels) {
         case 1: return GL_RED;
@@ -22,7 +21,6 @@ void oglCreateTextureHandle(GLId& id) {
 }
 
 void oglDeleteTextureHandle(GLId& id) {
-    oglReleaseDynamicFramebuffersForTexture(id);
     if (id) {
         GLuint handle = id;
         glDeleteTextures(1, &handle);

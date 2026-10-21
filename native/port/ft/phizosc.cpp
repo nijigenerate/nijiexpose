@@ -24,6 +24,7 @@ void PhizOSCAdaptor::poll() {
             auto& path=msg.addressPattern[1];
             const char* bone=path=="/headRotation"?"Head":path=="/leftEyeRotation"?"LeftGaze":path=="/rightEyeRotation"?"RightGaze":nullptr;
             if(bone) {
+                if(msg.typeTags!="ffff")continue;
                 // The original looks up the first argument as raw string bytes.
                 if(!bones.contains(msg.arg<std::string>(0))) {
                     float nan=std::numeric_limits<float>::quiet_NaN();
@@ -31,6 +32,7 @@ void PhizOSCAdaptor::poll() {
                 }
                 bones.at(bone).rotation={msg.arg<float>(3),-msg.arg<float>(2),msg.arg<float>(0),-msg.arg<float>(1)};
             } else if(path=="/blendshapes") {
+                if(msg.typeTags!=std::string(std::size(phizOSCBlendshapes),'f'))continue;
                 size_t i=0;
                 for(auto name:phizOSCBlendshapes) blendshapes[name]=msg.arg<float>(i++);
             }

@@ -21,7 +21,7 @@ int main(int argc,char** argv) {
         auto puppet=nijiexpose::neLoadModelFromImage(file);
         auto part=std::dynamic_pointer_cast<core::nodes::Part>(puppet->root);
         auto texture=part->textures[0];
-        auto data=backend->readNativeTexture(texture->backendId());
+        auto data=backend->readTexture(texture->backendId());
         std::printf("crop:%d:%d:%d:%d:",channels,texture->width(),texture->height(),texture->channels());
         for(auto b:data) std::printf("%02x",b); std::puts("");
     }

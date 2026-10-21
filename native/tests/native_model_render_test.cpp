@@ -37,17 +37,20 @@ int main(int argc,char** argv) {
         for(size_t i=0;i<red.size();i+=4) { red[i]=255; red[i+3]=255; }
         auto texture=std::make_shared<core::Texture>(red,16,16,4,4,false,false);
         check(texture->backendId()!=0,"Texture not allocated by native backend");
-        auto readback=backend->readNativeTexture(texture->backendId());
+        auto readback=backend->readTexture(texture->backendId());
         check(readback==red,"Native texture data differs");
         GLint filter{};
         glGetTexParameteriv(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,&filter);
         check(filter==GL_LINEAR,"useMipmaps=false lost in native Texture constructor");
         auto part=core::nodes::Part::createSimple(texture,"Test quad");
         auto puppet=std::make_shared<core::Puppet>(part);
-        puppet->setRenderBackend(backend);
+        check(core::getCurrentRenderBackend()==backend,"Puppet construction replaced the host resource backend");
+
         puppet->update();
         backend->beginScene();
-        puppet->draw();
+        backend->drawPuppet(*puppet);
+        check(dynamic_cast<core::render::QueueCommandEmitter*>(puppet->commandEmitter())!=nullptr,
+              "Puppet must use the standard nicxlive queue emitter");
         std::vector<uint8_t> frame(64*64*4);
         backend->dumpViewport(frame,64,64);
         size_t opaque=0;
@@ -63,9 +66,9 @@ int main(int argc,char** argv) {
         auto green=red;
         for(size_t i=0;i<green.size();i+=4) { green[i]=0; green[i+1]=255; }
         texture->setData(green,4);
-        check(backend->readNativeTexture(texture->backendId())==red,"Locked texture uploaded early");
+        check(backend->readTexture(texture->backendId())==red,"Locked texture uploaded early");
         texture->unlock();
-        check(backend->readNativeTexture(texture->backendId())==green,"Unlock did not upload modified texture");
+        check(backend->readTexture(texture->backendId())==green,"Unlock did not upload modified texture");
         }
         core::nodes::PartDrawPacket packet;
         part->fillDrawPacket(*part,packet,false);
@@ -95,7 +98,7 @@ int main(int argc,char** argv) {
         }
         backend->beginScene();
         puppet->update();
-        puppet->draw();
+        backend->drawPuppet(*puppet);
         backend->setDifferenceAggregationEnabled(true);
         backend->dumpViewport(frame,64,64);
         size_t beforeDifference=0;
@@ -130,8 +133,8 @@ int main(int argc,char** argv) {
               cameraInsideComposite.position.y == cameraBeforeComposite.position.y,
               "nijimi composite must not overwrite the host camera");
         puppet->update();
-        puppet->draw();
-        auto offscreen=backend->readNativeTexture(composite.surface->textures[0]->backendId());
+        backend->drawPuppet(*puppet);
+        auto offscreen=backend->readTexture(composite.surface->textures[0]->backendId());
         size_t offscreenGreen=0;
         for(size_t i=0;i<offscreen.size();i+=4) if(offscreen[i+1]==255 && offscreen[i+3]==255) ++offscreenGreen;
         backend->endDynamicComposite(composite);
@@ -148,6 +151,52 @@ int main(int argc,char** argv) {
         backend->destroyDynamicComposite(composite.surface);
         check(composite.surface->framebuffer==0,"Composite framebuffer not disposed");
         check(glGetError()==GL_NO_ERROR,"Mask, difference or composite GL error");
+        if(!parity) {
+            const bool khr=SDL_GL_ExtensionSupported("GL_KHR_blend_equation_advanced");
+            const bool coherent=SDL_GL_ExtensionSupported("GL_KHR_blend_equation_advanced_coherent");
+            std::cout<<"KHR available="<<khr<<" coherent="<<coherent<<'\n';
+            for(bool forceFallback:{true,false}) {
+                if(!khr && !forceFallback) continue;
+                for(bool useCoherent:{false,true}) {
+                    if(useCoherent && (!coherent || forceFallback))continue;
+                    gl::nlSetBlendingCapabilitiesForTesting(khr,useCoherent,forceFallback);
+                    check(gl::inUseMultistageBlending(gl::BlendMode::Multiply)==!forceFallback,"KHR route selection differs");
+                    if(coherent) check((glIsEnabled(GL_BLEND_ADVANCED_COHERENT_KHR)!=0)==useCoherent,"Coherent GL state differs");
+                    core::inSetClearColor(.25f,.5f,.75f,1);
+                    backend->beginScene();
+                    part->fillDrawPacket(*part,packet,false);
+                    packet.blendMode=gl::BlendMode::Multiply;
+                    // Deliberately contradict the core hint: the host owns route selection.
+                    packet.useMultistageBlend=forceFallback;
+                    backend->drawPartPacket(packet);
+                    backend->dumpViewport(frame,64,64);
+                    const auto center=(32*64+32)*4;
+                    check(frame[center]==0 && std::abs(int(frame[center+1])-128)<=1 && frame[center+2]==0 && frame[center+3]==255,"KHR multiply framebuffer differs");
+                    check(glGetError()==GL_NO_ERROR,"KHR blend/coherent/barrier GL error");
+                    if(!forceFallback) {
+                        using B=gl::BlendMode;
+                        struct Case { B mode; std::array<float,3> rgb; };
+                        const Case cases[]={
+                            {B::Screen,{.25f,1,.75f}}, {B::Overlay,{0,1,.5f}},
+                            {B::Darken,{0,.5f,0}}, {B::Lighten,{.25f,1,.75f}},
+                            {B::ColorDodge,{.25f,1,.75f}}, {B::ColorBurn,{0,.5f,0}},
+                            {B::HardLight,{0,1,0}}, {B::SoftLight,{.0625f,std::sqrt(.5f),.5625f}},
+                            {B::Difference,{.25f,.5f,.75f}}, {B::Exclusion,{.25f,.5f,.75f}}
+                        };
+                        for(const auto& c:cases) {
+                            backend->beginScene(); packet.blendMode=c.mode;
+                            backend->drawPartPacket(packet); backend->dumpViewport(frame,64,64);
+                            for(int channel=0;channel<3;++channel)
+                                check(std::abs(int(frame[center+channel])-int(std::lround(c.rgb[channel]*255)))<=2,"KHR blend equation pixel mismatch");
+                            check(frame[center+3]==255 && glGetError()==GL_NO_ERROR,"KHR blend equation GL error");
+                        }
+                        std::cout<<"All 11 KHR equations passed coherent="<<useCoherent<<'\n';
+                    }
+                    std::cout<<"KHR multiply pixels passed fallback="<<forceFallback<<" coherent="<<useCoherent<<'\n';
+                }
+            }
+            gl::inInitBlending();
+        }
         puppet.reset(); part.reset(); texture.reset();
         core::inDrainPendingTextureDisposals();
         std::cout<<"Native puppet rendering and texture lifecycle passed\n";

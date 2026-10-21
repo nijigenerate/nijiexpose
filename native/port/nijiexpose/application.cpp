@@ -1,4 +1,4 @@
-// source/app.d startup and shutdown, shared by the executable and app interaction tests.
+// dlang_archive/source/app.d startup and shutdown, shared by the executable and app interaction tests.
 #include "application.hpp"
 #include "nijiexpose/i18n.hpp"
 #include "nijiexpose/plugins/package.hpp"
@@ -10,6 +10,8 @@
 #include "nijiexpose/panels/scene.hpp"
 #include "nijiexpose/panels/plugin.hpp"
 #include "nijilive/opengl/runtime.hpp"
+#include "nijilive/opengl/dynamic_composite.hpp"
+#include <core/runtime_state.hpp>
 #include "nijilive/opengl/blending.hpp"
 #include "nijiui/core/app.hpp"
 #include "nijiui/core/core.hpp"
@@ -42,6 +44,10 @@ void shutdownApplication(){
     plugins::insLuaUnload();
     insCleanupFrameSending();
     scene::insScene()->cleanup();
+    if(SDL_GL_GetCurrentContext()) {
+        nicxlive::core::inSetRenderBackend(nullptr);
+        ogl::oglCollectDynamicFramebuffers(true);
+    }
     nijiui::inSettingsSave();
 }
 }

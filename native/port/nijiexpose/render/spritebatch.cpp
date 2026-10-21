@@ -1,4 +1,4 @@
-// Port of source/nijiexpose/render/spritebatch.d.
+// Port of dlang_archive/source/nijiexpose/render/spritebatch.d.
 #include "spritebatch.hpp"
 #include "spritebatch_assets.hpp"
 #include <core/runtime_state.hpp>

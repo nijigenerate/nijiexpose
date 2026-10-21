@@ -1,6 +1,7 @@
 // Nijimi renderer lifecycle with nijiexpose scene/lighting/readback adapters.
 // Lifecycle translated from nijimi/source/render/opengl/opengl_backend.d.
 #include "runtime.hpp"
+#include "dynamic_composite.hpp"
 #include "debug.hpp"
 #include "blending.hpp"
 #include "assets.hpp"
@@ -193,6 +194,7 @@ namespace {
     Begins rendering to the framebuffer
 */
 void oglBeginScene() {
+    oglCollectDynamicFramebuffers();
         while (glGetError() != GL_NO_ERROR) {}
 
         boundAlbedo.reset();

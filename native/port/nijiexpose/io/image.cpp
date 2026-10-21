@@ -1,4 +1,4 @@
-// Direct port of source/nijiexpose/io/image.d.
+// Direct port of dlang_archive/source/nijiexpose/io/image.d.
 #include "image.hpp"
 #include "nijilive/texture_utils.hpp"
 #include <algorithm>

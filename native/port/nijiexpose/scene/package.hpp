@@ -17,6 +17,7 @@ public:
     void update();
     std::shared_ptr<SceneItem> selectedSceneItem();
     bool deleteSelectedSceneItem();
+    bool removeSceneItem(const std::shared_ptr<SceneItem>& item);
     void interact();
 };
 std::shared_ptr<Scene> insScene();
