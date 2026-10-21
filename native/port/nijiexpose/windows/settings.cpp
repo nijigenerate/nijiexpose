@@ -163,36 +163,35 @@ void SettingWindow::renderTrackingSettingsContent(bool embedded) {
                 auto problem = tracker->validationError();
                 if (!problem.empty()) {
                     uiImLabelColored(problem, vec4(0.95, 0.5, 0.5, 1));
-                } else {
-                    uiImLabel(_("Camera device"));
-                    uiImSameLine();
-                    auto deviceList = tracker->listDevices();
-                    if (!tracker->launchError.empty()) {
-                        uiImLabelColored(tracker->launchError, vec4(0.95, 0.5, 0.5, 1));
-                        if (uiImButton(__("Retry camera detection"))) {
-                            tracker->invalidateDeviceQuery(false);
-                        }
+                }
+                uiImLabel(_("Camera device"));
+                uiImSameLine();
+                auto deviceList = tracker->listDevices();
+                if (!tracker->launchError.empty()) {
+                    uiImLabelColored(tracker->launchError, vec4(0.95, 0.5, 0.5, 1));
+                    if (uiImButton(__("Retry camera detection"))) {
+                        tracker->invalidateDeviceQuery(false);
                     }
-                    auto found = std::find_if(deviceList.begin(), deviceList.end(), [&](const auto& x){return x.id == tracker->device;});
-                    auto currentDeviceId = found == deviceList.end() ? -1 : std::distance(deviceList.begin(), found);
-                    std::string currentDeviceName = (currentDeviceId >= 0)? deviceList[currentDeviceId].name: _("Select device...");
-                    if (ImGui::BeginCombo("##device", currentDeviceName.c_str() ,ImGuiComboFlags_None)) {
-                        if (!deviceList.empty()) {
-                            for (auto& device : deviceList) {
-                                if (uiImSelectable(device.name.c_str(), device.id == tracker->device)) {
-                                    tracker->device = device.id;
-                                }
+                }
+                auto found = std::find_if(deviceList.begin(), deviceList.end(), [&](const auto& x){return x.id == tracker->device;});
+                auto currentDeviceId = found == deviceList.end() ? -1 : std::distance(deviceList.begin(), found);
+                std::string currentDeviceName = (currentDeviceId >= 0)? deviceList[currentDeviceId].name: _("Select device...");
+                if (ImGui::BeginCombo("##device", currentDeviceName.c_str() ,ImGuiComboFlags_None)) {
+                    if (!deviceList.empty()) {
+                        for (auto& device : deviceList) {
+                            if (uiImSelectable(device.name.c_str(), device.id == tracker->device)) {
+                                tracker->device = device.id;
                             }
                         }
-                        ImGui::EndCombo();
                     }
-                    ImGui::InputInt("Camera width", &tracker->width);
-                    ImGui::InputInt("Camera height", &tracker->height);
-                    ImGui::InputDouble("Camera frame rate", &tracker->fps);
-                    uiImCheckbox(__("Flip input"), tracker->flipped);
-                    uiImCheckbox(__("Show camera tracking window"), tracker->showWindow);
-                    uiImCheckbox(__("Keyboard tracking"), tracker->keyboard);
+                    ImGui::EndCombo();
                 }
+                ImGui::InputInt("Camera width", &tracker->width);
+                ImGui::InputInt("Camera height", &tracker->height);
+                ImGui::InputDouble("Camera frame rate", &tracker->fps);
+                uiImCheckbox(__("Flip input"), tracker->flipped);
+                uiImCheckbox(__("Show camera tracking window"), tracker->showWindow);
+                uiImCheckbox(__("Keyboard tracking"), tracker->keyboard);
                 if (embedded) {
                     ImGui::Dummy(ImVec2(0, 4));
                 }
