@@ -1,6 +1,6 @@
 {
   "source": "../nijimi/source/render/opengl/opengl_backend.d",
-  "sha256": "8dc6b2994b0043adf47dbbd4ee5ff764417d93eb81457cae919d0d295ed5fb3f",
+  "sha256": "28db5a04ada950dfce67b6d412c5f612a141cc53b2f0122755d41f095d8a342a",
   "functions": [
     {
       "cpp": "void oglExecutePartPacket(",
@@ -61,6 +61,15 @@
     {
       "cpp": "void oglSetAdvancedBlendEquation(",
       "nijimi": "    void setAdvancedBlendEquation("
+    },
+    {
+      "cpp": "void oglDisposeDrawableBuffers(",
+      "nijimi": "    private void disposeDrawableBuffers("
+    },
+    {
+      "cpp": "static void compactIndexBuffer()",
+      "nijimi": "    private void compactIndexBuffer()"
     }
-  ]
+  ],
+  "lifetime_adapter": "nijiexpose receives drawable destruction through RenderBackend; nijimi caches borrowed DLL packet indices and retires unused cache entries after playback. Both remove retired ranges, compact survivors and delete empty GPU storage internally. No exported collect API is used."
 }
