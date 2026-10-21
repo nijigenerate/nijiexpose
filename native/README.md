@@ -26,7 +26,9 @@ sudo apt-get install -y build-essential cmake ninja-build clang lld git jq curl 
   pkg-config python3 openjdk-21-jdk-headless libboost-json-dev libfreetype-dev \
   gettext liblua5.1-0-dev libgl-dev libegl-dev libx11-dev libxi-dev libxtst-dev \
   libxrandr-dev libxcursor-dev libxfixes-dev libxinerama-dev libwayland-dev \
-  libxkbcommon-dev libasound2-dev libpulse-dev libudev-dev
+  libxkbcommon-dev libasound2-dev libpulse-dev libudev-dev libxss-dev libxext-dev \
+  libxrender-dev libdrm-dev libgbm-dev libgles2-mesa-dev libdbus-1-dev \
+  libibus-1.0-dev libdecor-0-dev libpipewire-0.3-dev wayland-protocols
 cmake -S . -B "$HOME/build-nijiexpose-linux" -G Ninja \
   -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
 cmake --build "$HOME/build-nijiexpose-linux" --parallel 6

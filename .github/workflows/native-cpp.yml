@@ -180,7 +180,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-15]
+        os: [ubuntu-24.04, macos-26]
     runs-on: ${{ matrix.os }}
     env:
       SCCACHE_GHA_ENABLED: "true"
@@ -203,7 +203,9 @@ jobs:
           sudo apt-get install -y ninja-build clang lld jq pkg-config libboost-json-dev \
             libfreetype-dev gettext liblua5.1-0-dev libgl-dev libegl-dev libx11-dev \
             libxi-dev libxtst-dev libxrandr-dev libxcursor-dev libxfixes-dev \
-            libxinerama-dev libwayland-dev libxkbcommon-dev libasound2-dev libpulse-dev libudev-dev
+            libxinerama-dev libwayland-dev wayland-protocols libxkbcommon-dev libasound2-dev \
+            libpulse-dev libudev-dev libxss-dev libxext-dev libxrender-dev libdrm-dev libgbm-dev \
+            libgles2-mesa-dev libdbus-1-dev libibus-1.0-dev libdecor-0-dev libpipewire-0.3-dev
       - name: Install macOS binary dependencies
         if: runner.os == 'macOS'
         run: |
