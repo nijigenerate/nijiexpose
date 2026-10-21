@@ -3,6 +3,8 @@
 #include <core/runtime_state.hpp>
 #include <SDL3/SDL.h>
 #include <cstdio>
+#include <filesystem>
+#include <chrono>
 int main(int argc,char** argv) {
     namespace core=nicxlive::core;
     namespace gl=nijiexpose::ogl;
@@ -25,4 +27,13 @@ int main(int argc,char** argv) {
         std::printf("crop:%d:%d:%d:%d:",channels,texture->width(),texture->height(),texture->channels());
         for(auto b:data) std::printf("%02x",b); std::puts("");
     }
+    const auto unicodeDir=std::filesystem::temp_directory_path()/(std::filesystem::path(u8"nijiexpose-画像検証-").native()+std::filesystem::path(std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())).native());
+    std::filesystem::create_directories(unicodeDir);
+    const auto unicodeFile=unicodeDir/std::filesystem::path(u8"背景.png");
+    std::filesystem::copy_file(std::filesystem::path(argv[1])/"channels-4.png",unicodeFile,std::filesystem::copy_options::overwrite_existing);
+    const auto utf8=unicodeFile.u8string();
+    auto unicodePuppet=nijiexpose::neLoadModelFromImage(std::string(utf8.begin(),utf8.end()));
+    if(!unicodePuppet) return 1;
+    std::filesystem::remove(unicodeFile);
+    std::filesystem::remove(unicodeDir);
 }

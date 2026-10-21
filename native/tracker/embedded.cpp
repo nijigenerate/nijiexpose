@@ -442,8 +442,12 @@ extern "C" NT_API void* nt_start(const NtConfig* c,char* error,int size) noexcep
     if(c->image && *c->image){o.image=c->image;o.device.clear();o.repeat=c->repeat;o.output_path=c->output?c->output:"";}
     auto session=std::make_unique<Session>(std::move(o));
     if(c->key_callback){
-      session->keyboard=std::make_unique<niji::keyboard::Capture>();
-      session->key_callback=c->key_callback;session->key_context=c->key_context;
+      try {
+        session->keyboard=std::make_unique<niji::keyboard::Capture>();
+        session->key_callback=c->key_callback;session->key_context=c->key_context;
+      } catch(const std::exception& ex) {
+        std::cerr << "Keyboard capture unavailable: " << ex.what() << '\n';
+      }
     }
     return session.release();
   } catch(const std::exception& ex){error_text(error,size,ex.what());return nullptr;}

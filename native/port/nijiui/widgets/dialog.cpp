@@ -15,8 +15,8 @@ namespace nijiui {
 namespace {
 thread_local std::array<std::shared_ptr<nicxlive::core::Texture>,3> adaTextures;
 struct DialogEntry {
-    const char* tag;
-    const char* title;
+    std::string tag;
+    std::string title;
     std::string text;
     DialogLevel level;
     DialogButtons btns,selected;
@@ -44,9 +44,9 @@ void uiImInitDialogs() {
 void uiImRenderDialogs() {
     if(entries.empty()) return;
     auto* entry=&entries[0];
-    if(!ImGui::IsPopupOpen(entry->title)) ImGui::OpenPopup(entry->title);
+    if(!ImGui::IsPopupOpen(entry->title.c_str())) ImGui::OpenPopup(entry->title.c_str());
     auto flags=ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize;
-    if(ImGui::BeginPopupModal(entry->title,nullptr,flags)) {
+    if(ImGui::BeginPopupModal(entry->title.c_str(),nullptr,flags)) {
         float uiScale=inGetUIScale(),errImgScale=112*uiScale,msgEndPadding=4*uiScale;
         ImGui::BeginGroup();
         if(ImGui::BeginChild("ErrorMainBoxLogo",{errImgScale,errImgScale}))

@@ -55,6 +55,9 @@ else()
     FetchContent_MakeAvailable(nicxlive)
 endif()
 
+if(WIN32)
+    target_compile_definitions(nicxlive PRIVATE STBI_WINDOWS_UTF8)
+endif()
 if(MSVC)
     # nicxlive sources contain UTF-8 comments; CP932 can consume source lines.
     target_compile_options(nicxlive PRIVATE /utf-8)

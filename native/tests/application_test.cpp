@@ -12,6 +12,7 @@
 #include <wrl/client.h>
 #endif
 #include "nijiui/core/settings.hpp"
+#include "nijiui/widgets/dialog.hpp"
 #ifdef _WIN32
 #include "nijiexpose/spout.hpp"
 #endif
@@ -242,6 +243,15 @@ int main(int argc,char** argv){try{
     click(517,50);check(scene::insScene()->sceneItems.size()==1&&scene::insScene()->sceneItems.front()!=moved,"Trash button did not remove selected model");
     capture("15-selected-model-deleted.png");
     std::cout<<"Background swatch, Apply, file-drop, model drag and selected delete passed\n";
+    std::string dialogTitle="Owned plugin dialog";
+    int dialogData=42;
+    nijiui::uiImDialog(dialogTitle.c_str(),"Lifetime regression",nijiui::DialogLevel::Info,nijiui::DialogButtons::OK,&dialogData);
+    dialogTitle.assign(200,'x');
+    check(nijiui::uiImDialogButtonUserData("Owned plugin dialog")==&dialogData,"Dialog tag did not retain its value");
+    frame(3);
+    auto* dialog=ImGui::FindWindowByName("Owned plugin dialog");
+    check(dialog && dialog->Active,"Dialog title did not survive the caller string");
+    capture("16-owned-dialog.png");
     window->close();shutdownApplication();return 0;
 }catch(const std::exception& ex){std::cerr<<ex.what()<<'\n';return 1;}}
 

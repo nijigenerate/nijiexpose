@@ -155,7 +155,13 @@ void oglExecutePartPacket(const PartDrawPacket& packet) {
 void setupShaderStage(const PartDrawPacket& packet, int stage, mat4 matrix, mat4 renderMatrix) {
         mat4 mvpMatrix = renderMatrix * matrix;
 
-        auto setDrawBuffersSafe = [&](int desired) {
+        auto setDrawBuffersSafe = [&](int desired, bool secondaryOnly = false) {
+            GLint framebuffer;
+            glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &framebuffer);
+            if (framebuffer == 0) {
+                glDrawBuffer(secondaryOnly ? GL_NONE : GL_BACK);
+                return secondaryOnly ? 0 : 1;
+            }
             std::array<GLenum,3> bufs{};
             int count = 0;
             auto addIfPresent = [&](GLenum att) {
@@ -163,10 +169,12 @@ void setupShaderStage(const PartDrawPacket& packet, int stage, mat4 matrix, mat4
                 glGetFramebufferAttachmentParameteriv(GL_DRAW_FRAMEBUFFER, att,
                     GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
                 if (type != GL_NONE) {
-                    bufs[count++] = att;
+                    bufs[count] = att;
                 }
+                ++count; // Preserve shader output locations for missing attachments.
             };
-            addIfPresent(GL_COLOR_ATTACHMENT0);
+            if (secondaryOnly) ++count;
+            else addIfPresent(GL_COLOR_ATTACHMENT0);
             if (desired > 1) addIfPresent(GL_COLOR_ATTACHMENT1);
             if (desired > 2) addIfPresent(GL_COLOR_ATTACHMENT2);
             if (count == 0) {
@@ -189,7 +197,7 @@ void setupShaderStage(const PartDrawPacket& packet, int stage, mat4 matrix, mat4
                 inSetBlendMode(packet.blendMode, false);
                 break;
             case 1:
-                setDrawBuffersSafe(2);
+                setDrawBuffersSafe(3, true);
                 partShaderStage2.use();
                 partShaderStage2.setUniform(gs2offset, packet.origin);
                 partShaderStage2.setUniform(gs2mvp, mvpMatrix);

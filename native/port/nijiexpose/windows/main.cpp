@@ -886,7 +886,8 @@ private:
             auto extension=std::filesystem::u8path(arg).filename().extension().string();
             for(auto& ch:extension)if(ch>='A'&&ch<='Z')ch+=32;
             if(extension==".png"||extension==".tga"||extension==".jpeg"||extension==".jpg"){
-                insScene()->addPuppet(arg,neLoadModelFromImage(arg));
+                try{insScene()->addPuppet(arg,neLoadModelFromImage(arg));}
+                catch(const std::exception& ex){uiImDialog(__("Error"),"Could not load "+arg+", "+ex.what());}
             }else if(extension==".inp"||extension==".inx"){
                 if(!std::filesystem::exists(std::filesystem::u8path(arg)))continue;
                 try{insScene()->addPuppet(arg,model_io::inLoadPuppet(arg));}

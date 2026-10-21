@@ -30,6 +30,7 @@ int main(int argc,char** argv){
         }
 #endif
         NtConfig config{model.c_str(),0,0,0};config.image=argv[2];config.output=output.c_str();config.overlay=overlay.c_str();config.repeat=8;
+        config.key_callback=[](int,unsigned,void*){};
         for(int run=0;run<2;++run){
             config.preview=run;
             char error[2048]{};Session session{nt_start(&config,error,sizeof(error))};require(session.value,error);

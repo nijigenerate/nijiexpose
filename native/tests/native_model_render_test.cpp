@@ -198,6 +198,33 @@ int main(int argc,char** argv) {
                             check(frame[center+3]==255 && glGetError()==GL_NO_ERROR,"KHR blend equation GL error");
                         }
                         std::cout<<"All 11 KHR equations passed coherent="<<useCoherent<<'\n';
+                        const auto originalTextures=part->textures;
+                        part->textures[0]=std::make_shared<core::Texture>(backend->readTexture(originalTextures[0]->backendId()),16,16,4,4,false,false);
+                        std::vector<uint8_t> emissionPixels(16*16*4),bumpPixels(16*16*4);
+                        for(size_t i=0;i<emissionPixels.size();i+=4){emissionPixels[i]=64;emissionPixels[i+3]=255;bumpPixels[i+2]=192;bumpPixels[i+3]=255;}
+                        part->textures[1]=std::make_shared<core::Texture>(emissionPixels,16,16,4,4,false,false);
+                        part->textures[2]=std::make_shared<core::Texture>(bumpPixels,16,16,4,4,false,false);
+                        backend->beginScene();
+                        part->fillDrawPacket(*part,packet,false);
+                        packet.blendMode=B::Screen;
+                        backend->drawPartPacket(packet);
+                        std::array<uint8_t,4> emission{},bump{};
+                        GLint drawFramebuffer{},readFramebuffer{};
+                        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING,&drawFramebuffer);
+                        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING,&readFramebuffer);
+                        gl::glBindFramebuffer(GL_READ_FRAMEBUFFER,drawFramebuffer);
+                        gl::glReadBuffer(GL_COLOR_ATTACHMENT1);
+                        glReadPixels(32,32,1,1,GL_RGBA,GL_UNSIGNED_BYTE,emission.data());
+                        gl::glReadBuffer(GL_COLOR_ATTACHMENT2);
+                        glReadPixels(32,32,1,1,GL_RGBA,GL_UNSIGNED_BYTE,bump.data());
+                        gl::glReadBuffer(GL_COLOR_ATTACHMENT0);
+                        gl::glBindFramebuffer(GL_READ_FRAMEBUFFER,readFramebuffer);
+                        backend->dumpViewport(frame,64,64);
+                        check(std::abs(int(frame[center])-64)<=1 && frame[center+1]==255 && std::abs(int(frame[center+2])-191)<=1,"Secondary KHR pass overwrote albedo");
+                        std::cout<<"KHR auxiliary emission="<<int(emission[0])<<','<<int(emission[1])<<','<<int(emission[2])<<','<<int(emission[3])<<" bump="<<int(bump[0])<<','<<int(bump[1])<<','<<int(bump[2])<<','<<int(bump[3])<<'\n';
+                        check(std::abs(int(emission[0])-64)<=1 && std::abs(int(bump[2])-192)<=1,"Secondary KHR output locations differ");
+                        check(glGetError()==GL_NO_ERROR,"Secondary KHR pass GL error");
+                        part->textures=originalTextures;
                     }
                     std::cout<<"KHR multiply pixels passed fallback="<<forceFallback<<" coherent="<<useCoherent<<'\n';
                 }
