@@ -34,13 +34,13 @@
     "directory": "boost_1_90_0"
   },
   "nicxlive": {
-    "version": "35b5cb9258e7d9c099d6a00cbb6df1f7c036de9d",
+    "version": "f8ea0fbe8b1a7b965cb9c00b0d045d87dc62184a",
     "kind": "source",
-    "url": "https://codeload.github.com/nijigenerate/nicxlive/tar.gz/35b5cb9258e7d9c099d6a00cbb6df1f7c036de9d",
-    "sha256": "787a4d6da5c4d720547d76c30d7be9569b5590867dd4a7ec9dcb58db39392791",
+    "url": "https://codeload.github.com/nijigenerate/nicxlive/tar.gz/f8ea0fbe8b1a7b965cb9c00b0d045d87dc62184a",
+    "sha256": "fd950e480276b175a25abf25be47a69915a9dc37ca73e4f498a7ea3a1b612a2d",
     "vendor": "nicxlive.tar.gz",
     "license": "LICENSE",
-    "source_note": "Committed resource-lifetime source (PR #17), including internal resource retirement and dirty-only uploads. No external geometry collection API. Not a binary build."
+    "source_note": "Committed resource-lifetime source (PR #18), including mask ownership cycle fixes, internal resource retirement and dirty-only uploads. No external geometry collection API. Not a binary build."
   },
   "imgui": {
     "version": "1.93.0-docking / 4e02e84cbb85d48881388e7090c2dfa1708c02a1",
