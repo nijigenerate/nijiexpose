@@ -28,3 +28,5 @@ dlang_archive/build-aux/windows/wix/obj/
 version.txt
 
 /dlang_archive/nijiexpose
+__pycache__/
+*.pyc
