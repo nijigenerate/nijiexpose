@@ -142,14 +142,21 @@ int main(int argc,char** argv) {
         int restoredWidth{},restoredHeight{};
         core::inGetViewport(restoredWidth,restoredHeight);
         check(restoredWidth==64 && restoredHeight==64,"Dynamic composite did not restore viewport");
-        const auto cachedFramebuffer = composite.surface->framebuffer;
+        const auto isFramebuffer = reinterpret_cast<PFNGLISFRAMEBUFFERPROC>(SDL_GL_GetProcAddress("glIsFramebuffer"));
+        check(isFramebuffer!=nullptr,"Framebuffer inspection unavailable");
+        const auto oldFramebuffer = composite.surface->framebuffer;
+        check(oldFramebuffer && isFramebuffer(oldFramebuffer),"Composite framebuffer not allocated");
         backend->destroyDynamicComposite(composite.surface);
         check(composite.surface->framebuffer==0,"Composite handle not released");
+        check(!isFramebuffer(oldFramebuffer),"Destroyed composite framebuffer still exists");
         backend->beginDynamicComposite(composite);
-        check(composite.surface->framebuffer==cachedFramebuffer,"nijimi texture-keyed framebuffer cache missed");
+        const auto recreatedFramebuffer = composite.surface->framebuffer;
+        check(recreatedFramebuffer && isFramebuffer(recreatedFramebuffer),"Composite framebuffer not recreated");
+        check(gl::glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE,"Recreated composite framebuffer incomplete");
         backend->endDynamicComposite(composite);
         backend->destroyDynamicComposite(composite.surface);
         check(composite.surface->framebuffer==0,"Composite framebuffer not disposed");
+        check(!isFramebuffer(recreatedFramebuffer),"Recreated composite framebuffer still exists after disposal");
         check(glGetError()==GL_NO_ERROR,"Mask, difference or composite GL error");
         if(!parity) {
             const bool khr=SDL_GL_ExtensionSupported("GL_KHR_blend_equation_advanced");
