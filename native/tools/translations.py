@@ -33,7 +33,7 @@ def main():
             listing = Path(directory) / "sources.txt"
             listing.write_text("\n".join(sources) + "\n", encoding="utf-8")
             subprocess.run([tool("xgettext"), "--language=C++", "--from-code=UTF-8",
-                            "--keyword=_", "--keyword=__", "--keyword=dgettext:2",
+                            "--keyword=_", "--keyword=__", "--keyword=N_", "--keyword=dgettext:2",
                             "--add-comments=TRANSLATORS:", "--sort-by-file",
                             "--package-name=nijiexpose", "--copyright-holder=nijigenerate Project",
                             "--files-from=" + str(listing), "--output=tl/template.pot"], cwd=ROOT, check=True)

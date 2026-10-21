@@ -42,7 +42,6 @@ elseif(APPLE)
         endif()
         install(FILES ${notices} DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/homebrew/${dependency}")
     endforeach()
-    install(DIRECTORY "${PROJECT_SOURCE_DIR}/native/licenses/" DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/native")
     install(FILES "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua"
         "${PROJECT_SOURCE_DIR}/native/res/fonts/NotoSansCJK-Regular-LICENSE"
         "${PROJECT_SOURCE_DIR}/native/res/fonts/MaterialIcons-LICENSE"
@@ -53,6 +52,7 @@ else()
     install(FILES "${PROJECT_SOURCE_DIR}/build-aux/linux/nijiexpose.appdata.xml" DESTINATION share/metainfo)
     install(FILES "${PROJECT_SOURCE_DIR}/build-aux/linux/icon.png" DESTINATION share/icons/hicolor/256x256/apps RENAME nijiexpose.png)
 endif()
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/native/licenses/" DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/native")
 # Fix paths and sign only after the tracker subdirectory has installed its dylibs.
 if(APPLE)
     install(CODE [[

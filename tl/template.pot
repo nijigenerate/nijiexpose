@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nijiexpose\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-22 08:04+0900\n"
+"POT-Creation-Date: 2026-10-22 08:17+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -399,6 +399,41 @@ msgstr ""
 #: native/port/nijiexpose/tracking/expr.cpp:98
 #, c-format
 msgid "Expected %s, got %s"
+msgstr ""
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Key)"
+msgstr ""
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Pitch)"
+msgstr ""
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Roll)"
+msgstr ""
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (X)"
+msgstr ""
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Y)"
+msgstr ""
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Yaw)"
+msgstr ""
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Z)"
 msgstr ""
 
 #: native/port/nijiexpose/windows/main.cpp:836

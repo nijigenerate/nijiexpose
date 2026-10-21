@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: nijiexpose\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-22 08:04+0900\n"
+"POT-Creation-Date: 2026-10-22 08:17+0900\n"
 "PO-Revision-Date: 2026-06-07 22:32+0900\n"
 "Last-Translator: nijigenerate Project <noreply@example.com>\n"
 "Language-Team: Japanese <noreply@example.com>\n"
@@ -404,6 +404,41 @@ msgstr ""
 msgid "Expected %s, got %s"
 msgstr "%s が必要ですが、%s が渡されました"
 
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Key)"
+msgstr "%s (キー)"
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Pitch)"
+msgstr "%s (ピッチ)"
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Roll)"
+msgstr "%s (ロール)"
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (X)"
+msgstr "%s (X)"
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Y)"
+msgstr "%s (Y)"
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Yaw)"
+msgstr "%s (ヨー)"
+
+#: native/port/nijiexpose/tracking/package.cpp:79
+#, c-format
+msgid "%s (Z)"
+msgstr "%s (Z)"
+
 #: native/port/nijiexpose/windows/main.cpp:836
 msgid "Tracking Settings"
 msgstr "トラッキング設定"
@@ -568,34 +603,6 @@ msgstr "なし"
 #: native/port/nijiui/widgets/dialog.cpp:86
 msgid "Yes"
 msgstr ""
-
-#, c-format
-#~ msgid "%s (X)"
-#~ msgstr "%s (X)"
-
-#, c-format
-#~ msgid "%s (Y)"
-#~ msgstr "%s (Y)"
-
-#, c-format
-#~ msgid "%s (Z)"
-#~ msgstr "%s (Z)"
-
-#, c-format
-#~ msgid "%s (Roll)"
-#~ msgstr "%s (ロール)"
-
-#, c-format
-#~ msgid "%s (Pitch)"
-#~ msgstr "%s (ピッチ)"
-
-#, c-format
-#~ msgid "%s (Yaw)"
-#~ msgstr "%s (ヨー)"
-
-#, c-format
-#~ msgid "%s (Key)"
-#~ msgstr "%s (キー)"
 
 #~ msgid "Python path"
 #~ msgstr "Python パス"

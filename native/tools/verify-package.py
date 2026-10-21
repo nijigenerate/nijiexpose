@@ -43,6 +43,8 @@ def main():
                      root / "share/metainfo/nijiexpose.appdata.xml",
                      root / "share/icons/hicolor/256x256/apps/nijiexpose.png"]
     required += [executable, licenses / "LICENSE", licenses / "nicxlive.txt",
+                 licenses / "native/facetrack-d.txt", licenses / "native/vmc-d.txt",
+                 licenses / "native/NotoSansCJK-OFL.txt",
                  licenses / "nijitrack/LICENSE.mediapipe", licenses / "nijitrack/LICENSE.halide"]
     for path in required:
         if not path.is_file() or not path.stat().st_size:
@@ -57,6 +59,8 @@ def main():
         assert translations.gettext("LANG_NAME") not in ("", "LANG_NAME"), catalog
         if catalog.stem == "ja":
             assert translations.gettext("Tracking") == "トラッキング"
+            for source, target in (("Roll", "ロール"), ("Pitch", "ピッチ"), ("Yaw", "ヨー"), ("Key", "キー")):
+                assert translations.gettext(f"%s ({source})") == f"%s ({target})"
     subprocess.run([str(executable), "--version"], check=True, cwd=executable.parent)
     print(f"Verified {system} package: runtime, model hashes, gettext catalogs and licenses")
 

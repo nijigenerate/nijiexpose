@@ -74,7 +74,10 @@ bool RatioTrackingBinding::update(float& result) {
 }
 void RatioTrackingBinding::createSourceDisplayName() {
     if(sourceType==SourceType::Blendshape){sourceDisplayName=sourceName;return;}
-    static constexpr std::array<const char*,7> formats={"%s (X)","%s (Y)","%s (Z)","%s (Roll)","%s (Pitch)","%s (Yaw)","%s (Key)"};
+    // Extraction only: translate the selected format at runtime, as before.
+#define N_(text) text
+    static constexpr std::array<const char*,7> formats={N_("%s (X)"),N_("%s (Y)"),N_("%s (Z)"),N_("%s (Roll)"),N_("%s (Pitch)"),N_("%s (Yaw)"),N_("%s (Key)")};
+#undef N_
     auto value=i18n::_(formats.at(static_cast<size_t>(sourceType)-1));auto index=value.find("%s");if(index!=std::string::npos)value.replace(index,2,sourceName);sourceDisplayName=value;
 }
 ExpressionTrackingBinding::ExpressionTrackingBinding(TrackingBinding* binding):binding_(binding),expr(std::make_unique<Expression>(signature(binding),"")) {}

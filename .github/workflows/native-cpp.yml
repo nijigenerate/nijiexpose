@@ -196,6 +196,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - name: Resolve compiler cache executable
+        shell: bash
+        run: |
+          # The pinned tracker intentionally restricts PATH on macOS.
+          echo "CMAKE_C_COMPILER_LAUNCHER=$(command -v sccache)" >> "$GITHUB_ENV"
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=$(command -v sccache)" >> "$GITHUB_ENV"
       - name: Install Linux binary dependencies
         if: runner.os == 'Linux'
         run: |
