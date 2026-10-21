@@ -12,7 +12,7 @@ endforeach()
 install(DIRECTORY "${linux_resources}/" DESTINATION share/nijiexpose)
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/res/fonts/NotoSansCJK-Regular-LICENSE"
     "${CMAKE_CURRENT_SOURCE_DIR}/res/fonts/MaterialIcons-LICENSE"
-    "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua" DESTINATION share/licenses/nijiexpose)
+    "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION})
 if(BUILD_TESTING)
     add_executable(nijiexpose_scene_item_test tests/scene_item_test.cpp)
     target_link_libraries(nijiexpose_scene_item_test PRIVATE nijiexpose_scene)

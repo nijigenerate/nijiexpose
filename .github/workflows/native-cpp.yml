@@ -1,4 +1,4 @@
-name: Windows native application
+name: Native application packages
 
 on:
   pull_request:
@@ -19,10 +19,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gettext
-          mkdir -p out/i18n
-          for source in tl/*.po; do
-            msgfmt --check --check-format "$source" -o "out/i18n/$(basename "$source" .po).mo"
-          done
+          python3 native/tools/translations.py compile
       - uses: actions/upload-artifact@v4
         with:
           name: native-translations
@@ -158,13 +155,102 @@ jobs:
             build/native-release/application-results/*.png
             build/native-release/application-results/results.json
           if-no-files-found: warn
-      - name: Stage development application
-        run: cmake --install build/native-release --prefix out/native
-      - name: Test staged binary
-        run: ./out/native/bin/nijiexpose-native.exe --version
-      - name: Upload development application (parity audit incomplete)
+      - name: Locate binary WiX tools
+        shell: pwsh
+        run: ./build-aux/windows/ensure-wix.ps1
+      - name: Package ZIP and MSI
+        run: cpack --config build/native-release/CPackConfig.cmake -C Release
+      - name: Verify unpacked Windows package
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem build/native-release/packages/*.zip
+          if ($zip.Count -ne 1) { throw 'Expected one Windows ZIP' }
+          Expand-Archive -LiteralPath $zip.FullName -DestinationPath out/package-check
+          python native/tools/verify-package.py "out/package-check/$($zip.BaseName)"
+      - name: Upload Windows packages
         uses: actions/upload-artifact@v4
         with:
-          name: nijiexpose-native-windows-development
-          path: out/native/
+          name: nijiexpose-native-windows-packages
+          path: |
+            build/native-release/packages/*.zip
+            build/native-release/packages/*.msi
+          if-no-files-found: error
+  unix-native:
+    needs: translations
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_IDLE_TIMEOUT: "0"
+      CMAKE_C_COMPILER_LAUNCHER: sccache
+      CMAKE_CXX_COMPILER_LAUNCHER: sccache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mozilla-actions/sccache-action@v0.0.11
+        with:
+          version: v0.16.0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Linux binary dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build clang lld jq pkg-config libboost-json-dev \
+            libfreetype-dev gettext liblua5.1-0-dev libgl-dev libegl-dev libx11-dev \
+            libxi-dev libxtst-dev libxrandr-dev libxcursor-dev libxfixes-dev \
+            libxinerama-dev libwayland-dev libxkbcommon-dev libasound2-dev libpulse-dev libudev-dev
+      - name: Install macOS binary dependencies
+        if: runner.os == 'macOS'
+        run: |
+          test "$(uname -m)" = arm64
+          brew install --force-bottle ninja boost sdl3 freetype gettext jq pkg-config
+          echo "$(brew --prefix gettext)/bin" >> "$GITHUB_PATH"
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix gettext)" >> "$GITHUB_ENV"
+      - name: Identify compiler and SDK
+        id: environment
+        shell: bash
+        run: |
+          {
+            echo "$ImageVersion"
+            clang --version
+            if [[ "$RUNNER_OS" == macOS ]]; then xcrun --sdk macosx --show-sdk-version; fi
+          } > /tmp/nijiexpose-toolchain.txt
+          echo "id=$(shasum -a 256 /tmp/nijiexpose-toolchain.txt | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Restore MediaPipe compiler cache
+        uses: actions/cache@v4
+        with:
+          path: build/native-release/tracker-cache
+          key: nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-${{ github.sha }}
+          restore-keys: |
+            nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-
+      - name: Configure
+        run: cmake --preset native-release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+      - name: Build
+        run: cmake --build --preset native-release --parallel 3
+      - name: Package
+        run: cpack --config build/native-release/CPackConfig.cmake -C Release
+      - name: Verify unpacked package
+        shell: bash
+        run: |
+          mkdir -p out/package-check
+          for archive in build/native-release/packages/*.zip; do
+            unzip -q "$archive" -d out/package-check
+            python3 native/tools/verify-package.py "out/package-check/$(basename "$archive" .zip)"
+          done
+      - name: Compilation cache statistics
+        if: always()
+        run: sccache --show-stats
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nijiexpose-native-${{ runner.os }}-${{ runner.arch }}-packages
+          path: |
+            build/native-release/packages/*.zip
+            build/native-release/packages/*.dmg
+            build/native-release/packages/*.tar.gz
           if-no-files-found: error

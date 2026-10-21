@@ -1,9 +1,11 @@
 # Archived D implementation
 
-The legacy D application and its packaging assets live here. Run D build and
-packaging commands from this directory. `dub.sdl`, `source`, `res`, and
-`build-aux` retain their relative layout; the application source is unchanged.
-The shared gettext catalogs remain in `../tl`; `gentl.sh` and `genpot.sh` use them.
+The legacy D application and D-only build assets live here. Shared packaging
+assets have moved to `../build-aux` for the native application. The old packaging
+scripts are retained as historical references and are not active build entry
+points. The application source is unchanged.
+The gettext catalogs remain in `../tl`; the root `gentl.sh` and `genpot.sh` now
+use the native translation tooling.
 
 `reference/tests` and `reference/tools` contain the D comparison programs and
 reference-generation helpers formerly under `native`. The C++ test suite still

@@ -29,9 +29,9 @@ if(APPLE)
         DESTINATION nijiexpose-native.app/Contents/Frameworks)
     install(FILES LICENSE.nijitrack "${tracker_sdk}/LICENSE.mediapipe"
         "${tracker_sdk}/LICENSE.halide" "${tracker_sdk}/SOURCE.txt"
-        DESTINATION share/licenses/nijiexpose/nijitrack)
+        DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION}/nijitrack)
     install(DIRECTORY "${tracker_sdk}/licenses/"
-        DESTINATION share/licenses/nijiexpose/nijitrack/licenses)
+        DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION}/nijitrack/licenses)
     set(NIJIEXPOSE_TRACKER_TEST_IMAGE "" CACHE FILEPATH
         "Optional local portrait fixture for the existing real-inference test")
     if(NIJIEXPOSE_TRACKER_TEST_IMAGE)
@@ -76,8 +76,8 @@ add_dependencies(nijiexpose_native nijiexpose_tracker_models)
 install(TARGETS nijiexpose_embedded_tracker RUNTIME DESTINATION bin)
 install(DIRECTORY "${tracker_vendor}/models/" DESTINATION bin/models)
 install(FILES LICENSE.nijitrack "${NIJIEXPOSE_TRACKING_SDK}/LICENSE.mediapipe"
-    "${NIJIEXPOSE_TRACKING_SDK}/LICENSE.halide" "${NIJIEXPOSE_TRACKING_SDK}/SOURCE.txt" DESTINATION share/licenses/nijiexpose/nijitrack)
-install(DIRECTORY "${NIJIEXPOSE_TRACKING_SDK}/licenses/" DESTINATION share/licenses/nijiexpose/nijitrack)
+    "${NIJIEXPOSE_TRACKING_SDK}/LICENSE.halide" "${NIJIEXPOSE_TRACKING_SDK}/SOURCE.txt" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION}/nijitrack)
+install(DIRECTORY "${NIJIEXPOSE_TRACKING_SDK}/licenses/" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION}/nijitrack)
 if(BUILD_TESTING)
     add_test(NAME native_tracker_halide_roi
         COMMAND "${tracker_native}/build-mediapipe/halide/warp-tests.exe")

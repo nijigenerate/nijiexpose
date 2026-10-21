@@ -30,8 +30,16 @@ else()
     target_compile_options(nijiexpose_runtime PRIVATE -Wall -Wextra -Wpedantic)
 endif()
 if(APPLE)
+    set(app_icon "${CMAKE_CURRENT_BINARY_DIR}/nijiexpose.icns")
+    file(GLOB icon_sources CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/build-aux/osx/nijiexpose.iconset/*.png")
+    add_custom_command(OUTPUT "${app_icon}"
+        COMMAND iconutil -c icns "${PROJECT_SOURCE_DIR}/build-aux/osx/nijiexpose.iconset" -o "${app_icon}"
+        DEPENDS ${icon_sources} VERBATIM)
+    target_sources(nijiexpose_native PRIVATE "${app_icon}")
+    set_source_files_properties("${app_icon}" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    set_target_properties(nijiexpose_native PROPERTIES MACOSX_BUNDLE_ICON_FILE nijiexpose.icns)
     set_target_properties(nijiexpose_native PROPERTIES MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/res/Info.plist.in"
+        MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/build-aux/osx/Info.plist"
         MACOSX_BUNDLE_GUI_IDENTIFIER io.github.nijigenerate.nijiexpose.native
         MACOSX_BUNDLE_BUNDLE_NAME "nijiexpose Native"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
@@ -59,7 +67,7 @@ if(WIN32)
         "${CMAKE_CURRENT_SOURCE_DIR}/licenses/vmc-d.txt"
         "${CMAKE_CURRENT_SOURCE_DIR}/licenses/NotoSansCJK-OFL.txt"
         "${CMAKE_CURRENT_SOURCE_DIR}/res/fonts/NotoSansCJK-Regular-LICENSE" "${CMAKE_CURRENT_SOURCE_DIR}/res/fonts/MaterialIcons-LICENSE"
-        DESTINATION share/licenses/nijiexpose)
+        DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION})
     add_custom_command(TARGET nijiexpose_native POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_FILE_DIR:nijiexpose_native>)
@@ -78,30 +86,23 @@ else()
     install(FILES $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_SONAME_FILE:SDL3::SDL3-shared>
         DESTINATION lib)
 endif()
-install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION share/licenses/nijiexpose)
-install(DIRECTORY "${PROJECT_SOURCE_DIR}/vendor/licenses/" DESTINATION share/licenses/nijiexpose/vendor)
+install(FILES "${PROJECT_SOURCE_DIR}/LICENSE" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION})
+install(DIRECTORY "${PROJECT_SOURCE_DIR}/vendor/licenses/" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION}/vendor)
 if(NOT NIJIEXPOSE_SDL3_LICENSE)
     set(NIJIEXPOSE_SDL3_LICENSE "${SDL3_SOURCE_DIR}/LICENSE.txt")
 endif()
-install(FILES "${NIJIEXPOSE_SDL3_LICENSE}" DESTINATION share/licenses/nijiexpose RENAME SDL3.txt)
-install(FILES "${imgui_SOURCE_DIR}/LICENSE.txt" DESTINATION share/licenses/nijiexpose RENAME imgui.txt)
-install(FILES "${nicxlive_SOURCE_DIR}/LICENSE" DESTINATION share/licenses/nijiexpose RENAME nicxlive.txt)
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/licenses/Boost.txt" DESTINATION share/licenses/nijiexpose)
+install(FILES "${NIJIEXPOSE_SDL3_LICENSE}" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION} RENAME SDL3.txt)
+install(FILES "${imgui_SOURCE_DIR}/LICENSE.txt" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION} RENAME imgui.txt)
+install(FILES "${nicxlive_SOURCE_DIR}/LICENSE" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION} RENAME nicxlive.txt)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/licenses/Boost.txt" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION})
 if(WIN32)
     install(FILES "${NIJIEXPOSE_GETTEXT_PREFIX}/licenses/gettext.txt"
-        DESTINATION share/licenses/nijiexpose RENAME gettext-libintl.txt)
+        DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION} RENAME gettext-libintl.txt)
     install(FILES "${NIJIEXPOSE_GETTEXT_PREFIX}/licenses/iconv.txt"
-        DESTINATION share/licenses/nijiexpose RENAME libiconv.txt)
+        DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION} RENAME libiconv.txt)
 endif()
-set(NIJIEXPOSE_TRANSLATIONS_DIR "${PROJECT_SOURCE_DIR}/out/i18n" CACHE PATH "Compiled .mo catalogs")
-if(EXISTS "${NIJIEXPOSE_TRANSLATIONS_DIR}")
-    if(APPLE)
-        install(DIRECTORY "${NIJIEXPOSE_TRANSLATIONS_DIR}/" DESTINATION nijiexpose-native.app/Contents/Resources/i18n FILES_MATCHING PATTERN "*.mo")
-    else()
-        install(DIRECTORY "${NIJIEXPOSE_TRANSLATIONS_DIR}/" DESTINATION bin/i18n FILES_MATCHING PATTERN "*.mo")
-    endif()
-endif()
-install(FILES "${NIJIEXPOSE_FREETYPE_LICENSE}" DESTINATION share/licenses/nijiexpose)
+include("${PROJECT_SOURCE_DIR}/cmake/Translations.cmake")
+install(FILES "${NIJIEXPOSE_FREETYPE_LICENSE}" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION})
 
 if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_library(nijiexpose_port STATIC
@@ -279,7 +280,7 @@ if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
         target_compile_options(nijiexpose_expressions PRIVATE /utf-8 /W4 /fp:strict)
     endif()
     install(FILES "${PROJECT_SOURCE_DIR}/vendor/runtime/lua51.dll" DESTINATION bin)
-    install(FILES "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua" DESTINATION share/licenses/nijiexpose)
+    install(FILES "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION})
     endif()
     add_library(nijiexpose_settings STATIC port/nijiui/core/settings.cpp)
     target_link_libraries(nijiexpose_settings PUBLIC nijiexpose_json nijiexpose_port)
@@ -577,29 +578,6 @@ if(BUILD_TESTING)
         add_test(NAME native_gl_resources COMMAND nijiexpose_gl_resources_test)
         set_tests_properties(native_gl_resources PROPERTIES TIMEOUT 30 LABELS gpu)
     endif()
-endif()
-
-# Fix paths and sign only after the tracker subdirectory has installed its dylibs.
-if(APPLE)
-    install(CODE [[
-        include(BundleUtilities)
-        get_filename_component(nijiexpose_bundle
-            "${CMAKE_INSTALL_PREFIX}/nijiexpose-native.app" ABSOLUTE)
-        # The tracker now contains nijitrack's static SDK. Remove the obsolete
-        # shared face SDK left by earlier macOS installations.
-        file(REMOVE "${nijiexpose_bundle}/Contents/Frameworks/libface_landmarker.dylib")
-        fixup_bundle("${nijiexpose_bundle}" "" "${nijiexpose_bundle}/Contents/Frameworks")
-    ]])
-    install(CODE [[
-        execute_process(
-            COMMAND /usr/bin/codesign --force --deep --sign - "${nijiexpose_bundle}"
-            RESULT_VARIABLE codesign_result
-            OUTPUT_VARIABLE codesign_output
-            ERROR_VARIABLE codesign_error)
-        if(NOT codesign_result EQUAL 0)
-            message(FATAL_ERROR "Could not ad-hoc sign macOS app bundle: ${codesign_output}${codesign_error}")
-        endif()
-    ]])
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")

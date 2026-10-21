@@ -17,4 +17,10 @@ set(NIJIEXPOSE_NICXLIVE_SOURCE_DIR "" CACHE PATH "Optional local nicxlive checko
 
 include(cmake/Vendor.cmake)
 include(cmake/Dependencies.cmake)
+if(APPLE)
+    set(NIJIEXPOSE_LICENSE_DESTINATION "nijiexpose-native.app/Contents/Resources/licenses")
+else()
+    set(NIJIEXPOSE_LICENSE_DESTINATION "share/licenses/nijiexpose")
+endif()
 add_subdirectory(native)
+include(cmake/Packaging.cmake)

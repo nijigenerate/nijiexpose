@@ -24,8 +24,8 @@ install(TARGETS nijiexpose_embedded_tracker LIBRARY DESTINATION lib)
 install(DIRECTORY "${tracker_vendor}/models/" DESTINATION bin/models)
 install(FILES LICENSE.nijitrack "${tracker_sdk}/LICENSE.mediapipe"
     "${tracker_sdk}/LICENSE.halide" "${tracker_sdk}/SOURCE.txt"
-    DESTINATION share/licenses/nijiexpose/nijitrack)
-install(DIRECTORY "${tracker_sdk}/licenses/" DESTINATION share/licenses/nijiexpose/nijitrack/licenses)
+    DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION}/nijitrack)
+install(DIRECTORY "${tracker_sdk}/licenses/" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION}/nijitrack/licenses)
 if(BUILD_TESTING)
     add_test(NAME native_tracker_halide_roi COMMAND "${tracker_native}/build-mediapipe/halide/warp-tests")
     set(NIJIEXPOSE_TRACKER_TEST_IMAGE "" CACHE FILEPATH "Portrait fixture for real inference tests")

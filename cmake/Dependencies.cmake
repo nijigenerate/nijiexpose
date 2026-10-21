@@ -31,6 +31,8 @@ else()
         set(SDL_TESTS OFF CACHE BOOL "" FORCE)
         set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
         set(SDL_STATIC OFF CACHE BOOL "" FORCE)
+        # The application installs its runtime explicitly; omit SDL's SDK.
+        set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
         FetchContent_MakeAvailable(SDL3)
     endif()
 

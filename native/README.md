@@ -97,8 +97,10 @@ Versions, URLs, hashes, ABI requirements and license paths are recorded in
 [dependency updates](../cmake/DEPENDENCY_UPDATES.md) for the update procedure.
 Libraries selected for vendoring and their notices are in [vendor](../vendor/README.md).
 Unmodified Boost, gettext/libiconv and SDL3 are not committed to the repository.
-Compiled catalogs in `out/i18n` are installed beside the executable; CI generates
-them using GNU msgfmt. All required runtime DLLs and notices are staged.
+Changed PO catalogs are compiled during the build with GNU msgfmt. Hosts without
+msgfmt can use precompiled catalogs in `out/i18n`; CI supplies them from its
+translation job. All required runtime DLLs and notices are staged. See
+[translation maintenance](../tl/README.md) and [package generation](../build-aux/README.md).
 
 The staged Windows executable is `out/native/bin/nijiexpose-native.exe`.
 Keep all staged DLLs beside it and distribute the staged licenses. `--version`

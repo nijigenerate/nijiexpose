@@ -53,8 +53,10 @@ set(NIJIEXPOSE_MACOS_MINIMUM_VERSION "${tracker_sdk_version}" PARENT_SCOPE)
 target_link_options(nijiexpose_native PRIVATE "-mmacosx-version-min=${tracker_sdk_version}")
 # The upstream script records paths in its recipe and Bazel actions. Keep the
 # source, compiler search path and all caches in this persistent build tree.
+set(NIJIEXPOSE_BAZEL_CACHE "${CMAKE_BINARY_DIR}/tracker-cache" CACHE PATH "Tracker compiler action cache")
 set(tracker_environment "${CMAKE_COMMAND}" -E env
     "JAVA_HOME=${NIJIEXPOSE_JAVA_HOME}"
+    "NIJIEXPOSE_BAZEL_CACHE=${NIJIEXPOSE_BAZEL_CACHE}"
     "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin")
 ExternalProject_Add(nijitrack_source_sdk
     URL "${tracker_source_url}"
