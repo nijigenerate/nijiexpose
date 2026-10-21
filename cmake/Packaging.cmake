@@ -30,10 +30,12 @@ elseif(APPLE)
     string(REPLACE "\n" ";" brew_dependencies "${brew_dependencies}")
     list(APPEND brew_dependencies freetype gettext sdl3)
     list(REMOVE_DUPLICATES brew_dependencies)
+    set(brew_library_dirs)
     foreach(dependency IN LISTS brew_dependencies)
         execute_process(COMMAND "${BREW_EXECUTABLE}" --prefix "${dependency}"
             OUTPUT_VARIABLE prefix OUTPUT_STRIP_TRAILING_WHITESPACE
             COMMAND_ERROR_IS_FATAL ANY)
+        list(APPEND brew_library_dirs "${prefix}/lib")
         file(GLOB notices LIST_DIRECTORIES FALSE "${prefix}/LICENSE*" "${prefix}/COPYING*" "${prefix}/FTL.TXT"
             "${prefix}/share/doc/*/LICENSE*" "${prefix}/share/doc/*/COPYING*"
             "${prefix}/share/doc/*/FTL.TXT")
@@ -55,6 +57,7 @@ endif()
 install(DIRECTORY "${PROJECT_SOURCE_DIR}/native/licenses/" DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/native")
 # Fix paths and sign only after the tracker subdirectory has installed its dylibs.
 if(APPLE)
+    install(CODE "set(nijiexpose_library_dirs \"${brew_library_dirs}\")")
     install(CODE [[
         include(BundleUtilities)
         get_filename_component(nijiexpose_bundle
@@ -62,7 +65,8 @@ if(APPLE)
         # The tracker now contains nijitrack's static SDK. Remove the obsolete
         # shared face SDK left by earlier macOS installations.
         file(REMOVE "${nijiexpose_bundle}/Contents/Frameworks/libface_landmarker.dylib")
-        fixup_bundle("${nijiexpose_bundle}" "" "${nijiexpose_bundle}/Contents/Frameworks")
+        fixup_bundle("${nijiexpose_bundle}" ""
+            "${nijiexpose_bundle}/Contents/Frameworks;${nijiexpose_library_dirs}")
     ]])
     install(CODE [[
         execute_process(

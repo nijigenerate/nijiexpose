@@ -52,6 +52,9 @@ model hashes, gettext catalogs and licenses, and runs the packaged executable's
 compilation uses sccache; source-built MediaPipe uses a persisted Bazel action
 cache keyed by platform, compiler/SDK and recipe. These are compiler caches,
 not externally supplied locally built SDK binaries.
+On Unix, the sccache directory and Bazel cache are saved separately before
+packaging, including after build failures, so packaging errors do not discard
+completed compilation work.
 
 To check an unpacked archive locally:
 

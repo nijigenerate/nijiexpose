@@ -183,7 +183,8 @@ jobs:
         os: [ubuntu-24.04, macos-26]
     runs-on: ${{ matrix.os }}
     env:
-      SCCACHE_GHA_ENABLED: "true"
+      SCCACHE_DIR: ${{ github.workspace }}/build/compiler-cache
+      SCCACHE_CACHE_SIZE: 1G
       SCCACHE_IDLE_TIMEOUT: "0"
       CMAKE_C_COMPILER_LAUNCHER: sccache
       CMAKE_CXX_COMPILER_LAUNCHER: sccache
@@ -230,16 +231,37 @@ jobs:
           } > /tmp/nijiexpose-toolchain.txt
           echo "id=$(shasum -a 256 /tmp/nijiexpose-toolchain.txt | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - name: Restore MediaPipe compiler cache
-        uses: actions/cache@v4
+        id: tracker-cache
+        uses: actions/cache/restore@v4
         with:
           path: build/native-release/tracker-cache
           key: nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-${{ github.sha }}
           restore-keys: |
             nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-
+      - name: Restore C and C++ compiler cache
+        id: compiler-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build/compiler-cache
+          key: native-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ github.sha }}
+          restore-keys: |
+            native-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-
       - name: Configure
         run: cmake --preset native-release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
       - name: Build
         run: cmake --build --preset native-release --parallel 3
+      - name: Save MediaPipe compiler cache before packaging
+        if: always() && steps.tracker-cache.outcome == 'success' && steps.tracker-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/native-release/tracker-cache
+          key: ${{ steps.tracker-cache.outputs.cache-primary-key }}
+      - name: Save C and C++ compiler cache before packaging
+        if: always() && steps.compiler-cache.outcome == 'success' && steps.compiler-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/compiler-cache
+          key: ${{ steps.compiler-cache.outputs.cache-primary-key }}
       - name: Package
         run: cpack --config build/native-release/CPackConfig.cmake -C Release
       - name: Verify unpacked package
