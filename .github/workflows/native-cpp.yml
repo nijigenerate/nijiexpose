@@ -20,7 +20,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: native-${{ github.head_ref || github.ref_name }}-${{ inputs.mode || 'verify' }}
+  # Only branch pushes and their PR checks share a group. Scheduled publishing,
+  # tag publishing and manual checks cannot cancel one another.
+  group: native-${{ github.event_name == 'pull_request' && 'push' || github.event_name }}-${{ github.head_ref && format('refs/heads/{0}', github.head_ref) || github.ref }}-${{ inputs.mode || 'auto' }}
   cancel-in-progress: true
 
 jobs:
