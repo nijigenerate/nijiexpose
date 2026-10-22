@@ -46,7 +46,6 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     initDarkMode();
     inInitFonts();
     inInitPanels();
-    uiImInitDialogs();
 }
 InApplicationWindow::~InApplicationWindow() { cleanup(); }
 void InApplicationWindow::cleanup() {

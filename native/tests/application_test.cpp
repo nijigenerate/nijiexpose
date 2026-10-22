@@ -251,6 +251,20 @@ int main(int argc,char** argv){try{
     frame(3);
     auto* dialog=ImGui::FindWindowByName("Owned plugin dialog");
     check(dialog && dialog->Active,"Dialog title did not survive the caller string");
+    bool dialogImageFound=false;
+    for(auto* child:dialog->DC.ChildWindows) {
+        if(std::string_view(child->Name).find("ErrorMainBoxLogo")==std::string_view::npos)continue;
+        for(const auto& command:child->DrawList->CmdBuffer) {
+            if(!command.ElemCount)continue;
+            const auto texture=command.GetTexID();
+            check(texture!=0,"Dialog illustration has no uploaded texture after application startup");
+            if(texture!=ImGui::GetIO().Fonts->TexRef.GetTexID()) {
+                check(glIsTexture(static_cast<GLuint>(texture))!=0,"Dialog illustration is not a valid OpenGL texture");
+                dialogImageFound=true;
+            }
+        }
+    }
+    check(dialogImageFound,"Dialog illustration draw command missing");
     capture("16-owned-dialog.png");
     window->close();shutdownApplication();return 0;
 }catch(const std::exception& ex){std::cerr<<ex.what()<<'\n';return 1;}}

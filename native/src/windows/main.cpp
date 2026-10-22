@@ -950,6 +950,7 @@ public:
         backend=std::make_shared<ogl::Backend>();
         core::inSetRenderBackend(backend);
         backend->initializeRenderer();
+        uiImInitDialogs();
         neSetStyle();
         inSetPanelsSuspended(true);
         core::inSetViewport(ws.width,ws.height);
