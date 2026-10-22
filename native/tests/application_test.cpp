@@ -243,6 +243,49 @@ int main(int argc,char** argv){try{
     click(517,50);check(scene::insScene()->sceneItems.size()==1&&scene::insScene()->sceneItems.front()!=moved,"Trash button did not remove selected model");
     capture("15-selected-model-deleted.png");
     std::cout<<"Background swatch, Apply, file-drop, model drag and selected delete passed\n";
+    const auto imagePath=(std::filesystem::path(argv[2])/"drag-image.png").string();
+    SDL_WarpMouseInWindow(SDL_GL_GetCurrentWindow(),900,700);frame(2);
+    drop.drop.data=imagePath.c_str();check(SDL_PushEvent(&drop),"Could not queue image drop");frame(5);
+    check(scene::insScene()->sceneItems.size()==2,"Image drop did not create an item");
+    auto imageItem=scene::insScene()->sceneItems.back();
+    auto imageCenter=[&] {
+        std::vector<unsigned char> pixels(size_t(window->width())*window->height()*4);
+        readPresentedPixels(0,0,window->width(),window->height(),GL_RGBA,GL_UNSIGNED_BYTE,pixels.data());
+        double x=0,y=0;size_t count=0;
+        for(int py=0;py<window->height();++py)for(int px=0;px<window->width();++px){auto i=(size_t(py)*window->width()+px)*4;if(pixels[i]<20&&pixels[i+1]<20&&pixels[i+2]>230){x+=px;y+=window->height()-1-py;++count;}}
+        check(count>100,"Dropped image is not visible");return ImVec2(float(x/count),float(y/count));
+    };
+    auto beforeImage=imageCenter();
+    click(beforeImage.x,beforeImage.y);check(scene::insScene()->selectedSceneItem()==imageItem,"Dropped image cannot be selected");
+    frame(20); // Start a separate drag, not the application's double-click UI toggle.
+    auto dragImage=[&](ImVec2 from,ImVec2 to,bool attach){
+        SDL_WarpMouseInWindow(SDL_GL_GetCurrentWindow(),from.x,from.y);frame(2);
+        if(attach){ImGui::GetIO().AddKeyEvent(ImGuiKey_LeftCtrl,true);ImGui::GetIO().AddKeyEvent(ImGuiMod_Ctrl,true);}
+        ImGui::GetIO().AddMouseButtonEvent(0,true);frame(1);
+        SDL_WarpMouseInWindow(SDL_GL_GetCurrentWindow(),to.x,to.y);frame(35);
+        ImGui::GetIO().AddMouseButtonEvent(0,false);frame(5);
+        if(attach){ImGui::GetIO().AddKeyEvent(ImGuiKey_LeftCtrl,false);ImGui::GetIO().AddKeyEvent(ImGuiMod_Ctrl,false);}
+        frame(5);
+    };
+    dragImage(beforeImage,{350,480},false);
+    auto afterImage=imageCenter();
+    check(std::abs(afterImage.x-350)<8&&std::abs(afterImage.y-480)<8,"Dragging image item did not move its rendered pixels");
+    capture("17-image-dragged.png");
+    dragImage(afterImage,{712,384},true);
+    check(imageItem->attachedParent.lock()==scene::insScene()->sceneItems.front(),"Ctrl-drop did not attach image to Puppet");
+    capture("18-image-attached.png");
+    auto attachedImage=imageCenter();
+    check(std::abs(attachedImage.x-712)<8&&std::abs(attachedImage.y-384)<8,"Attaching image changed its displayed position");
+    check(expression->expr->expression("0"),"Could not drive attachment parent parameter");frame(8);
+    auto followingImage=imageCenter();
+    check(std::abs(followingImage.x-attachedImage.x+200)<8,"Attached image did not follow Puppet parameter motion");
+    capture("19-image-follows-puppet.png");
+    dragImage(followingImage,{350,550},true);
+    check(imageItem->attachedParent.expired(),"Ctrl-drag did not detach image");
+    auto detachedImage=imageCenter();
+    check(std::abs(detachedImage.x-350)<8&&std::abs(detachedImage.y-550)<8,"Detached image did not move independently");
+    capture("20-image-detached.png");
+    std::cout<<"Image file-drop, rendered drag, Ctrl-drop attachment, parameter following and Ctrl-drag detach passed\n";
     std::string dialogTitle="Owned plugin dialog";
     int dialogData=42;
     nijiui::uiImDialog(dialogTitle.c_str(),"Lifetime regression",nijiui::DialogLevel::Info,nijiui::DialogButtons::OK,&dialogData);

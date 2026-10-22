@@ -97,7 +97,7 @@ bool SceneItem::attachTo(const std::shared_ptr<SceneItem>& parent) {
         auto previous=attachedParent.lock();
         if(previous)std::erase(previous->children,shared_from_this());
         puppetRoot->reparent(node,0);node->transformChanged();puppetRoot->localTransform.translation=pos;puppetRoot->localTransform.scale=target;
-        node->transformChanged();puppetRoot->setAbsZSort(minZ(moving->puppet->root)-1);puppetRoot->pinToMesh=true;
+        node->transformChanged();puppetRoot->setAbsZSort(minZ(moving->puppet->root)-1);puppetRoot->setPinToMesh(true);
         if(previous&&previous!=parent)previous->puppet->rescanNodes();
         parent->puppet->rescanNodes();attachedParent=parent;parent->children.push_back(shared_from_this());return true;
     }return false;
@@ -112,7 +112,7 @@ bool SceneItem::detach() {
     puppetRoot->reparent(nullptr,0,true);
     puppet->setRootNode(puppetRoot);puppet->transform=cur;puppet->transform.update();
     puppetRoot->localTransform.translation={0,0,0};puppetRoot->localTransform.scale={1,1};puppetRoot->localTransform.rotation={0,0,0};
-    puppetRoot->transformChanged();puppetRoot->zSort(0);puppet->rescanNodes();attachedParent.reset();puppetRoot->pinToMesh=false;parent->puppet->rescanNodes();
+    puppetRoot->transformChanged();puppetRoot->zSort(0);puppet->rescanNodes();attachedParent.reset();puppetRoot->setPinToMesh(false);parent->puppet->rescanNodes();
     auto traverse=[](auto&& self,auto& item)->void{item->updateTransform();for(auto& child:item->children)self(self,child);};
     for(auto& child:children)traverse(traverse,child);return true;
 }

@@ -13,7 +13,7 @@ Their required notices are still installed with application distributions.
 
 | Dependency | Version / source | Contents |
 | --- | --- | --- |
-| nicxlive | nijigenerate/nicxlive, `938f2cd191e98f07b81dc0ea03bcdfbfb858e344` | Source snapshot including the nicxlive `resource-lifetime` branch changes and upstream license; resource management is implemented in nicxlive itself, not in the application overlay |
+| nicxlive | nijigenerate/nicxlive, `94bf940a131fd3ee1a3b76b127984718853e23b7` | Source snapshot including the nicxlive `resource-lifetime` branch changes, hierarchy-rescan render refresh (PR #19), and upstream license; resource management is implemented in nicxlive itself, not in the application overlay |
 | ImGui | ocornut/imgui, `4e02e84cbb85d48881388e7090c2dfa1708c02a1` | Original docking source archive, MIT |
 | Reference ImGui | Inochi2D/imgui, `dd5b7c6847372016f45d5b5abda687bd5cd19224` | Original source archive, MIT; comparison tests only |
 | nijitrack | Source pin in `native/tracker/NijitrackSource.cmake` | Both Windows and macOS build the SDK from source; no prebuilt SDK archive is vendored. Model bundles and license notices remain here. |

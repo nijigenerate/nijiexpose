@@ -26,6 +26,8 @@ std::shared_ptr<nicxlive::core::Puppet> neLoadModelFromImage(const std::string& 
     }
     ShallowTexture tex2(data,maxX-minX+1,maxY-minY+1,tex.channels);
     auto part=nodes::Part::createSimple(std::make_shared<Texture>(tex2),filename);
-    return std::make_shared<Puppet>(part);
+    auto puppet=std::make_shared<Puppet>(part);
+    part->setPuppet(puppet);
+    return puppet;
 }
 }

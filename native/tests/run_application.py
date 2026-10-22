@@ -1,6 +1,9 @@
-import json,os,pathlib,struct,subprocess,sys,socket
+import json,os,pathlib,struct,subprocess,sys,socket,zlib
 root=pathlib.Path(sys.argv[2]).resolve();root.mkdir(parents=True,exist_ok=True)
 config=root/'config';config.mkdir(exist_ok=True)
+def png_chunk(kind, data):
+    return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data))
+(root/'drag-image.png').write_bytes(b'\x89PNG\r\n\x1a\n'+png_chunk(b'IHDR',struct.pack('>IIBBBBB',120,120,8,6,0,0,0))+png_chunk(b'IDAT',zlib.compress((b'\0'+bytes([0,0,255,255])*120)*120))+png_chunk(b'IEND',b''))
 probe=socket.socket(socket.AF_INET,socket.SOCK_DGRAM);probe.bind(('127.0.0.1',0));port=probe.getsockname()[1];probe.close()
 (config/'settings.json').write_text(json.dumps({'window':{'width':1024,'height':768},'throttlingRate':0,'shouldPostProcess':False,'bgColor':[.92,.94,.97,1],'space':{'zones':[{'name':'Local verification','sources':[{'type':'VMC Receiver','options':{'port':str(port)}}]}]}}))
 b=(pathlib.Path(__file__).parent/'fixtures/original-model.bin').read_bytes();n=struct.unpack('>I',b[8:12])[0];doc=json.loads(b[12:12+n])
