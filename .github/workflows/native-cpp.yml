@@ -272,6 +272,23 @@ jobs:
             unzip -q "$archive" -d out/package-check
             python3 native/tools/verify-package.py "out/package-check/$(basename "$archive" .zip)"
           done
+      - name: Verify mounted macOS DMG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          mountpoint="$PWD/out/dmg-mount"
+          mkdir -p "$mountpoint" out/dmg-installed
+          for archive in build/native-release/packages/*.dmg; do
+            hdiutil verify "$archive"
+            hdiutil attach "$archive" -readonly -nobrowse -mountpoint "$mountpoint"
+            trap 'hdiutil detach "$mountpoint"' EXIT
+            python3 native/tools/verify-package.py "$mountpoint"
+            # Exercise the same app-bundle copy used for drag-and-drop installation.
+            ditto "$mountpoint/nijiexpose-native.app" out/dmg-installed/nijiexpose-native.app
+            hdiutil detach "$mountpoint"
+            trap - EXIT
+            python3 native/tools/verify-package.py out/dmg-installed
+          done
       - name: Compilation cache statistics
         if: always()
         run: sccache --show-stats
