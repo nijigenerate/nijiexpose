@@ -24,7 +24,8 @@ elseif(APPLE)
     set(CPACK_DMG_BACKGROUND_IMAGE "${PROJECT_SOURCE_DIR}/build-aux/osx/dmgbg.png")
     # fixup_bundle embeds Homebrew dylibs; carry their installed notices with
     # the app, including transitive FreeType/gettext dependencies.
-    execute_process(COMMAND "${BREW_EXECUTABLE}" deps --installed freetype gettext sdl3
+    # Multiple formulae otherwise return only their common dependencies.
+    execute_process(COMMAND "${BREW_EXECUTABLE}" deps --installed --union freetype gettext sdl3
         OUTPUT_VARIABLE brew_dependencies OUTPUT_STRIP_TRAILING_WHITESPACE
         COMMAND_ERROR_IS_FATAL ANY)
     string(REPLACE "\n" ";" brew_dependencies "${brew_dependencies}")
