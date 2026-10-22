@@ -1,4 +1,4 @@
-# <div align="center"><img src="native/res/tex/logo.png" width="384" alt="nijiexpose"></div>
+# <div align="center"><img src="native/res/logo.png" width="384" alt="nijiexpose"></div>
 
 <img width="2560" height="1392" alt="image" src="https://github.com/user-attachments/assets/739561a1-d785-4290-a2f0-c763b3fcde0b" />
 
