@@ -44,6 +44,8 @@ int main(int argc,char** argv) {
         nicxlive::core::inSetRenderBackend(backend);
         {
             Window window;
+            backend->initializeRenderer();
+            ui::uiImInitDialogs();
             auto child=std::make_shared<Child>(window.order);
             ui::inWindowListAdd(child);
             window.update();
