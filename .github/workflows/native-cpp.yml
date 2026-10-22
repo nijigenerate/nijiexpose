@@ -19,6 +19,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: native-${{ github.head_ref || github.ref_name }}-${{ inputs.mode || 'verify' }}
+  cancel-in-progress: true
+
 jobs:
   package-mode:
     runs-on: ubuntu-24.04
@@ -27,6 +31,7 @@ jobs:
       version: ${{ steps.mode.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+      - run: python3 build-aux/test_package_mode.py
       - id: mode
         env:
           REQUESTED_MODE: ${{ inputs.mode }}
@@ -367,7 +372,7 @@ jobs:
           if-no-files-found: error
   publish:
     needs: [package-mode, windows-native, unix-native]
-    if: github.event_name == 'schedule' || startsWith(github.ref, 'refs/tags/')
+    if: github.event_name == 'schedule' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
     runs-on: ubuntu-24.04
     permissions:
       contents: write

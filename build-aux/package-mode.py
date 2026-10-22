@@ -4,6 +4,12 @@ import re
 
 
 def select(event, ref, requested=""):
+    if event == "workflow_dispatch":
+        mode = requested or "verify"
+        if mode not in ("nightly", "release", "verify"):
+            raise ValueError("Unknown package mode")
+        match = re.fullmatch(r"refs/tags/v?(\d+\.\d+\.\d+)(?:-rc[\w.-]*)?", ref)
+        return mode, match[1] if match else "0.1.0"
     if event == "schedule" or ref == "refs/tags/nightly":
         return "nightly", "0.1.0"
     if ref.startswith("refs/tags/"):
