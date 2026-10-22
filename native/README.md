@@ -1,5 +1,8 @@
 # Native C++ / SDL3 build
 
+For the current platform setup, packaging and translation commands, start with
+[BUILD.md](../BUILD.md). This page retains detailed implementation and test notes.
+
 The C++ application uses nicxlive, SDL 3, and official Dear ImGui
 1.93.0-docking (commit 4e02e84cbb85d48881388e7090c2dfa1708c02a1). Source archives
 are fixed by commit and SHA256. SDL3/OpenGL3 backends come from the same
@@ -115,8 +118,11 @@ Enable its CTest registration using `-DNIJIEXPOSE_GPU_TESTS=ON`.
 Install the platform dependencies with Homebrew:
 
 ```sh
-brew install cmake ninja openjdk boost sdl3 freetype gettext jq pkg-config
-cmake -S . -B build/native-macos-source -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+brew install --force-bottle cmake ninja openjdk@21 boost sdl3 freetype gettext jq pkg-config
+export JAVA_HOME="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
+export PATH="$(brew --prefix gettext)/bin:$PATH"
+export CMAKE_PREFIX_PATH="$(brew --prefix gettext)${CMAKE_PREFIX_PATH:+:$CMAKE_PREFIX_PATH}"
+cmake -S . -B build/native-macos-source -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 cmake --build build/native-macos-source --parallel 4
 cmake --install build/native-macos-source --prefix out/native-macos
 ```
@@ -174,8 +180,9 @@ D results, permitting Boost.JSON formatting and object-order differences.
 Gettext integration tests cover Japanese/German switching, metadata,
 unknown languages, clearing and C-locale launch environments. Updated ImGui drawing
 is not claimed to be byte-identical to the older renderer. Full application
-parity and interactive IME/HiDPI checks remain outstanding. CI is configured
-for these non-GPU tests but has not yet run remotely.
+parity and interactive IME/HiDPI checks remain outstanding. The native CI runs
+the Windows non-GPU suite and builds and validates packages on Windows, macOS
+and Linux.
 
 The GPU suite also exercises native Puppet rendering, masks, dynamic composites,
 difference aggregation, texture operations, SpriteBatch, image import, INP
