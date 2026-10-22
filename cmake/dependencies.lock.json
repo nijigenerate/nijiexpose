@@ -34,10 +34,10 @@
     "directory": "boost_1_90_0"
   },
   "nicxlive": {
-    "version": "d3f40894e1b2149820a36ef01d4c5fe7e608b6b1",
+    "version": "5e917521b9182b00624bd6bf0a2150f12455dab5",
     "kind": "source",
-    "url": "https://codeload.github.com/nijigenerate/nicxlive/tar.gz/d3f40894e1b2149820a36ef01d4c5fe7e608b6b1",
-    "sha256": "3d949b624087c67d90bec5735194bb7fb26d21be6762c74a56ca4bf9d0a34f59",
+    "url": "https://codeload.github.com/nijigenerate/nicxlive/tar.gz/5e917521b9182b00624bd6bf0a2150f12455dab5",
+    "sha256": "4c7e1670f0a189041d322dea280ce2aeb7f49fbc68702db5036e449420f900e5",
     "vendor": "nicxlive.tar.gz",
     "license": "LICENSE",
     "source_note": "Committed resource-lifetime source (PR #18), including mask ownership cycle fixes, internal resource retirement, dirty-only uploads and hierarchy-rescan render refresh (PR #19). No external geometry collection API. Not a binary build."
