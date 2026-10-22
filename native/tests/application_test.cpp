@@ -1,8 +1,8 @@
 #include <core/nodes/projectable.hpp>
-#include "nijiexpose/application.hpp"
-#include "nijiexpose/plugins/package.hpp"
-#include "nijiexpose/scene/package.hpp"
-#include "nijiexpose/framesend.hpp"
+#include "application.hpp"
+#include "plugins/package.hpp"
+#include "scene/package.hpp"
+#include "framesend.hpp"
 #include "nijilive/model_io.hpp"
 #include "ft/udp.hpp"
 #include <bit>
@@ -14,7 +14,7 @@
 #include "nijiui/core/settings.hpp"
 #include "nijiui/widgets/dialog.hpp"
 #ifdef _WIN32
-#include "nijiexpose/spout.hpp"
+#include "spout.hpp"
 #endif
 #include "nijilive/opengl/api.hpp"
 #include "nijilive/opengl/drawable.hpp"

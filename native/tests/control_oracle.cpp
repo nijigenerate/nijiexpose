@@ -1,5 +1,5 @@
-#include "nijiexpose/animation/package.hpp"
-#include "nijiexpose/tracking/context.hpp"
+#include "animation/package.hpp"
+#include "tracking/context.hpp"
 #include <iostream>
 #include <bit>
 using namespace nijiexpose;

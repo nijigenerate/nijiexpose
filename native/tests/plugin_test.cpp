@@ -1,4 +1,4 @@
-#include "nijiexpose/plugins/package.hpp"
+#include "plugins/package.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>

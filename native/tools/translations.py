@@ -27,7 +27,9 @@ def main():
     if not catalogs:
         parser.error("No PO catalogs in tl/")
     if args.command in ("extract", "update"):
-        sources = sorted(p.relative_to(ROOT).as_posix() for p in (ROOT / "native/port").rglob("*")
+        sources = sorted(p.relative_to(ROOT).as_posix()
+                         for source_root in ("native/port", "native/src")
+                         for p in (ROOT / source_root).rglob("*")
                          if p.suffix in (".cpp", ".hpp"))
         with tempfile.TemporaryDirectory(prefix="nijiexpose-pot-") as directory:
             listing = Path(directory) / "sources.txt"

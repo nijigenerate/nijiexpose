@@ -1,5 +1,5 @@
 #pragma once
-#include "nijiexpose/json.hpp"
+#include "json.hpp"
 #include <string>
 #include <string_view>
 namespace nijiui {

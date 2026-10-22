@@ -1,6 +1,6 @@
-#include "nijiexpose/application.hpp"
-#include "nijiexpose/log.hpp"
-#include "nijiexpose/control.hpp"
+#include "application.hpp"
+#include "log.hpp"
+#include "control.hpp"
 #include "dcompat/string.hpp"
 #include <imgui.h>
 #include <cstdio>

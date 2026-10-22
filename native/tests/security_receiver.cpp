@@ -1,6 +1,6 @@
 #include "osc/server.hpp"
 #include "ft/phizosc.hpp"
-#include "nijiexpose/tracking/ext/exvmc.hpp"
+#include "tracking/ext/exvmc.hpp"
 #include <chrono>
 #include <iostream>
 #include <thread>

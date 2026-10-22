@@ -33,7 +33,7 @@ Windows版を最優先とする。既存の差分監査のIDを引き継ぎ、�
   完了条件: 指定の有無、縮小表示、フィルタ切替、テクスチャ更新後の各段を比較する。R05のDynamicComposite更新にも適用する。
 
 - [ ] **M06: SceneItemの親子所有権の循環を解消する。**
-  対象: [item.hpp](native/port/nijiexpose/scene/item.hpp)。親と子が双方`shared_ptr`を保持する構造を、D版の親子操作を保持しつつ解放できる所有権にする。
+  対象: [item.hpp](native/src/scene/item.hpp)。親と子が双方`shared_ptr`を保持する構造を、D版の親子操作を保持しつつ解放できる所有権にする。
   完了条件: attach/detach、親子削除、モデルの繰返し読込・解放でオブジェクトとGPU資源が解放され、残った参照が無効アクセスを起こさないことを確認する。現時点では構造上のリスクであり、漏出量は未測定。
 
 ## P1: 描画・モデル処理の差を詰める
@@ -47,7 +47,7 @@ Windows版を最優先とする。既存の差分監査のIDを引き継ぎ、�
   完了条件: surface再作成・texture差替え・handle再利用・モデル解放の寿命を記録し、不要な保持や別surfaceの誤再利用を解消する。現時点でリーク確定とは扱わない。
 
 - [ ] **R07: 命令キューから最終表示までの対応を検証する。**
-  対象: [main.cpp](native/port/nijiexpose/windows/main.cpp)、[nijimi backend](native/port/nijimi/opengl)。要求されたnicxlive命令キュー／nijimi表示構成のまま、描画順、マスク、合成、postprocess、viewport、GL状態を対応させる。
+  対象: [main.cpp](native/src/windows/main.cpp)、[nijimi backend](native/port/nijimi/opengl)。要求されたnicxlive命令キュー／nijimi表示構成のまま、描画順、マスク、合成、postprocess、viewport、GL状態を対応させる。
   完了条件: 実INPの画面表示・画像保存・Spout出力を確認し、各出力で同じモデル状態が描画される。コマンド種別が揃っているだけでは完了にしない。
 
 - [ ] **M01: 最初のupdateより前の初期化を検証する。**
@@ -70,27 +70,27 @@ Windows版を最優先とする。既存の差分監査のIDを引き継ぎ、�
 ## P1: アプリの動作と入力の差を詰める
 
 - [ ] **A07: noiseの乱数処理を照合する。**
-  対象: [expr.cpp](native/port/nijiexpose/tracking/expr.cpp)。Dの乱数初期化とC++の`random_device`由来seedの差を調べる。
+  対象: [expr.cpp](native/src/tracking/expr.cpp)。Dの乱数初期化とC++の`random_device`由来seedの差を調べる。
   完了条件: アルゴリズム、分布、seedの扱い、更新タイミングを対応させる。制御したseedで比較し、偶然同じ値になることを判定基準にしない。
 
 - [ ] **A08: Luaの型変換・エラー・寿命を対応させる。**
-  対象: [plugins/package.cpp](native/port/nijiexpose/plugins/package.cpp)。lumarsからLua 5.1 C APIへの手動登録の差を洗い出す。
+  対象: [plugins/package.cpp](native/src/plugins/package.cpp)。lumarsからLua 5.1 C APIへの手動登録の差を洗い出す。
   完了条件: 全公開APIで正常値・nil・不正型・例外・callback・オブジェクト解放を比較する。式評価と実プラグインの実行まで確認する。
 
 - [ ] **A09: Windowsファイルダイアログの挙動を対応させる。**
-  対象: [io/package.cpp](native/port/nijiexpose/io/package.cpp)。tinyfiledialogsとGetOpenFileNameW実装の差を調べる。
+  対象: [io/package.cpp](native/src/io/package.cpp)。tinyfiledialogsとGetOpenFileNameW実装の差を調べる。
   完了条件: 実際に提供する各ダイアログのフィルタ、初期パス、Unicode、選択数、取消、保存・上書きの挙動を比較し、省略を解消する。
 
 - [ ] **U04: Throttle・FPS・GPU負荷の比較を完了する。**
-  対象: [appwin.cpp](native/port/nijiui/core/window/appwin.cpp)、[settings.cpp](native/port/nijiexpose/windows/settings.cpp)。主要な間引きと表示FPSの修正は実装済み。rate 0でのカウンタ更新などの差と全条件の回帰を確認する。
+  対象: [appwin.cpp](native/port/nijiui/core/window/appwin.cpp)、[settings.cpp](native/src/windows/settings.cpp)。主要な間引きと表示FPSの修正は実装済み。rate 0でのカウンタ更新などの差と全条件の回帰を確認する。
   完了条件: 同一モデル・画面サイズ・V-Sync・GPUでrate 0/1/2/6、設定変更、resize、複数window、最小化・復帰を比較する。モデル描画FPSとpresent FPSを分けて記録し、GPU利用率も示す。「常に60fps」を現在の未修正事実として扱わず再測定する。
 
 - [ ] **T01: 埋め込みTrackerのzone統合を確定する。**
-  対象: [vspace.cpp](native/port/nijiexpose/tracking/vspace.cpp)、[embedded.hpp](native/port/nijiexpose/tracking/ext/embedded.hpp)。専用`nijitrack` zoneの自動生成は実装上の選択であり、ユーザーが明示的に指定した構成ではない。
+  対象: [vspace.cpp](native/src/tracking/vspace.cpp)、[embedded.hpp](native/src/tracking/ext/embedded.hpp)。専用`nijitrack` zoneの自動生成は実装上の選択であり、ユーザーが明示的に指定した構成ではない。
   完了条件: 既存zone・binding・自動切替・再起動を確認し、zone重複や意図しない切替を防ぐ。直接接続を維持し、既存設定を使った操作結果を示してzone配置方針を確定する。
 
 - [ ] **T02: 実カメラからモデル操作までの機能確認を終える。**
-  対象: [tracker.cpp](native/port/nijiexpose/tracking/tracker.cpp)、[native tracker](native/tracker)。画像を使った実推論とカメラのフレーム取得は確認済みだが、実カメラの顔検出から実INPへの反映は完了扱いにしない。
+  対象: [tracker.cpp](native/src/tracking/tracker.cpp)、[native tracker](native/tracker)。画像を使った実推論とカメラのフレーム取得は確認済みだが、実カメラの顔検出から実INPへの反映は完了扱いにしない。
   完了条件: 頭・目・口の入力とbinding、顔消失、抜差し、利用不可、開始・停止・再起動、直接設定変更、preview、keyboard入力解除を確認する。実INPの変化を画像で残す。別プロセス起動やOSC経由への後戻りはしない。
 
 - [ ] **V01: アプリ全体の機能確認表を完成させる。**

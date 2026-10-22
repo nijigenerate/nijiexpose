@@ -1,5 +1,5 @@
-#include "nijiexpose/scene/package.hpp"
-#include "nijiexpose/tracking/context.hpp"
+#include "scene/package.hpp"
+#include "tracking/context.hpp"
 #include "nijilive/model_io.hpp"
 #include "nijilive/opengl/backend.hpp"
 #include <core/runtime_state.hpp>

@@ -9,42 +9,42 @@ SceneItemの親参照はweak_ptrとし、削除時に親子接続と旧親のモ
 | D参照元 | C++予定配置 | 状態 |
 |---|---|---|
 | `dlang_archive/source/app.d` | `native/port/app.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/animation/package.d` | `native/port/nijiexpose/animation/package.cpp / .hpp` | 関数を移植。元Dの60状態遷移と一致。Scene更新へ接続。 |
-| `dlang_archive/source/nijiexpose/framesend.d` | `native/port/nijiexpose/framesend.cpp / .hpp` | Windows関数を移植。元D配布Spout DLLでGPUテクスチャ共有・サイズ/形式・終了を実機確認。製品ループ接続は未完了 |
-| `dlang_archive/source/nijiexpose/i18n.d` | `native/port/nijiexpose/i18n.cpp / .hpp` | 関数移植済み。gettext・設定・言語切替の統合テスト成功。製品UIへの接続は未完了 |
-| `dlang_archive/source/nijiexpose/io/image.d` | `native/port/nijiexpose/io/image.cpp / .hpp` | 関数移植。1～4チャネルPNGのデコード・切抜き・premultiply・GPU読戻しを元Dと全バイト比較。JPEG/BMP/TGA全域のデコード互換性は未保証 |
-| `dlang_archive/source/nijiexpose/io/package.d` | `native/port/nijiexpose/io/package.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/log.d` | `native/port/nijiexpose/log.cpp / .hpp` | Windows実装あり。初期化・追記・ローテーション等5シナリオをD比較。汎用Phobos format全域の互換性は未保証 |
-| `dlang_archive/source/nijiexpose/panels/animations.d` | `native/port/nijiexpose/panels/animations.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/panels/blends.d` | `native/port/nijiexpose/panels/blends.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/panels/plugin.d` | `native/port/nijiexpose/panels/plugin.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/panels/scene.d` | `native/port/nijiexpose/panels/scene.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/panels/tracking.d` | `native/port/nijiexpose/panels/tracking.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/plugins/api/base.d` | `native/port/nijiexpose/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
-| `dlang_archive/source/nijiexpose/plugins/api/package.d` | `native/port/nijiexpose/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
-| `dlang_archive/source/nijiexpose/plugins/api/scene.d` | `native/port/nijiexpose/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
-| `dlang_archive/source/nijiexpose/plugins/api/ui.d` | `native/port/nijiexpose/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
-| `dlang_archive/source/nijiexpose/plugins/package.d` | `native/port/nijiexpose/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
-| `dlang_archive/source/nijiexpose/plugins/plugin.d` | `native/port/nijiexpose/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
-| `dlang_archive/source/nijiexpose/render/spritebatch.d` | `native/port/nijiexpose/render/spritebatch.cpp / .hpp` | 通常描画経路を移植。回転/反転12ケースのGPU頂点ビット列・描画像が元Dと一致。元Dで未定義currentFboTexを使うflush!trueは未実装 |
-| `dlang_archive/source/nijiexpose/scene/package.d` | `native/port/nijiexpose/scene/package.cpp / .hpp` | Scene/SceneItemを移植。保存・読込・親子付け・解除・更新・Sleep/FPSの実モデル統合確認。操作UIと元D全経路比較は未完了。 |
-| `dlang_archive/source/nijiexpose/tracking/compoundbinding.d` | `native/port/nijiexpose/tracking/compoundbinding.cpp / .hpp` | 式・分岐を移植。元D比較あり。 |
-| `dlang_archive/source/nijiexpose/tracking/eventbinding.d` | `native/port/nijiexpose/tracking/eventbinding.cpp / .hpp` | 式・分岐を移植。元D比較あり。 |
-| `dlang_archive/source/nijiexpose/tracking/expr.d` | `native/port/nijiexpose/tracking/expr.cpp / .hpp` | Lua5.1で移植。110式と804ノイズ値を元Dと比較。乱数種生成は監査未完了。 |
-| `dlang_archive/source/nijiexpose/tracking/exprbinding.d` | `native/port/nijiexpose/tracking/exprbinding.cpp / .hpp` | 式・分岐を移植。元D比較あり。 |
-| `dlang_archive/source/nijiexpose/tracking/ext/exvmc.d` | `native/port/nijiexpose/tracking/ext/exvmc.cpp / .hpp` | OSC受信・状態更新を移植。実UDPのD比較成功。拡張形式の元D範囲外アクセスは保持。製品接続未完了 |
-| `dlang_archive/source/nijiexpose/tracking/ext/package.d` | `native/port/nijiexpose/tracking/ext/package.cpp / .hpp` | アプリ標準7受信部の生成・VMC特例を移植。生成/開始条件をテスト |
-| `dlang_archive/source/nijiexpose/tracking/package.d` | `native/port/nijiexpose/tracking/package.cpp / .hpp` | 全Binding型を移植。25記録を元D比較。JSON保存・再読込の統合確認あり。 |
-| `dlang_archive/source/nijiexpose/tracking/ratiobinding.d` | `native/port/nijiexpose/tracking/ratiobinding.cpp / .hpp` | 式・分岐を移植。元D比較あり。 |
-| `dlang_archive/source/nijiexpose/tracking/tracker.d` | `native/port/nijiexpose/tracking/tracker.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/tracking/vspace.d` | `native/port/nijiexpose/tracking/vspace.cpp / .hpp` | ゾーン選択/更新/平均/骨補間/JSON/settingsを移植。Dの更新順・20補間ケース一致。設定往復・開始失敗保持を確認。AAキー列挙順は未一致 |
-| `dlang_archive/source/nijiexpose/utils/launchpath.d` | `native/port/nijiexpose/utils/launchpath.cpp / .hpp` | Windows分岐を移植。文字列・ファイル判定21,898件でD比較成功 |
-| `dlang_archive/source/nijiexpose/utils/subprocess.d` | `native/port/nijiexpose/utils/subprocess.hpp` | Windows分岐を移植。5シナリオでD比較成功。rawData=trueは元D実装がコンパイルできず比較未完了 |
-| `dlang_archive/source/nijiexpose/windows/main.d` | `native/port/nijiexpose/windows/main.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/windows/package.d` | `native/port/nijiexpose/windows/package.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/windows/settings.d` | `native/port/nijiexpose/windows/settings.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/windows/spaceedit.d` | `native/port/nijiexpose/windows/spaceedit.cpp / .hpp` | 未移植・未検証 |
-| `dlang_archive/source/nijiexpose/windows/utils.d` | `native/port/nijiexpose/windows/utils.cpp / .hpp` | スタイル代入を移植。D値比較成功。ImGui新版のタブ色名称変更に対応 |
+| `dlang_archive/source/nijiexpose/animation/package.d` | `native/src/animation/package.cpp / .hpp` | 関数を移植。元Dの60状態遷移と一致。Scene更新へ接続。 |
+| `dlang_archive/source/nijiexpose/framesend.d` | `native/src/framesend.cpp / .hpp` | Windows関数を移植。元D配布Spout DLLでGPUテクスチャ共有・サイズ/形式・終了を実機確認。製品ループ接続は未完了 |
+| `dlang_archive/source/nijiexpose/i18n.d` | `native/src/i18n.cpp / .hpp` | 関数移植済み。gettext・設定・言語切替の統合テスト成功。製品UIへの接続は未完了 |
+| `dlang_archive/source/nijiexpose/io/image.d` | `native/src/io/image.cpp / .hpp` | 関数移植。1～4チャネルPNGのデコード・切抜き・premultiply・GPU読戻しを元Dと全バイト比較。JPEG/BMP/TGA全域のデコード互換性は未保証 |
+| `dlang_archive/source/nijiexpose/io/package.d` | `native/src/io/package.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/log.d` | `native/src/log.cpp / .hpp` | Windows実装あり。初期化・追記・ローテーション等5シナリオをD比較。汎用Phobos format全域の互換性は未保証 |
+| `dlang_archive/source/nijiexpose/panels/animations.d` | `native/src/panels/animations.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/panels/blends.d` | `native/src/panels/blends.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/panels/plugin.d` | `native/src/panels/plugin.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/panels/scene.d` | `native/src/panels/scene.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/panels/tracking.d` | `native/src/panels/tracking.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/plugins/api/base.d` | `native/src/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
+| `dlang_archive/source/nijiexpose/plugins/api/package.d` | `native/src/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
+| `dlang_archive/source/nijiexpose/plugins/api/scene.d` | `native/src/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
+| `dlang_archive/source/nijiexpose/plugins/api/ui.d` | `native/src/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
+| `dlang_archive/source/nijiexpose/plugins/package.d` | `native/src/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
+| `dlang_archive/source/nijiexpose/plugins/plugin.d` | `native/src/plugins/package.cpp / .hpp` | Windows処理を移植し統合テスト成功。元Dのrequire/エラー経路はアクセス違反を切り分け中で、等価性未確認。 |
+| `dlang_archive/source/nijiexpose/render/spritebatch.d` | `native/src/render/spritebatch.cpp / .hpp` | 通常描画経路を移植。回転/反転12ケースのGPU頂点ビット列・描画像が元Dと一致。元Dで未定義currentFboTexを使うflush!trueは未実装 |
+| `dlang_archive/source/nijiexpose/scene/package.d` | `native/src/scene/package.cpp / .hpp` | Scene/SceneItemを移植。保存・読込・親子付け・解除・更新・Sleep/FPSの実モデル統合確認。操作UIと元D全経路比較は未完了。 |
+| `dlang_archive/source/nijiexpose/tracking/compoundbinding.d` | `native/src/tracking/compoundbinding.cpp / .hpp` | 式・分岐を移植。元D比較あり。 |
+| `dlang_archive/source/nijiexpose/tracking/eventbinding.d` | `native/src/tracking/eventbinding.cpp / .hpp` | 式・分岐を移植。元D比較あり。 |
+| `dlang_archive/source/nijiexpose/tracking/expr.d` | `native/src/tracking/expr.cpp / .hpp` | Lua5.1で移植。110式と804ノイズ値を元Dと比較。乱数種生成は監査未完了。 |
+| `dlang_archive/source/nijiexpose/tracking/exprbinding.d` | `native/src/tracking/exprbinding.cpp / .hpp` | 式・分岐を移植。元D比較あり。 |
+| `dlang_archive/source/nijiexpose/tracking/ext/exvmc.d` | `native/src/tracking/ext/exvmc.cpp / .hpp` | OSC受信・状態更新を移植。実UDPのD比較成功。拡張形式の元D範囲外アクセスは保持。製品接続未完了 |
+| `dlang_archive/source/nijiexpose/tracking/ext/package.d` | `native/src/tracking/ext/package.cpp / .hpp` | アプリ標準7受信部の生成・VMC特例を移植。生成/開始条件をテスト |
+| `dlang_archive/source/nijiexpose/tracking/package.d` | `native/src/tracking/package.cpp / .hpp` | 全Binding型を移植。25記録を元D比較。JSON保存・再読込の統合確認あり。 |
+| `dlang_archive/source/nijiexpose/tracking/ratiobinding.d` | `native/src/tracking/ratiobinding.cpp / .hpp` | 式・分岐を移植。元D比較あり。 |
+| `dlang_archive/source/nijiexpose/tracking/tracker.d` | `native/src/tracking/tracker.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/tracking/vspace.d` | `native/src/tracking/vspace.cpp / .hpp` | ゾーン選択/更新/平均/骨補間/JSON/settingsを移植。Dの更新順・20補間ケース一致。設定往復・開始失敗保持を確認。AAキー列挙順は未一致 |
+| `dlang_archive/source/nijiexpose/utils/launchpath.d` | `native/src/utils/launchpath.cpp / .hpp` | Windows分岐を移植。文字列・ファイル判定21,898件でD比較成功 |
+| `dlang_archive/source/nijiexpose/utils/subprocess.d` | `native/src/utils/subprocess.hpp` | Windows分岐を移植。5シナリオでD比較成功。rawData=trueは元D実装がコンパイルできず比較未完了 |
+| `dlang_archive/source/nijiexpose/windows/main.d` | `native/src/windows/main.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/windows/package.d` | `native/src/windows/package.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/windows/settings.d` | `native/src/windows/settings.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/windows/spaceedit.d` | `native/src/windows/spaceedit.cpp / .hpp` | 未移植・未検証 |
+| `dlang_archive/source/nijiexpose/windows/utils.d` | `native/src/windows/utils.cpp / .hpp` | スタイル代入を移植。D値比較成功。ImGui新版のタブ色名称変更に対応 |
 
 ## 各モジュールを移植する際に追加する記録
 
@@ -90,7 +90,7 @@ SceneItemの親参照はweak_ptrとし、削除時に親子接続と旧親のモ
 
 ## Scene・Lua・式評価の追加確認
 
-- `native/port/nijiexpose/scene`: Scene/SceneItemを元Dの順で移植。保存したbinding/animation拡張の再読込、生成の重複回避、矩形端の除外、メッシュ親子付け/解除、SceneのSleep移行とFPSを実モデルで確認。C++の配列参照の無効化を避け、D foreachと同じオブジェクト参照の値コピーを使用。Scene globalsはDに合わせthread_local。
+- `native/src/scene`: Scene/SceneItemを元Dの順で移植。保存したbinding/animation拡張の再読込、生成の重複回避、矩形端の除外、メッシュ親子付け/解除、SceneのSleep移行とFPSを実モデルで確認。C++の配列参照の無効化を避け、D foreachと同じオブジェクト参照の値コピーを使用。Scene globalsはDに合わせthread_local。
 - nicxlive coreはビルド木へコピーし、元Dの可変rootParts/drivers取得を追加。元の取得ソースは変更しない。Node/Drawableのbounds計算にはDとの相違を検出しており、対応監査は未完了。
 - `plugins/package.cpp`: プラグイン環境、require、キャッシュ、イベント、無効化/再有効化、UI APIを移植。元Dがtonumberにもtostringを登録する点を維持。C++統合テストは成功。元D/LDCはrequireと失敗assert経路でアクセス違反が発生し、これらを比較成功とは記録しない。列挙・GC/RAII寿命・エラー文字列・Luaスタックの全経路比較も未完了。
 - `tracking/expr.cpp`: 110式の結果とエラー文字列、2D OpenSimplexの804個のdoubleビット列を元D比較。乱数種のPRNG生成と全入力範囲の数学関数同等性は未確認。

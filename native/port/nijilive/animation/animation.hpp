@@ -1,5 +1,5 @@
 #pragma once
-#include "nijiexpose/json.hpp"
+#include "json.hpp"
 #include <core/puppet.hpp>
 namespace nijiexpose::animation {
 using nicxlive::core::Puppet;

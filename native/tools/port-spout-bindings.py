@@ -39,5 +39,5 @@ Spout2Support loadSpout2(const char* libName) {
 for var,symbol in re.findall(r'lib.bindSymbol\(cast\(void\*\*\)&(\w+), "(.*?)"\);',source):
     impl+=f'    {var}=reinterpret_cast<{var}Type>(GetProcAddress(lib,"{symbol}"));\n'
 impl+='    return Spout2Support::spout2;\n}\n}\n'
-Path('native/port/nijiexpose/spout.hpp').write_text(header,encoding='utf-8')
-Path('native/port/nijiexpose/spout.cpp').write_text(impl,encoding='utf-8')
+Path('native/src/spout.hpp').write_text(header,encoding='utf-8')
+Path('native/src/spout.cpp').write_text(impl,encoding='utf-8')

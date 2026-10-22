@@ -30,7 +30,7 @@ Windows Releaseでハーネスの4テスト（時刻、version、無効引数、
 
 ## 移植単位と対応台帳
 
-原則として `dlang_archive/source/nijiexpose/<module>.d` に対して `native/port/nijiexpose/<module>.cpp/.hpp` を対応させる。移植元の関数と対応する関数を追跡できるようにする。関数の統合・削除・順序変更を最適化目的で行わない。
+原則として `dlang_archive/source/nijiexpose/<module>.d` に対して `native/src/<module>.cpp/.hpp` を対応させる。移植元の関数と対応する関数を追跡できるようにする。関数の統合・削除・順序変更を最適化目的で行わない。
 
 各移植単位には以下の情報が揃うまで「移植・検証済み」を付けない。
 

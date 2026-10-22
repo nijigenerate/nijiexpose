@@ -1,5 +1,5 @@
-#include "nijiexpose/tracking/package.hpp"
-#include "nijiexpose/tracking/context.hpp"
+#include "tracking/package.hpp"
+#include "tracking/context.hpp"
 #include <core/timing.hpp>
 #include <imgui.h>
 #include <iostream>

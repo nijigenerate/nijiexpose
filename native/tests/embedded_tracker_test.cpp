@@ -1,8 +1,8 @@
 #include "embedded.h"
 #ifdef NIJIEXPOSE_TEST_BUNDLED_MODEL
-#include "nijiexpose/tracking/tracker.hpp"
+#include "tracking/tracker.hpp"
 #endif
-#include "nijiexpose/tracking/ext/embedded_frame.hpp"
+#include "tracking/ext/embedded_frame.hpp"
 #include <SDL3/SDL.h>
 #include <chrono>
 #include <cmath>

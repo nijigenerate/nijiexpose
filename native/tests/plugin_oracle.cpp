@@ -1,4 +1,4 @@
-#include "nijiexpose/plugins/package.hpp"
+#include "plugins/package.hpp"
 #include <iostream>
 using namespace nijiexpose::plugins;
 int main(int argc,char** argv){if(argc!=2)return 1;auto s=luaL_newstate();lua_pushvalue(s,LUA_GLOBALSINDEX);lua_setfield(s,LUA_GLOBALSINDEX,"_G");insPluginRegisterAll(s);Plugin p({"fixture","Fixture","1"},argv[1],s,true);std::cout<<std::boolalpha;

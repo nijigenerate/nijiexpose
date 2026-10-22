@@ -3,7 +3,7 @@
 #include "animation/animation.hpp"
 #include "automation.hpp"
 #include <core/nodes/projectable.hpp>
-#include "nijiexpose/json.hpp"
+#include "json.hpp"
 #include <fstream>
 #include <filesystem>
 #include <cstring>

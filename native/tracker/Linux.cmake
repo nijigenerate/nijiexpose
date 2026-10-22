@@ -33,7 +33,7 @@ if(BUILD_TESTING)
         add_executable(nijiexpose_embedded_tracker_test ../tests/embedded_tracker_test.cpp)
         target_compile_features(nijiexpose_embedded_tracker_test PRIVATE cxx_std_20)
         target_include_directories(nijiexpose_embedded_tracker_test PRIVATE
-            "${PROJECT_SOURCE_DIR}/native/port" "${nicxlive_SOURCE_DIR}")
+            "${PROJECT_SOURCE_DIR}/native/port" "${PROJECT_SOURCE_DIR}/native/src" "${nicxlive_SOURCE_DIR}")
         target_link_libraries(nijiexpose_embedded_tracker_test PRIVATE nijiexpose_tracker SDL3::SDL3)
         target_compile_definitions(nijiexpose_embedded_tracker_test PRIVATE NIJIEXPOSE_TEST_BUNDLED_MODEL)
         set_target_properties(nijiexpose_embedded_tracker_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/native")

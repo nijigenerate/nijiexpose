@@ -1,7 +1,7 @@
 // Independent facetrack-d 0.8.0 ft.adaptors.vtsproto UDP tracking adaptor.
 #include "vtsproto.hpp"
 #include "quaternion.hpp"
-#include "nijiexpose/json.hpp"
+#include "json.hpp"
 #include <chrono>
 #include <array>
 #include <charconv>

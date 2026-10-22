@@ -1,4 +1,4 @@
-#: native/port/i18n/gettext.cpp:223 native/port/nijiexpose/i18n.cpp:22
+#: native/port/i18n/gettext.cpp:223 native/src/i18n.cpp:22
 msgid "LANG_NAME"
 msgstr ""
 
@@ -7,7 +7,7 @@ msgstr ""
 # This file is distributed under the same license as the nijiexpose package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#: native/port/nijiexpose/animation/package.cpp:14
+#: native/src/animation/package.cpp:14
 #, fuzzy
 msgid ""
 msgstr ""
@@ -22,564 +22,564 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: native/port/nijiexpose/animation/package.cpp:14
-#: native/port/nijiexpose/panels/animations.cpp:308
+#: native/src/animation/package.cpp:14
+#: native/src/panels/animations.cpp:308
 msgid "Event"
 msgstr ""
 
-#: native/port/nijiexpose/animation/package.cpp:14
+#: native/src/animation/package.cpp:14
 msgid "None"
 msgstr ""
 
-#: native/port/nijiexpose/animation/package.cpp:14
-#: native/port/nijiexpose/panels/tracking.cpp:649
-#: native/port/nijiexpose/windows/settings.cpp:206
-#: native/port/nijiexpose/windows/settings.cpp:276
+#: native/src/animation/package.cpp:14
+#: native/src/panels/tracking.cpp:649
+#: native/src/windows/settings.cpp:206
+#: native/src/windows/settings.cpp:276
 msgid "Tracking"
 msgstr ""
 
-#: native/port/nijiexpose/framesend.cpp:25
+#: native/src/framesend.cpp:25
 msgid ""
 "Could not start texture sharing, it will be disabled. Is the library missing?"
 msgstr ""
 
-#: native/port/nijiexpose/framesend.cpp:26
+#: native/src/framesend.cpp:26
 msgid "Frame-sending started successfully!"
 msgstr ""
 
-#: native/port/nijiexpose/framesend_stub.cpp:6
+#: native/src/framesend_stub.cpp:6
 msgid "Frame sharing is unavailable on this platform."
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:72
+#: native/src/panels/animations.cpp:72
 msgid "Tracking Parameter"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:73
-#: native/port/nijiexpose/panels/tracking.cpp:337
+#: native/src/panels/animations.cpp:73
+#: native/src/panels/tracking.cpp:337
 msgid "Not tracked"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:88
-#: native/port/nijiexpose/panels/tracking.cpp:352
+#: native/src/panels/animations.cpp:88
+#: native/src/panels/tracking.cpp:352
 msgid "X"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:94
-#: native/port/nijiexpose/panels/tracking.cpp:358
+#: native/src/panels/animations.cpp:94
+#: native/src/panels/tracking.cpp:358
 msgid "Y"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:100
-#: native/port/nijiexpose/panels/tracking.cpp:364
+#: native/src/panels/animations.cpp:100
+#: native/src/panels/tracking.cpp:364
 msgid "Z"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:106
-#: native/port/nijiexpose/panels/tracking.cpp:370
+#: native/src/panels/animations.cpp:106
+#: native/src/panels/tracking.cpp:370
 msgid "Roll"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:112
-#: native/port/nijiexpose/panels/tracking.cpp:376
+#: native/src/panels/animations.cpp:112
+#: native/src/panels/tracking.cpp:376
 msgid "Pitch"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:118
-#: native/port/nijiexpose/panels/tracking.cpp:382
+#: native/src/panels/animations.cpp:118
+#: native/src/panels/tracking.cpp:382
 msgid "Yaw"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:140
+#: native/src/panels/animations.cpp:140
 msgid "Reset"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:148
+#: native/src/panels/animations.cpp:148
 msgid "Default Thresholds"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:152
+#: native/src/panels/animations.cpp:152
 msgid "Use Hold Delay"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:157
+#: native/src/panels/animations.cpp:157
 msgid "Play Threshold"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:191
-#: native/port/nijiexpose/panels/animations.cpp:239
-#: native/port/nijiexpose/panels/animations.cpp:286
+#: native/src/panels/animations.cpp:191
+#: native/src/panels/animations.cpp:239
+#: native/src/panels/animations.cpp:286
 msgid "Hold Delay (ms):"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:205
+#: native/src/panels/animations.cpp:205
 msgid "Stop Threshold"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:252
+#: native/src/panels/animations.cpp:252
 msgid "Full Stop Threshold"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:311
+#: native/src/panels/animations.cpp:311
 msgid "Play on"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:313
+#: native/src/panels/animations.cpp:313
 msgid "Stop on"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:315
+#: native/src/panels/animations.cpp:315
 msgid "Full stop on"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:324
+#: native/src/panels/animations.cpp:324
 msgid "Load"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:330
-#: native/port/nijiexpose/panels/animations.cpp:359
-#: native/port/nijiexpose/panels/animations.cpp:383
+#: native/src/panels/animations.cpp:330
+#: native/src/panels/animations.cpp:359
+#: native/src/panels/animations.cpp:383
 msgid "Idle"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:338
-#: native/port/nijiexpose/panels/animations.cpp:365
-#: native/port/nijiexpose/panels/animations.cpp:389
+#: native/src/panels/animations.cpp:338
+#: native/src/panels/animations.cpp:365
+#: native/src/panels/animations.cpp:389
 msgid "Sleep"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:408
-#: native/port/nijiexpose/panels/tracking.cpp:597
+#: native/src/panels/animations.cpp:408
+#: native/src/panels/tracking.cpp:597
 msgid ""
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:412
-#: native/port/nijiexpose/panels/tracking.cpp:601
+#: native/src/panels/animations.cpp:412
+#: native/src/panels/tracking.cpp:601
 msgid "Refresh"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:416
-#: native/port/nijiexpose/panels/tracking.cpp:605
-#: native/port/nijiexpose/windows/spaceedit.cpp:386
+#: native/src/panels/animations.cpp:416
+#: native/src/panels/tracking.cpp:605
+#: native/src/windows/spaceedit.cpp:386
 msgid ""
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:420
-#: native/port/nijiexpose/panels/scene.cpp:17
-#: native/port/nijiexpose/panels/scene.cpp:24
-#: native/port/nijiexpose/panels/tracking.cpp:609
-#: native/port/nijiexpose/windows/main.cpp:890
-#: native/port/nijiexpose/windows/main.cpp:894
-#: native/port/nijiexpose/windows/main.cpp:898
-#: native/port/nijiexpose/windows/settings.cpp:55
-#: native/port/nijiexpose/windows/settings.cpp:65
-#: native/port/nijiexpose/windows/spaceedit.cpp:23
-#: native/port/nijiexpose/windows/spaceedit.cpp:253
-#: native/port/nijiexpose/windows/spaceedit.cpp:392
+#: native/src/panels/animations.cpp:420
+#: native/src/panels/scene.cpp:17
+#: native/src/panels/scene.cpp:24
+#: native/src/panels/tracking.cpp:609
+#: native/src/windows/main.cpp:890
+#: native/src/windows/main.cpp:894
+#: native/src/windows/main.cpp:898
+#: native/src/windows/settings.cpp:55
+#: native/src/windows/settings.cpp:65
+#: native/src/windows/spaceedit.cpp:23
+#: native/src/windows/spaceedit.cpp:253
+#: native/src/windows/spaceedit.cpp:392
 msgid "Error"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:423
-#: native/port/nijiexpose/panels/tracking.cpp:612
+#: native/src/panels/animations.cpp:423
+#: native/src/panels/tracking.cpp:612
 msgid "Save to File"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:442
+#: native/src/panels/animations.cpp:442
 msgid "Loop"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:446
+#: native/src/panels/animations.cpp:446
 msgid "Trigger"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:478
-#: native/port/nijiexpose/panels/tracking.cpp:645
+#: native/src/panels/animations.cpp:478
+#: native/src/panels/tracking.cpp:645
 msgid "No puppet selected"
 msgstr ""
 
-#: native/port/nijiexpose/panels/animations.cpp:483
+#: native/src/panels/animations.cpp:483
 msgid "Animations"
 msgstr ""
 
-#: native/port/nijiexpose/panels/blends.cpp:23
+#: native/src/panels/blends.cpp:23
 msgid "Blendshapes"
 msgstr ""
 
-#: native/port/nijiexpose/panels/plugin.cpp:7
+#: native/src/panels/plugin.cpp:7
 msgid "Plugins"
 msgstr ""
 
-#: native/port/nijiexpose/panels/plugin.cpp:10
+#: native/src/panels/plugin.cpp:10
 #, c-format
 msgid "%s has crashed, options are disabled."
 msgstr ""
 
-#: native/port/nijiexpose/panels/plugin.cpp:11
-#: native/port/nijiexpose/plugins/package.cpp:59
+#: native/src/panels/plugin.cpp:11
+#: native/src/plugins/package.cpp:59
 #, c-format
 msgid "%s (plugin): %s"
 msgstr ""
 
-#: native/port/nijiexpose/panels/plugin.cpp:12
+#: native/src/panels/plugin.cpp:12
 msgid "Plugin cannot be configured."
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:14
-#: native/port/nijiexpose/windows/main.cpp:845
+#: native/src/panels/scene.cpp:14
+#: native/src/windows/main.cpp:845
 msgid "Scene Settings"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:17
+#: native/src/panels/scene.cpp:17
 #, c-format
 msgid "Could not load %s, %s"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:19
+#: native/src/panels/scene.cpp:19
 msgid "Enabled###POST_PROCESSING"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:19
+#: native/src/panels/scene.cpp:19
 msgid "Post Processing"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:20
+#: native/src/panels/scene.cpp:20
 msgid "Lighting"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:21
+#: native/src/panels/scene.cpp:21
 msgid "Background Color"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:22
+#: native/src/panels/scene.cpp:22
 msgid "Chroma Key Blue"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:22
+#: native/src/panels/scene.cpp:22
 msgid "Chroma Key Green"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:22
+#: native/src/panels/scene.cpp:22
 msgid "Chroma Key Red"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:22
+#: native/src/panels/scene.cpp:22
 msgid "Color Swatches"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:22
+#: native/src/panels/scene.cpp:22
 msgid "Full Transparent"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:23
+#: native/src/panels/scene.cpp:23
 msgid "Background Image"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:23
-#: native/port/nijiexpose/windows/main.cpp:700
+#: native/src/panels/scene.cpp:23
+#: native/src/windows/main.cpp:700
 msgid "Open..."
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:23
+#: native/src/panels/scene.cpp:23
 msgid "Select Background"
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:24
-#: native/port/nijiexpose/windows/main.cpp:896
+#: native/src/panels/scene.cpp:24
+#: native/src/windows/main.cpp:896
 #, c-format
 msgid "Could not load %s, unsupported file format."
 msgstr ""
 
-#: native/port/nijiexpose/panels/scene.cpp:26
-#: native/port/nijiexpose/panels/tracking.cpp:411
-#: native/port/nijiexpose/panels/tracking.cpp:484
-#: native/port/nijiexpose/panels/tracking.cpp:548
+#: native/src/panels/scene.cpp:26
+#: native/src/panels/tracking.cpp:411
+#: native/src/panels/tracking.cpp:484
+#: native/src/panels/tracking.cpp:548
 msgid ""
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:18
+#: native/src/panels/tracking.cpp:18
 #, c-format
 msgid "Output (%s)"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:42
-#: native/port/nijiexpose/panels/tracking.cpp:252
+#: native/src/panels/tracking.cpp:42
+#: native/src/panels/tracking.cpp:252
 msgid "Ratio Binding"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:44
-#: native/port/nijiexpose/panels/tracking.cpp:258
+#: native/src/panels/tracking.cpp:44
+#: native/src/panels/tracking.cpp:258
 msgid "Expression Binding"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:46
-#: native/port/nijiexpose/panels/tracking.cpp:265
+#: native/src/panels/tracking.cpp:46
+#: native/src/panels/tracking.cpp:265
 msgid "Event Binding"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:48
-#: native/port/nijiexpose/panels/tracking.cpp:272
+#: native/src/panels/tracking.cpp:48
+#: native/src/panels/tracking.cpp:272
 msgid "Compound Binding"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:50
+#: native/src/panels/tracking.cpp:50
 msgid "External Binding"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:250
+#: native/src/panels/tracking.cpp:250
 msgid "Type"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:300
-#: native/port/nijiexpose/panels/tracking.cpp:418
-#: native/port/nijiexpose/panels/tracking.cpp:470
+#: native/src/panels/tracking.cpp:300
+#: native/src/panels/tracking.cpp:418
+#: native/src/panels/tracking.cpp:470
 msgid "Dampen"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:314
-#: native/port/nijiexpose/panels/tracking.cpp:500
-#: native/port/nijiexpose/panels/tracking.cpp:582
+#: native/src/panels/tracking.cpp:314
+#: native/src/panels/tracking.cpp:500
+#: native/src/panels/tracking.cpp:582
 msgid "Value out of range, clamped to 0..1 range."
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:416
+#: native/src/panels/tracking.cpp:416
 msgid "Inverse"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:421
+#: native/src/panels/tracking.cpp:421
 msgid "Tracking In"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:450
+#: native/src/panels/tracking.cpp:450
 msgid "Tracking Out"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:493
-#: native/port/nijiexpose/panels/tracking.cpp:575
-#: native/port/nijiexpose/windows/spaceedit.cpp:186
-#: native/port/nijiexpose/windows/spaceedit.cpp:271
-#: native/port/nijiexpose/windows/spaceedit.cpp:334
+#: native/src/panels/tracking.cpp:493
+#: native/src/panels/tracking.cpp:575
+#: native/src/windows/spaceedit.cpp:186
+#: native/src/windows/spaceedit.cpp:271
+#: native/src/windows/spaceedit.cpp:334
 msgid ""
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:520
+#: native/src/panels/tracking.cpp:520
 msgid "Weighted Sum"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:521
+#: native/src/panels/tracking.cpp:521
 msgid "Weighted Multiply"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:522
+#: native/src/panels/tracking.cpp:522
 msgid "Ordered"
 msgstr ""
 
-#: native/port/nijiexpose/panels/tracking.cpp:638
+#: native/src/panels/tracking.cpp:638
 msgid "No settings available."
 msgstr ""
 
-#: native/port/nijiexpose/plugins/package.cpp:58
+#: native/src/plugins/package.cpp:58
 #, c-format
 msgid "Loaded plugin %s %s..."
 msgstr ""
 
-#: native/port/nijiexpose/plugins/package.cpp:74
+#: native/src/plugins/package.cpp:74
 #, c-format
 msgid "Attempted to load invalid module specifier %s"
 msgstr ""
 
-#: native/port/nijiexpose/plugins/package.cpp:77
+#: native/src/plugins/package.cpp:77
 #, c-format
 msgid "Module %s not found"
 msgstr ""
 
-#: native/port/nijiexpose/plugins/package.cpp:78
+#: native/src/plugins/package.cpp:78
 msgid "Attempted to require a symlink, this is not allowed."
 msgstr ""
 
-#: native/port/nijiexpose/tracking/expr.cpp:98
+#: native/src/tracking/expr.cpp:98
 #, c-format
 msgid "Expected %s, got %s"
 msgstr ""
 
-#: native/port/nijiexpose/tracking/package.cpp:79
+#: native/src/tracking/package.cpp:79
 #, c-format
 msgid "%s (Key)"
 msgstr ""
 
-#: native/port/nijiexpose/tracking/package.cpp:79
+#: native/src/tracking/package.cpp:79
 #, c-format
 msgid "%s (Pitch)"
 msgstr ""
 
-#: native/port/nijiexpose/tracking/package.cpp:79
+#: native/src/tracking/package.cpp:79
 #, c-format
 msgid "%s (Roll)"
 msgstr ""
 
-#: native/port/nijiexpose/tracking/package.cpp:79
+#: native/src/tracking/package.cpp:79
 #, c-format
 msgid "%s (X)"
 msgstr ""
 
-#: native/port/nijiexpose/tracking/package.cpp:79
+#: native/src/tracking/package.cpp:79
 #, c-format
 msgid "%s (Y)"
 msgstr ""
 
-#: native/port/nijiexpose/tracking/package.cpp:79
+#: native/src/tracking/package.cpp:79
 #, c-format
 msgid "%s (Yaw)"
 msgstr ""
 
-#: native/port/nijiexpose/tracking/package.cpp:79
+#: native/src/tracking/package.cpp:79
 #, c-format
 msgid "%s (Z)"
 msgstr ""
 
-#: native/port/nijiexpose/windows/main.cpp:836
+#: native/src/windows/main.cpp:836
 msgid "Tracking Settings"
 msgstr ""
 
-#: native/port/nijiexpose/windows/main.cpp:841
-#: native/port/nijiexpose/windows/spaceedit.cpp:451
+#: native/src/windows/main.cpp:841
+#: native/src/windows/spaceedit.cpp:451
 msgid "Virtual Space"
 msgstr ""
 
-#: native/port/nijiexpose/windows/main.cpp:854
-#: native/port/nijiexpose/windows/settings.cpp:279
+#: native/src/windows/main.cpp:854
+#: native/src/windows/settings.cpp:279
 msgid "Rendering"
 msgstr ""
 
-#: native/port/nijiexpose/windows/main.cpp:869
-#: native/port/nijiexpose/windows/settings.cpp:304
-#: native/port/nijiexpose/windows/spaceedit.cpp:282
+#: native/src/windows/main.cpp:869
+#: native/src/windows/settings.cpp:304
+#: native/src/windows/spaceedit.cpp:282
 msgid "Apply"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:111
-#: native/port/nijiexpose/windows/settings.cpp:121
-#: native/port/nijiexpose/windows/settings.cpp:125
+#: native/src/windows/settings.cpp:111
+#: native/src/windows/settings.cpp:121
+#: native/src/windows/settings.cpp:125
 msgid "Language"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:128
-#: native/port/nijiexpose/windows/settings.cpp:133
+#: native/src/windows/settings.cpp:128
+#: native/src/windows/settings.cpp:133
 msgid "English"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:143
+#: native/src/windows/settings.cpp:143
 msgid "Restart may be required for all text to update."
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:152
+#: native/src/windows/settings.cpp:152
 msgid "Enable tracking"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:160
+#: native/src/windows/settings.cpp:160
 msgid "Embedded nijitrack"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:167
+#: native/src/windows/settings.cpp:167
 msgid "Camera device"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:172
+#: native/src/windows/settings.cpp:172
 msgid "Retry camera detection"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:178
+#: native/src/windows/settings.cpp:178
 msgid "Select device..."
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:192
+#: native/src/windows/settings.cpp:192
 msgid "Flip input"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:193
+#: native/src/windows/settings.cpp:193
 msgid "Show camera tracking window"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:194
+#: native/src/windows/settings.cpp:194
 msgid "Keyboard tracking"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:218
-#: native/port/nijiexpose/windows/settings.cpp:237
+#: native/src/windows/settings.cpp:218
+#: native/src/windows/settings.cpp:237
 msgid "V-Sync throttling"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:221
-#: native/port/nijiexpose/windows/settings.cpp:239
+#: native/src/windows/settings.cpp:221
+#: native/src/windows/settings.cpp:239
 msgid "Experimental"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:221
-#: native/port/nijiexpose/windows/settings.cpp:239
+#: native/src/windows/settings.cpp:221
+#: native/src/windows/settings.cpp:239
 msgid "Throtting interval"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:228
-#: native/port/nijiexpose/windows/settings.cpp:245
+#: native/src/windows/settings.cpp:228
+#: native/src/windows/settings.cpp:245
 msgid "Triple buffer fallback"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:231
-#: native/port/nijiexpose/windows/settings.cpp:247
+#: native/src/windows/settings.cpp:231
+#: native/src/windows/settings.cpp:247
 msgid "Enable triple buffer fallback"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:232
-#: native/port/nijiexpose/windows/settings.cpp:248
+#: native/src/windows/settings.cpp:232
+#: native/src/windows/settings.cpp:248
 msgid "Use when advanced blend is unavailable or causes issues."
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:273
+#: native/src/windows/settings.cpp:273
 msgid "General"
 msgstr ""
 
-#: native/port/nijiexpose/windows/settings.cpp:315
+#: native/src/windows/settings.cpp:315
 msgid "Settings"
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:67
-#: native/port/nijiexpose/windows/spaceedit.cpp:77
-#: native/port/nijiexpose/windows/spaceedit.cpp:258
+#: native/src/windows/spaceedit.cpp:67
+#: native/src/windows/spaceedit.cpp:77
+#: native/src/windows/spaceedit.cpp:258
 msgid "Delete"
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:90
+#: native/src/windows/spaceedit.cpp:90
 msgid "iFacialMocap Adpator would listen on udp port 49983"
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:93
+#: native/src/windows/spaceedit.cpp:93
 msgid "Make sure the port is not blocked by firewall."
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:194
-#: native/port/nijiexpose/windows/spaceedit.cpp:340
+#: native/src/windows/spaceedit.cpp:194
+#: native/src/windows/spaceedit.cpp:340
 msgid "No zone selected for editing..."
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:213
-#: native/port/nijiexpose/windows/spaceedit.cpp:352
+#: native/src/windows/spaceedit.cpp:213
+#: native/src/windows/spaceedit.cpp:352
 msgid "Unset"
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:247
+#: native/src/windows/spaceedit.cpp:247
 msgid "Save Changes"
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:292
+#: native/src/windows/spaceedit.cpp:292
 msgid "Zone"
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:304
-#: native/port/nijiexpose/windows/spaceedit.cpp:365
-#: native/port/nijiexpose/windows/spaceedit.cpp:396
+#: native/src/windows/spaceedit.cpp:304
+#: native/src/windows/spaceedit.cpp:365
+#: native/src/windows/spaceedit.cpp:396
 msgid ""
 msgstr ""
 
-#: native/port/nijiexpose/windows/spaceedit.cpp:427
+#: native/src/windows/spaceedit.cpp:427
 msgid "Add Source"
 msgstr ""
 

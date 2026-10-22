@@ -1,4 +1,4 @@
-#include "nijiexpose/utils/launchpath.hpp"
+#include "utils/launchpath.hpp"
 #include "dcompat/string.hpp"
 #include <iostream>
 #include <string>

@@ -1,5 +1,5 @@
 #pragma once
-#include "nijiexpose/json.hpp"
+#include "json.hpp"
 #include <core/puppet.hpp>
 namespace nijiexpose::automation {
 using Parameter=nicxlive::core::param::Parameter;

@@ -1,4 +1,4 @@
-#include "nijiexpose/log.hpp"
+#include "log.hpp"
 #include <cstdio>
 int main() {
     using namespace nijiexpose;

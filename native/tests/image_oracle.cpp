@@ -1,4 +1,4 @@
-#include "nijiexpose/io/image.hpp"
+#include "io/image.hpp"
 #include "nijilive/opengl/backend.hpp"
 #include <core/runtime_state.hpp>
 #include <SDL3/SDL.h>

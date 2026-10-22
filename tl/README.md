@@ -1,7 +1,7 @@
 # Native gettext catalogs
 
 The application reads GNU gettext `.mo` catalogs. `ja.po` is the editable
-Japanese catalog; `template.pot` is extracted from C++ code in `native/port`.
+Japanese catalog; `template.pot` is extracted from C++ code in `native/src` and `native/port`.
 No D source or D build tool is used for extraction or compilation.
 
 ```sh

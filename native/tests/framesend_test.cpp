@@ -1,5 +1,5 @@
-#include "nijiexpose/framesend.hpp"
-#include "nijiexpose/spout.hpp"
+#include "framesend.hpp"
+#include "spout.hpp"
 #include "nijilive/opengl/backend.hpp"
 #include <core/runtime_state.hpp>
 #include <SDL3/SDL.h>

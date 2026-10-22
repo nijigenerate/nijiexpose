@@ -1,4 +1,4 @@
-#include "nijiexpose/render/spritebatch.hpp"
+#include "render/spritebatch.hpp"
 #include "nijilive/opengl/backend.hpp"
 #include <core/runtime_state.hpp>
 #include <SDL3/SDL.h>

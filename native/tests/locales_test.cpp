@@ -1,5 +1,5 @@
 #include "i18n/tr.hpp"
-#include "nijiexpose/i18n.hpp"
+#include "i18n.hpp"
 #include "nijiui/core/app.hpp"
 #include "nijiui/core/settings.hpp"
 #include "dcompat/string.hpp"
