@@ -1,49 +1,62 @@
-# nijiexpose
+# <div align="center"><img src="native/res/tex/logo.png" width="384" alt="nijiexpose"></div>
 
-nijiexpose is a VTubing application using nicxlive, C++20, SDL3, ImGui,
-Boost.JSON, and GNU gettext. The native tracker runs in worker threads in the
-same process, with bundled task models and direct tracking-frame delivery.
+<img width="2560" height="1392" alt="image" src="https://github.com/user-attachments/assets/739561a1-d785-4290-a2f0-c763b3fcde0b" />
 
-- [Build, test and package instructions](BUILD.md)
-- [Detailed native implementation and verification notes](native/README.md)
-- [Native packages and installers](build-aux/README.md)
-- [Translation maintenance](tl/README.md)
-- [Remaining migration tasks and feature differences](NATIVE_CPP_TASKS.md)
-- [Native implementation design](NATIVE_CPP_DESIGN.md)
-- [Archived D implementation and build assets](dlang_archive/README.md)
+model by [seagetch](https://twitter.com/seagetch)
 
-The active application is in `native`, dependencies in `vendor` and `cmake`,
-and shared translation catalogs in `tl`. C++ runtime assets are in `native/res`.
-Active packaging assets are in `build-aux`. Legacy D source, D-only packaging,
-workflows, and D comparison programs are in
-`dlang_archive`. C++ parity checks continue to use the archived D references.
+*nijiexpose is the official tool for using nijilive puppets for VTubing.*
 
-## Supported packages
+This application is currently under heavy development and isn't ready for production just yet.
+The current implementation uses C++ and nicxlive. See the
+[remaining migration tasks](NATIVE_CPP_TASKS.md) for feature differences from the D version.
 
-| Platform | Architecture | Formats |
-| --- | --- | --- |
-| Windows | x64 | ZIP, MSI |
-| macOS | arm64 | ZIP containing the app bundle, DMG |
-| Linux (Ubuntu 24.04 or compatible) | x86_64 | ZIP, AppImage |
+## Downloads
 
-The [native CI workflow](.github/workflows/native-cpp.yml) builds and packages
-all three platforms. Download packages from its GitHub Actions artifacts.
-Nightly builds distribute ZIP files; version-tag releases distribute MSI, DMG
-and AppImage. `-rc` tags produce prereleases. Packages include tracker task
-models, gettext catalogs and dependency notices.
-Keep the extracted directory structure intact. macOS packages are ad-hoc
-signed; they are not Developer ID signed or notarized. Spout is Windows-only.
+Download release packages from [Releases](https://github.com/nijigenerate/nijiexpose/releases).
+Native version-tag releases provide the following packages:
 
-## Development
+- **Windows x64**: run the `.msi` installer to install the application and shortcuts.
+- **macOS arm64**: open the `.dmg` and copy the application to Applications.
+  The app is ad-hoc signed; Developer ID signing and notarization are not configured.
+- **Linux x86_64**: make the `.AppImage` executable and run it on Ubuntu 24.04
+  or a compatible system. A compatible graphics driver and desktop dialog support
+  are required; see the [package guide](build-aux/README.md).
 
-Start with [BUILD.md](BUILD.md) for prerequisites and commands. MediaPipe is
-built from pinned nijitrack source and statically linked into the embedded
-tracker library. Official dependency binaries are used where available;
-unmodified Boost, gettext and SDL3 are not vendored. CI retains compilation
-caches for incremental builds.
+Packages include the tracker task models, translations and dependency notices.
+Nightly ZIP packages are available for portable use; keep the extracted directory
+structure intact.
 
-Translations are maintained in `tl/*.po`, extracted from `native/port`, and
-compiled to gettext catalogs during the build. See [translation maintenance](tl/README.md).
-The archived D application is not built; optional parity tests use its reference
-programs. Full D/C++ feature parity is still being verified; consult the
-[remaining tasks](NATIVE_CPP_TASKS.md).
+Windows builds run without a console window. Diagnostic output, including Lua
+`print` and dependency output, is saved to
+`%LOCALAPPDATA%\nijiexpose\logs\nijiexpose.log`. At startup, logs of 5 MiB or
+larger are moved to `nijiexpose.log.previous`. If the log directory is unavailable,
+output is discarded so logging does not prevent startup.
+
+### Experimental Builds
+
+Nightly builds provide ZIP packages for Windows, macOS and Linux, but we do not
+guarantee stability. These versions may crash unexpectedly, and you are likely to
+encounter bugs. Be sure to save and back up your work frequently!
+
+[![Nightly Builds](https://img.shields.io/github/actions/workflow/status/nijigenerate/nijiexpose/native-cpp.yml?label=Nightly&style=for-the-badge)](https://github.com/nijigenerate/nijiexpose/releases/tag/nightly)
+
+Build artifacts are also available from the
+[native CI workflow](https://github.com/nijigenerate/nijiexpose/actions/workflows/native-cpp.yml).
+
+## Tracker settings
+
+nijitrack is embedded in the application and runs in worker threads. Configure
+the camera in tracking settings. Tracking results are delivered directly to the
+application.
+
+The required face and hand `.task` models are bundled with the packages. No
+separate tracker download, Python environment or tracker executable is required.
+
+## Building
+
+The quick start guide [BUILD.md](BUILD.md) contains instructions for building,
+testing and packaging nijiexpose on Windows, macOS and Linux.
+
+Translations use GNU gettext; see [translation maintenance](tl/README.md).
+The previous D implementation and its build assets are retained in
+[dlang_archive](dlang_archive/README.md).
