@@ -43,7 +43,8 @@ cmake --install "$HOME/build-nijiexpose-linux" --prefix "$HOME/nijiexpose-linux"
 Keep Linux build outputs on the WSL Linux filesystem, separate from Windows
 build directories. CMake uses an installed SDL3 >=3.4 if available; otherwise
 it builds the SHA256-verified official SDL 3.4.18 source release (Ubuntu 24.04
-does not provide SDL3). Boost, gettext, FreeType and Lua use system packages.
+does not provide SDL3). Boost, gettext, FreeType and Lua use system packages; Lua is linked from the
+static `liblua5.1.a` archive.
 The application uses the CMake-selected C++ compiler; the pinned nijitrack
 SDK recipe uses Clang, official Bazel/Halide binaries and MediaPipe source.
 The SDK is embedded in the same process through a shared library. Its Bazel

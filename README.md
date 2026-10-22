@@ -24,11 +24,13 @@ workflows, and D comparison programs are in
 | --- | --- | --- |
 | Windows | x64 | ZIP, MSI |
 | macOS | arm64 | ZIP containing the app bundle, DMG |
-| Linux (Ubuntu 24.04 or compatible) | x86_64 | ZIP, tar.gz |
+| Linux (Ubuntu 24.04 or compatible) | x86_64 | ZIP, AppImage |
 
 The [native CI workflow](.github/workflows/native-cpp.yml) builds and packages
 all three platforms. Download packages from its GitHub Actions artifacts.
-Packages include tracker task models, gettext catalogs and dependency notices.
+Nightly builds distribute ZIP files; version-tag releases distribute MSI, DMG
+and AppImage. `-rc` tags produce prereleases. Packages include tracker task
+models, gettext catalogs and dependency notices.
 Keep the extracted directory structure intact. macOS packages are ad-hoc
 signed; they are not Developer ID signed or notarized. Spout is Windows-only.
 

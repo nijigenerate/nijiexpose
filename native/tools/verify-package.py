@@ -40,7 +40,7 @@ def main():
     else:
         required += [root / "lib/libnijiexpose_embedded_tracker.so",
                      root / "share/applications/nijiexpose.desktop",
-                     root / "share/metainfo/nijiexpose.appdata.xml",
+                     root / "share/metainfo/io.github.nijigenerate.nijiexpose.metainfo.xml",
                      root / "share/icons/hicolor/256x256/apps/nijiexpose.png"]
     required += [executable, licenses / "LICENSE", licenses / "nicxlive.txt",
                  licenses / "native/facetrack-d.txt", licenses / "native/vmc-d.txt",
@@ -49,6 +49,11 @@ def main():
     for path in required:
         if not path.is_file() or not path.stat().st_size:
             raise RuntimeError(f"Missing package file: {path}")
+    if system == "Linux":
+        dependencies = subprocess.run(["ldd", str(executable)], text=True,
+                                      capture_output=True, check=True).stdout
+        if "liblua" in dependencies or "not found" in dependencies:
+            raise RuntimeError(f"Unexpected runtime dependencies: {dependencies}")
     source_root = Path(__file__).resolve().parents[2]
     for name, metadata in json.loads((source_root / "vendor/nijitrack/models/models.lock.json").read_text()).items():
         model = resources / "models" / name

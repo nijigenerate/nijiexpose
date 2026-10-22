@@ -2,15 +2,35 @@ name: Native application packages
 
 on:
   pull_request:
-    branches: [native-cpp]
+    branches: [main, native-cpp]
   push:
-    branches: [native-cpp]
+    branches: [main, native-cpp]
+    tags: ['v[0-9]*', '[0-9]*', 'nightly']
+  schedule:
+    - cron: '0 0 * * *'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Package selection (manual runs do not publish)
+        type: choice
+        options: [verify, nightly, release]
+        default: verify
 
 permissions:
   contents: read
 
 jobs:
+  package-mode:
+    runs-on: ubuntu-24.04
+    outputs:
+      mode: ${{ steps.mode.outputs.mode }}
+      version: ${{ steps.mode.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: mode
+        env:
+          REQUESTED_MODE: ${{ inputs.mode }}
+        run: python3 build-aux/package-mode.py >> "$GITHUB_OUTPUT"
   translations:
     runs-on: ubuntu-24.04
     steps:
@@ -26,9 +46,11 @@ jobs:
           path: out/i18n/*.mo
           if-no-files-found: error
   windows-native:
-    needs: translations
+    needs: [translations, package-mode]
     runs-on: windows-2022
     env:
+      PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
+      PACKAGE_VERSION: ${{ needs.package-mode.outputs.version }}
       SCCACHE_GHA_ENABLED: "true"
       # A cold MediaPipe build can exceed the default server idle timeout.
       # Keep one statistics session for the entire application build.
@@ -90,7 +112,7 @@ jobs:
         shell: pwsh
         run: |
           $boostRoot = Get-Content build/boost/prefix.txt -Raw
-          cmake --preset native-release -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg" -DNIJIEXPOSE_TRACKER_SOURCE_DIR="${{ github.workspace }}/build/nt"
+          cmake --preset native-release -DNIJIEXPOSE_VERSION="$env:PACKAGE_VERSION" -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg" -DNIJIEXPOSE_TRACKER_SOURCE_DIR="${{ github.workspace }}/build/nt"
       - name: Build
         shell: pwsh
         run: |
@@ -156,10 +178,18 @@ jobs:
             build/native-release/application-results/results.json
           if-no-files-found: warn
       - name: Locate binary WiX tools
+        if: env.PACKAGE_MODE != 'nightly'
         shell: pwsh
         run: ./build-aux/windows/ensure-wix.ps1
-      - name: Package ZIP and MSI
-        run: cpack --config build/native-release/CPackConfig.cmake -C Release
+      - name: Package Windows
+        shell: pwsh
+        run: |
+          cpack --config build/native-release/CPackConfig.cmake -C Release -G ZIP
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($env:PACKAGE_MODE -ne 'nightly') {
+            cpack --config build/native-release/CPackConfig.cmake -C Release -G WIX
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
       - name: Verify unpacked Windows package
         shell: pwsh
         run: |
@@ -167,22 +197,38 @@ jobs:
           if ($zip.Count -ne 1) { throw 'Expected one Windows ZIP' }
           Expand-Archive -LiteralPath $zip.FullName -DestinationPath out/package-check
           python native/tools/verify-package.py "out/package-check/$($zip.BaseName)"
+      - name: Verify MSI payload
+        if: env.PACKAGE_MODE != 'nightly'
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem build/native-release/packages/*.msi
+          if ($msi.Count -ne 1) { throw 'Expected one Windows MSI' }
+          $destination = Join-Path $PWD 'out/msi-check'
+          $process = Start-Process msiexec.exe -ArgumentList @('/a', ('"' + $msi.FullName + '"'), '/qn', ('TARGETDIR="' + $destination + '"')) -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "MSI extraction failed: $($process.ExitCode)" }
+          python native/tools/verify-package.py "$destination/nijiexpose"
+      - name: Select Windows distribution files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out/dist | Out-Null
+          if ($env:PACKAGE_MODE -ne 'release') { Copy-Item build/native-release/packages/*.zip out/dist }
+          if ($env:PACKAGE_MODE -ne 'nightly') { Copy-Item build/native-release/packages/*.msi out/dist }
       - name: Upload Windows packages
         uses: actions/upload-artifact@v4
         with:
           name: nijiexpose-native-windows-packages
-          path: |
-            build/native-release/packages/*.zip
-            build/native-release/packages/*.msi
+          path: out/dist/*
           if-no-files-found: error
   unix-native:
-    needs: translations
+    needs: [translations, package-mode]
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, macos-26]
     runs-on: ${{ matrix.os }}
     env:
+      PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
+      PACKAGE_VERSION: ${{ needs.package-mode.outputs.version }}
       SCCACHE_DIR: ${{ github.workspace }}/build/compiler-cache
       SCCACHE_CACHE_SIZE: 1G
       SCCACHE_IDLE_TIMEOUT: "0"
@@ -247,7 +293,7 @@ jobs:
           restore-keys: |
             native-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-
       - name: Configure
-        run: cmake --preset native-release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+        run: cmake --preset native-release -DNIJIEXPOSE_VERSION="$PACKAGE_VERSION" -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
       - name: Build
         run: cmake --build --preset native-release --parallel 3
       - name: Save MediaPipe compiler cache before packaging
@@ -262,8 +308,17 @@ jobs:
         with:
           path: build/compiler-cache
           key: ${{ steps.compiler-cache.outputs.cache-primary-key }}
-      - name: Package
-        run: cpack --config build/native-release/CPackConfig.cmake -C Release
+      - name: Package Unix
+        shell: bash
+        run: |
+          cpack --config build/native-release/CPackConfig.cmake -C Release -G ZIP
+          if [[ "$PACKAGE_MODE" != nightly ]]; then
+            if [[ "$RUNNER_OS" == macOS ]]; then
+              cpack --config build/native-release/CPackConfig.cmake -C Release -G DragNDrop
+            else
+              python3 build-aux/linux/appimage.py build/native-release --version "$PACKAGE_VERSION"
+            fi
+          fi
       - name: Verify unpacked package
         shell: bash
         run: |
@@ -273,7 +328,7 @@ jobs:
             python3 native/tools/verify-package.py "out/package-check/$(basename "$archive" .zip)"
           done
       - name: Verify mounted macOS DMG
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && env.PACKAGE_MODE != 'nightly'
         shell: bash
         run: |
           mountpoint="$PWD/out/dmg-mount"
@@ -292,12 +347,48 @@ jobs:
       - name: Compilation cache statistics
         if: always()
         run: sccache --show-stats
+      - name: Select Unix distribution files
+        shell: bash
+        run: |
+          mkdir -p out/dist
+          if [[ "$PACKAGE_MODE" != release ]]; then cp build/native-release/packages/*.zip out/dist/; fi
+          if [[ "$PACKAGE_MODE" != nightly ]]; then
+            if [[ "$RUNNER_OS" == macOS ]]; then
+              cp build/native-release/packages/*.dmg out/dist/
+            else
+              cp build/native-release/packages/*.AppImage out/dist/
+            fi
+          fi
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
           name: nijiexpose-native-${{ runner.os }}-${{ runner.arch }}-packages
-          path: |
-            build/native-release/packages/*.zip
-            build/native-release/packages/*.dmg
-            build/native-release/packages/*.tar.gz
+          path: out/dist/*
           if-no-files-found: error
+  publish:
+    needs: [package-mode, windows-native, unix-native]
+    if: github.event_name == 'schedule' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: nijiexpose-native-*-packages
+          merge-multiple: true
+          path: dist
+      - name: Publish verified packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
+        shell: bash
+        run: |
+          tag="$GITHUB_REF_NAME"
+          if [[ "$PACKAGE_MODE" == nightly ]]; then tag=nightly; fi
+          flags=()
+          if [[ "$PACKAGE_MODE" == nightly || "$tag" == *-rc* ]]; then flags+=(--prerelease); fi
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes "${flags[@]}"
+          fi
+          gh release upload "$tag" dist/* --clobber

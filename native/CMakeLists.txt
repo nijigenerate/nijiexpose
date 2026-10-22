@@ -191,8 +191,11 @@ if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
     elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
         find_package(PkgConfig REQUIRED)
         pkg_check_modules(LUA51 REQUIRED IMPORTED_TARGET lua5.1)
+        find_file(NIJIEXPOSE_LUA51_ARCHIVE NAMES liblua5.1.a
+            PATHS ${LUA51_LIBRARY_DIRS} REQUIRED NO_DEFAULT_PATH)
         add_library(nijiexpose_lua51 INTERFACE)
-        target_link_libraries(nijiexpose_lua51 INTERFACE PkgConfig::LUA51)
+        target_include_directories(nijiexpose_lua51 INTERFACE ${LUA51_INCLUDE_DIRS})
+        target_link_libraries(nijiexpose_lua51 INTERFACE "${NIJIEXPOSE_LUA51_ARCHIVE}" m ${CMAKE_DL_LIBS})
     else()
         FetchContent_Declare(lua51
             URL "https://www.lua.org/ftp/lua-5.1.5.tar.gz"

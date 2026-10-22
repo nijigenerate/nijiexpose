@@ -80,10 +80,23 @@ cpack --config build/native-release/CPackConfig.cmake -C Release
 On WSL, keep the checkout and Linux build on the Linux filesystem and use WSLg
 for display. Do not reuse a Windows build directory. Ubuntu 24.04 lacks SDL3,
 so CMake builds the pinned official SDL3 source when no suitable installed SDL3
-is available. MediaPipe also builds from source using the pinned nijitrack recipe.
+is available. Lua links statically from the distribution-provided `liblua5.1.a`; its shared
+library is not required at runtime. MediaPipe also builds from source using the
+pinned nijitrack recipe.
 Linux packages require compatible system runtime libraries; see the
 [package guide](build-aux/README.md). File dialogs need an XDG desktop portal
 or Zenity. Global keyboard capture uses X11; Spout is unavailable.
+
+To build and validate an AppImage after the Linux build:
+
+```sh
+python3 build-aux/linux/appimage.py build/native-release --version 0.1.0
+```
+
+The script downloads a checksum-pinned official linuxdeploy binary, includes
+runtime libraries and their notices, and checks the final AppImage by extracting
+and launching it. CI uses this same script. The baseline is Ubuntu 24.04;
+AppImage does not remove the host glibc, graphics-driver or desktop-portal requirements.
 
 ## Translations
 
@@ -132,3 +145,17 @@ Dependency pins and update procedures are documented in
 [cmake/DEPENDENCY_UPDATES.md](cmake/DEPENDENCY_UPDATES.md). Platform packaging
 details, including MSI upgrade-version behavior, are in
 [build-aux/README.md](build-aux/README.md).
+
+## Nightly and tagged releases
+
+The native workflow runs daily at 00:00 UTC once it is on the default branch.
+Scheduled builds and the `nightly` tag publish ZIP files to the nightly prerelease.
+Push `[v]MAJOR.MINOR.PATCH` to build and publish MSI (Windows), DMG (macOS) and
+AppImage (Linux). A `-rcN` suffix marks a prerelease. The numeric tag version is
+passed to CMake as `NIJIEXPOSE_VERSION`, including the MSI product version.
+Tags are not created automatically for testing.
+
+Branch/PR builds validate both ZIP and installer/AppImage packaging without
+publishing releases. Manual runs offer `verify`, `nightly` and `release` modes;
+manual runs only upload Actions artifacts. Release publishing waits for all
+platform jobs and their package checks to succeed.

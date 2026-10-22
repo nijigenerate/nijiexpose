@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.24)
-project(nijiexpose_native VERSION 0.1.0 LANGUAGES C CXX)
+set(NIJIEXPOSE_VERSION "0.1.0" CACHE STRING "Numeric release version")
+project(nijiexpose_native VERSION ${NIJIEXPOSE_VERSION} LANGUAGES C CXX)
 if(NOT WIN32 AND NOT APPLE AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
     message(FATAL_ERROR "The native application currently supports Windows, macOS and Linux.")
 endif()
