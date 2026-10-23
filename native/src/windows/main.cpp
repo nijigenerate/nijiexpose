@@ -910,34 +910,6 @@ protected:
         updateOverlayBlurTexture();
     }
 
-    void drawPinDebugOverlay() {
-        bool hasPins = false;
-        for (const auto& item : insScene()->sceneItems)
-            if (!item->attachedParent.expired()) { hasPins = true; break; }
-        if (!hasPins) return;
-
-        const auto* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - 12,
-                                     viewport->WorkPos.y + viewport->WorkSize.y - 12),
-                                ImGuiCond_Always, ImVec2(1, 1));
-        ImGui::SetNextWindowBgAlpha(0.85f);
-        constexpr auto flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize |
-                               ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoInputs |
-                               ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-        if (ImGui::Begin("Pin debug###pin_debug_overlay", nullptr, flags)) {
-            ImGui::TextUnformatted("Pin target (debug)");
-            ImGui::Separator();
-            for (const auto& item : insScene()->sceneItems) {
-                if (item->attachedParent.expired() || !item->puppetRoot) continue;
-                auto target = item->puppetRoot->parentPtr();
-                if (!target) continue;
-                ImGui::TextUnformatted(item->name().c_str());
-                ImGui::Text("  -> %s [%s, %u]", target->name.c_str(), target->typeId().c_str(), target->uuid);
-            }
-        }
-        ImGui::End();
-    }
-
     void onPlatformUpdate() override { tracking::neTracker()->update(); }
     bool onPlatformEvent(const SDL_Event& event) override { return tracking::neTracker()->handleEvent(event); }
     void onUpdate() {
@@ -954,7 +926,6 @@ protected:
 
         drawNavigationShell();
         drawOverlayHost();
-        drawPinDebugOverlay();
 
         
     }
