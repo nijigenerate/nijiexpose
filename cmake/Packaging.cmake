@@ -67,6 +67,9 @@ elseif(APPLE)
             DESTINATION "nijiexpose-native.app/Contents/Resources/vulkan/icd.d")
         install(FILES "${NIJIEXPOSE_VULKAN_LICENSE}"
             DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/vulkan-sdk")
+        # The SDK's LICENSE.txt is only an overview, not the component licenses.
+        install(DIRECTORY "${PROJECT_SOURCE_DIR}/native/res/licenses/vulkan-sdk/"
+            DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/vulkan-sdk")
     endif()
     install(FILES "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua"
         "${PROJECT_SOURCE_DIR}/native/res/fonts/NotoSansCJK-Regular-LICENSE"

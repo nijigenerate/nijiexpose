@@ -120,9 +120,25 @@ these commands do not produce an Intel or universal package.
 
 For Vulkan, install the macOS Vulkan SDK and select `native-vulkan-release`
 with `VULKAN_SDK` pointing to its `macOS` directory. The installed app bundles
-the Vulkan loader, MoltenVK, its driver manifest and the SDK license notices.
+the Vulkan loader, MoltenVK, its driver manifest and component license notices.
 The manifest uses a bundle-relative library path, so the installed app does not
 require the SDK environment variables to locate MoltenVK.
+
+The macOS CI job uses Vulkan SDK **1.4.328.1**, with the official archive SHA-256
+checked before installation. It caches the SDK separately by version, digest,
+OS, architecture and installer-script revision. Installation uses `copy_only=1`
+and the core component, without copying runtime libraries to system directories.
+CI overrides `native-release` with `-DNIJIEXPOSE_RENDERER=VULKAN` and explicit SDK
+paths, retaining `build/native-release` and the existing MediaPipe cache paths.
+Linux and Windows continue to use OpenGL.
+
+macOS ZIP and DMG verification passes `--require-macos-vulkan` to
+`native/tools/verify-package.py`. This checks the loader, MoltenVK, the relative
+ICD manifest, bundled library dependencies, runtime search paths, license hashes
+and app signature. The `--version` launch clears Vulkan and dyld environment
+overrides. This is packaging verification, not a GPU rendering test.
+When updating the SDK, update its workflow version/digest and review the pinned
+component notices in `native/res/licenses/vulkan-sdk/provenance.json` together.
 
 ## Linux x86_64 (Ubuntu 24.04 / WSL2)
 
