@@ -1,5 +1,6 @@
 #include "context.hpp"
 #include "backend.hpp"
+#include "render/window_mode.hpp"
 #ifdef _WIN32
 #include "windows_spout.hpp"
 #endif
@@ -13,6 +14,17 @@
 namespace nijiexpose::vulkan {
 namespace {
 Context *current{};
+bool pointerPixel(SDL_Window* window, int width, int height, int& x, int& y) {
+  float gx=0, gy=0;
+  SDL_GetGlobalMouseState(&gx, &gy);
+  int wx=0, wy=0, w=0, h=0;
+  SDL_GetWindowPosition(window, &wx, &wy);
+  SDL_GetWindowSize(window, &w, &h);
+  if (w<=0 || h<=0 || gx<wx || gy<wy || gx>=wx+w || gy>=wy+h) return false;
+  x=static_cast<int>((gx-wx)*width/w);
+  y=static_cast<int>((gy-wy)*height/h);
+  return true;
+}
 }
 void check(VkResult result) {
   if (result < 0)
@@ -162,6 +174,7 @@ void Context::release() {
     renderBackend_->shutdown();
   shutdownImGui();
   if (device) {
+    destroy(pointerPixel_);
     vkDestroySampler(device, sampler, nullptr);
     vkDestroyCommandPool(device, uploadPool_, nullptr);
     vkDestroyDescriptorPool(device, descriptors, nullptr);
@@ -189,6 +202,7 @@ void Context::resize() {
     return;
   }
   idle();
+  pointerPixelPending_=false;
   VkPresentModeKHR modes[] = {throttle_ > 0 ? VK_PRESENT_MODE_FIFO_KHR
                                             : VK_PRESENT_MODE_IMMEDIATE_KHR,
                               VK_PRESENT_MODE_FIFO_KHR};
@@ -196,7 +210,8 @@ void Context::resize() {
       ImGui_ImplVulkanH_SelectPresentMode(physical, swap_.Surface, modes, 2);
   ImGui_ImplVulkanH_CreateOrResizeWindow(
       instance, physical, device, &swap_, family, nullptr, w, h, 2,
-      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+          VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
   rebuild_ = false;
 }
 void Context::setThrottle(int rate) {
@@ -241,6 +256,21 @@ bool Context::beginFrame() {
   // submission before reusing them or their mapped geometry; no per-draw waits.
   if (lastSubmit_)
     check(vkWaitForFences(device, 1, &lastSubmit_, VK_TRUE, UINT64_MAX));
+#ifdef _WIN32
+  if (render::transparentWindow) {
+    int x=0, y=0;
+    const bool inside=pointerPixel(window_,swap_.Width,swap_.Height,x,y);
+    const bool valid=pointerPixelPending_ && x==pointerX_ && y==pointerY_;
+    const bool transparent=!inside || (valid && static_cast<uint8_t*>(pointerPixel_.mapped)[3]<8);
+    // Retain input while dragging, as nijimi does. Consume the single-pixel
+    // sample after the existing frame fence; no additional GPU wait/readback.
+    const bool dragging=SDL_GetGlobalMouseState(nullptr,nullptr)&SDL_BUTTON_LMASK;
+    render::setWindowMousePassthrough(window_,transparent && !dragging);
+  } else {
+    render::setWindowMousePassthrough(window_,false);
+  }
+#endif
+  pointerPixelPending_=false;
 #ifdef _WIN32
   if (spoutBridge_ && !spoutBridge_->beginFrame())
     return false;
@@ -297,6 +327,21 @@ void Context::present(ImDrawData *data, Image &scene) {
   vkCmdBeginRenderPass(command, &r, VK_SUBPASS_CONTENTS_INLINE);
   ImGui_ImplVulkan_RenderDrawData(data, command);
   vkCmdEndRenderPass(command);
+#ifdef _WIN32
+  if (render::transparentWindow && pointerPixel(window_,swap_.Width,swap_.Height,pointerX_,pointerY_)) {
+    ensureBuffer(pointerPixel_,4,VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+    // Sample the final image, including any panel opened from the tray.
+    back.layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    transition(command,back,VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    VkBufferImageCopy copy{};
+    copy.imageSubresource={VK_IMAGE_ASPECT_COLOR_BIT,0,0,1};
+    copy.imageOffset={pointerX_,pointerY_,0};
+    copy.imageExtent={1,1,1};
+    vkCmdCopyImageToBuffer(command,back.handle,back.layout,pointerPixel_.handle,1,&copy);
+    transition(command,back,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    pointerPixelPending_=true;
+  }
+#endif
 #ifdef _WIN32
   if (spoutBridge_)
     spoutBridge_->releaseImage(command, scene);

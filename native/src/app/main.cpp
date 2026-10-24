@@ -13,8 +13,10 @@
 static int runApplication(int argc,char** argv){
     std::vector<std::string> args;
     std::string controlDirectory;
+    bool transparent=false;
     for(int i=1;i<argc;++i){
         auto arg=std::string(argv[i]);
+        if(arg=="--transparent-window"){transparent=true;continue;}
         if(arg=="--control-dir"){
             if(i+1==argc){std::fputs("--control-dir requires a directory\n",stderr);return 1;}
             controlDirectory=std::string(argv[++i]);continue;
@@ -22,7 +24,7 @@ static int runApplication(int argc,char** argv){
         if(arg=="--version"){
             std::puts("nijiexpose-native " NIJIEXPOSE_NATIVE_VERSION " / nicxlive / SDL3 / ImGui " IMGUI_VERSION " / Boost.JSON / GNU gettext");return 0;
         }
-        if(arg=="--help"){std::puts("Usage: nijiexpose-native [--control-dir DIRECTORY] [model.inp | model.inx | image ...]");return 0;}
+        if(arg=="--help"){std::puts("Usage: nijiexpose-native [--transparent-window] [--control-dir DIRECTORY] [model.inp | model.inx | image ...]");return 0;}
         if(arg.starts_with("--")){std::fprintf(stderr,"Unknown option: %s\n",arg.c_str());return 1;}
         args.push_back(std::move(arg));
     }
@@ -30,6 +32,7 @@ static int runApplication(int argc,char** argv){
     nijiexpose::insLogInfo("nijiexpose %s, args=%s",NIJIEXPOSE_NATIVE_VERSION,args);
     try{
         auto window=nijiexpose::initializeApplication(args);
+        if(transparent)window->setTransparentMode(true);
         if(!controlDirectory.empty())nijiexpose::control::start(nijiexpose::dcompat::pathFromUTF8(controlDirectory));
         while(window->isAlive())window->update();
         nijiexpose::shutdownApplication();

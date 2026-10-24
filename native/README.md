@@ -155,6 +155,17 @@ and Input Monitoring permissions respectively.
 
 ## Verification
 
+The optional `nijiexpose_transparent_window_test` target loads a supplied real INP
+and checks startup transparency, three mode changes, resizing and navigation
+restoration. Run it for each renderer with isolated configuration:
+
+```powershell
+python native/tests/run_with_config.py build/native/native/Release/nijiexpose_transparent_window_test.exe path/to/model.inp
+```
+
+This checks application state; desktop alpha composition must also be verified
+on the running desktop.
+
 Windows CI uses sccache with the GitHub Actions cache backend for C/C++
 compilation. Boost headers are cached separately; SDL3, gettext/libiconv and
 FreeType are downloaded as binaries. Each run records build

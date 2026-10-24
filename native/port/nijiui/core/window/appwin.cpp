@@ -15,19 +15,40 @@
 #include <imgui_impl_sdl3.h>
 #include <core/texture.hpp>
 #include <filesystem>
+#include <algorithm>
 #include <stdexcept>
+#include "render/window_mode.hpp"
 #ifdef NIJIEXPOSE_VULKAN
 #include "render/vulkan/backend.hpp"
 #include "framesend.hpp"
 #endif
 namespace nijiui {
-namespace { bool isGLLoaded=false; }
+namespace {
+bool isGLLoaded=false;
+void fitDecoratedWindowToDisplay(SDL_Window* window) {
+    if (SDL_GetWindowFlags(window) & (SDL_WINDOW_MAXIMIZED | SDL_WINDOW_FULLSCREEN)) return;
+    SDL_Rect area{};
+    if (!SDL_GetDisplayUsableBounds(SDL_GetDisplayForWindow(window), &area)) return;
+    int top=0, left=0, bottom=0, right=0;
+    if (!SDL_GetWindowBordersSize(window, &top, &left, &bottom, &right)) return;
+    int x=0, y=0, w=0, h=0;
+    SDL_GetWindowPosition(window, &x, &y);
+    SDL_GetWindowSize(window, &w, &h);
+    const int fittedW=std::min(w, std::max(1, area.w-left-right));
+    const int fittedH=std::min(h, std::max(1, area.h-top-bottom));
+    if (w!=fittedW || h!=fittedH) SDL_SetWindowSize(window, fittedW, fittedH);
+    const int fittedX=std::clamp(x, area.x+left, area.x+std::max(left, area.w-fittedW-right));
+    const int fittedY=std::clamp(y, area.y+top, area.y+std::max(top, area.h-fittedH-bottom));
+    if (x!=fittedX || y!=fittedY) SDL_SetWindowPosition(window, fittedX, fittedY);
+}
+}
 InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsigned height,int rate)
     : width_(static_cast<int>(width)),height_(static_cast<int>(height)) {
 #ifdef NIJIEXPOSE_VULKAN
     SDL_SetHint(SDL_HINT_APP_NAME,inGetApplication().humanName.c_str());
     window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_VULKAN|SDL_WINDOW_RESIZABLE);
     if(!window)throw std::runtime_error(SDL_GetError());
+    fitDecoratedWindowToDisplay(window);
     vulkanContext=std::make_unique<nijiexpose::vulkan::Context>(window);
     setThrottlingRate(rate);
 #else
@@ -39,7 +60,13 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,8);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,8);
     SDL_SetHint(SDL_HINT_APP_NAME,inGetApplication().humanName.c_str());
-    window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
+#ifndef _WIN32
+        |SDL_WINDOW_TRANSPARENT
+#endif
+    );
+    if(!window)throw std::runtime_error(SDL_GetError());
+    fitDecoratedWindowToDisplay(window);
     glctx=SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window,glctx);
     setThrottlingRate(rate);
@@ -84,6 +111,7 @@ void InApplicationWindow::cleanup() {
     SDL_GL_DestroyContext(glctx);
 #endif
     SDL_DestroyWindow(window);
+    SDL_DestroySurface(windowIcon);
 }
 void InApplicationWindow::setIcon(const nicxlive::core::ShallowTexture& texture) {
     const int channels=texture.convChannels>0?texture.convChannels:texture.channels;
@@ -95,8 +123,44 @@ void InApplicationWindow::setIcon(const nicxlive::core::ShallowTexture& texture)
         const_cast<uint8_t*>(texture.data.data()),texture.width*channels);
     if(!surface)throw std::runtime_error(SDL_GetError());
     const bool success=SDL_SetWindowIcon(window,surface);
+    SDL_DestroySurface(windowIcon);
+    windowIcon=SDL_DuplicateSurface(surface);
     SDL_DestroySurface(surface);
     if(!success)throw std::runtime_error(SDL_GetError());
+}
+void InApplicationWindow::setBorderlessTransparency(bool enabled) {
+    if (enabled) {
+        normalWindowMaximized=(SDL_GetWindowFlags(window)&SDL_WINDOW_MAXIMIZED)!=0;
+        if (normalWindowMaximized) {
+            SDL_RestoreWindow(window);
+            SDL_SyncWindow(window);
+        }
+        SDL_GetWindowPosition(window,&normalWindowX,&normalWindowY);
+        SDL_GetWindowSize(window,&normalWindowWidth,&normalWindowHeight);
+    }
+    // A resizable borderless SDL window still has a native sizing frame on Windows.
+    SDL_SetWindowResizable(window,!enabled);
+    SDL_SetWindowBordered(window,!enabled);
+    SDL_SetWindowAlwaysOnTop(window,enabled);
+    if (enabled) {
+        SDL_Rect area{};
+        if (SDL_GetDisplayUsableBounds(SDL_GetDisplayForWindow(window),&area)) {
+            SDL_SetWindowPosition(window,area.x,area.y);
+            SDL_SetWindowSize(window,area.w,area.h);
+        }
+    } else if (normalWindowWidth>0 && normalWindowHeight>0) {
+        SDL_SetWindowSize(window,normalWindowWidth,normalWindowHeight);
+        SDL_SetWindowPosition(window,normalWindowX,normalWindowY);
+    }
+    SDL_SyncWindow(window);
+    nijiexpose::render::transparentWindow=enabled;
+    transparencyRetryPending=enabled;
+#ifdef NIJIEXPOSE_VULKAN
+    vulkanContext->resize();
+#endif
+    nijiexpose::render::configureWindowTransparency(window,enabled);
+    if (!enabled) fitDecoratedWindowToDisplay(window);
+    if (!enabled && normalWindowMaximized) SDL_MaximizeWindow(window);
 }
 void InApplicationWindow::setThrottlingRate(int rate) {
     throttlingRate=rate;
@@ -108,6 +172,7 @@ void InApplicationWindow::setThrottlingRate(int rate) {
 #endif
 }
 void InApplicationWindow::onResized(int width,int height) {
+    transparencyRetryPending=nijiexpose::render::transparentWindow;
 #ifdef NIJIEXPOSE_VULKAN
     vulkanContext->resize();
 #else
@@ -225,6 +290,11 @@ void InApplicationWindow::update() {
     }
     SDL_GL_SwapWindow(window);
 #endif
+    // Like nijimi, apply again after the first present for native layers created lazily.
+    if(transparencyRetryPending) {
+        nijiexpose::render::configureWindowTransparency(window,true);
+        transparencyRetryPending=false;
+    }
     uiImCleanupDialogs();
 }
 }

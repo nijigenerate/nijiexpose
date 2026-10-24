@@ -52,6 +52,13 @@ application.
 The required face and hand `.task` models are bundled with the packages. No
 separate tracker download, Python environment or tracker executable is required.
 
+## Transparent window
+
+Select **Transparent window** in the navigation bar, or launch with
+`--transparent-window`, to hide the window border, background and navigation bar.
+The system tray icon provides the navigation commands and **Exit transparent mode**
+to restore the normal window. Windows transparency follows nijimi's rendering path.
+
 ## Building
 
 The quick start guide [BUILD.md](BUILD.md) contains instructions for building,

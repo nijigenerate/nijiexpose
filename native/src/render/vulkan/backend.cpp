@@ -2,6 +2,7 @@
 // Shader assets and blend/pipeline selection follow that backend; SDL/ImGui
 // presentation and native nicxlive packet/resource access are host adaptations.
 #include "backend.hpp"
+#include "render/window_mode.hpp"
 #ifdef _WIN32
 #include "windows_spout.hpp"
 #endif
@@ -527,7 +528,7 @@ struct Backend::Impl {
             a.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             a.colorAttachment = i;
             a.clearValue.color = {{0, 0, 0, 0}};
-            if (&t == root.get())
+            if (&t == root.get() && !nijiexpose::render::transparentWindow)
               core::inGetClearColor(
                   a.clearValue.color.float32[0], a.clearValue.color.float32[1],
                   a.clearValue.color.float32[2], a.clearValue.color.float32[3]);

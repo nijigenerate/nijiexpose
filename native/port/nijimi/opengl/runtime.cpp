@@ -17,7 +17,7 @@ using std::max;
 std::shared_ptr<nicxlive::core::Texture> boundAlbedo;
 static int viewportWidth() { int w,h; nicxlive::core::inGetViewport(w,h); return w; }
 static int viewportHeight() { int w,h; nicxlive::core::inGetViewport(w,h); return h; }
-static vec4 clearColor() { vec4 c; inGetClearColor(c.x,c.y,c.z,c.w); return c; }
+static vec4 clearColor() { if(render::transparentWindow)return {0,0,0,0}; vec4 c; inGetClearColor(c.x,c.y,c.z,c.w); return c; }
 struct PostProcessingShader {
     PostProcessingShader() = default;
 

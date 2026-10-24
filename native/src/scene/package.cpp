@@ -44,7 +44,7 @@ void Scene::cleanup(){
 }
 void Scene::update(){
     int width,height;core::inGetViewport(width,height);core::inUpdate();space->update();core::getCurrentRenderBackend()->beginScene();
-    if(backgroundImage){float tw=static_cast<float>(backgroundImage->width()),th=static_cast<float>(backgroundImage->height());float scale=std::max(width/tw,height/th);SpriteRect bounds{static_cast<float>(width/2),static_cast<float>(height/2),tw*scale,th*scale};AppBatch->draw(backgroundImage,bounds,{}, {bounds.width/2,bounds.height/2});AppBatch->flush();}
+    if(backgroundImage&&!render::transparentWindow){float tw=static_cast<float>(backgroundImage->width()),th=static_cast<float>(backgroundImage->height());float scale=std::max(width/tw,height/th);SpriteRect bounds{static_cast<float>(width/2),static_cast<float>(height/2),tw*scale,th*scale};AppBatch->draw(backgroundImage,bounds,{}, {bounds.width/2,bounds.height/2});AppBatch->flush();}
     for(auto& plugin:plugins::insPlugins){if(!plugin->isEnabled())continue;if(plugin->hasEvent("onUpdate"))plugin->callEvent("onUpdate",core::deltaTime());}
     if(!space->isCurrentZoneActive()){zoneInactiveTimer=static_cast<float>(zoneInactiveTimer+core::deltaTime());if(zoneInactiveTimer>=5&&!sleeping){for(auto& item:sceneItems)item->sleep();sleeping=true;}}
     else{zoneInactiveTimer=static_cast<float>(zoneInactiveTimer-core::deltaTime());if(sleeping){for(auto& item:sceneItems)item->awake();sleeping=false;}}

@@ -43,6 +43,9 @@ class Context {
   ImGui_ImplVulkanH_Window swap_{};
   VkCommandPool uploadPool_{};
   VkFence lastSubmit_{};
+  Buffer pointerPixel_{};
+  bool pointerPixelPending_ = false;
+  int pointerX_ = 0, pointerY_ = 0;
   bool rebuild_ = false, imgui_ = false;
   int throttle_ = 1;
   void release();

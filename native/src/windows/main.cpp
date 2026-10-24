@@ -26,6 +26,9 @@
 #include <imgui_internal.h>
 #include <filesystem>
 #include <functional>
+#include "render/window_mode.hpp"
+#include <optional>
+#include <deque>
 namespace nijiexpose::windows {
 namespace core=nicxlive::core;
 using namespace nijiui; using namespace scene; using namespace io; using panels::ScenePanel;
@@ -93,6 +96,53 @@ namespace { struct ScopeExit {std::function<void()> fn;~ScopeExit(){fn();}};
 }
 class nijiexposeWindow : public InApplicationWindow {
 private:
+    SDL_Tray* tray=nullptr;
+    struct TrayAction { nijiexposeWindow* owner; int command; };
+    std::deque<TrayAction> trayActions;
+    std::deque<int> pendingTrayCommands;
+    std::optional<bool> pendingTransparent;
+    bool transparentMode=false;
+    void openModels() {
+        const std::array<TFD_Filter,1> filters{{{{"*.inp","*.inx"},"Puppet Files (*.inp, *.inx)"}}};
+        auto file=insShowOpenDialog(filters,_("Open..."),nativeWindow());
+        if(!file.empty())loadModels({file});
+    }
+    void destroyTray() {
+        if(tray)SDL_DestroyTray(tray);
+        tray=nullptr;trayActions.clear();pendingTrayCommands.clear();
+    }
+    void createTray() {
+        tray=SDL_CreateTray(nativeIcon(),"nijiexpose");
+        if(!tray)throw std::runtime_error(SDL_GetError());
+        auto* menu=SDL_CreateTrayMenu(tray);
+        if(!menu){destroyTray();throw std::runtime_error(SDL_GetError());}
+        auto add=[&](const std::string& label,int command) {
+            auto translated=_(label);
+            auto* entry=SDL_InsertTrayEntryAt(menu,-1,translated.c_str(),SDL_TRAYENTRY_BUTTON);
+            if(!entry)throw std::runtime_error(SDL_GetError());
+            trayActions.push_back({this,command});
+            SDL_SetTrayEntryCallback(entry,[](void* data,SDL_TrayEntry*) {
+                auto& action=*static_cast<TrayAction*>(data);
+                action.owner->pendingTrayCommands.push_back(action.command);
+            },&trayActions.back());
+        };
+        try {
+            add("Menu",100);add("Models",101);
+            for(const auto& item:NAV_ITEMS)add(item.label,static_cast<int>(item.id));
+            add("Delete selected item",102);
+            add("Exit transparent mode",103);add("Quit",104);
+        } catch(...) {destroyTray();throw;}
+    }
+    void applyTransparentMode(bool enabled) {
+        if(enabled==transparentMode)return;
+        if(enabled)createTray();
+        try {setBorderlessTransparency(enabled);}
+        catch(...) {if(enabled)destroyTray();throw;}
+        transparentMode=enabled;
+        overlayOpen=false;
+        showUI=true;
+        if(!enabled)destroyTray();
+    }
     std::shared_ptr<ft::Adaptor> adaptor;
     std::shared_ptr<ApplicationRenderBackend> backend;
     std::shared_ptr<core::Texture> logo;
@@ -525,6 +575,7 @@ private:
     }
 
     void drawOverlayBackdrop(float alphaScale = 1.0f) {
+        if(transparentMode)return;
         if (alphaScale <= 0.0f) return;
         auto bgDrawList = ImGui::GetBackgroundDrawList();
         bgDrawList->AddRectFilled(ImVec2(0.0f, 0.0f),
@@ -653,7 +704,7 @@ private:
     }
 
     void drawNavigationShell() {
-        if (!showUI) return;
+        if (!showUI || transparentMode) return;
         auto compact = navSurfaceMode() == NavSurfaceMode::CompactBar;
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration
             | ImGuiWindowFlags_NoMove
@@ -706,15 +757,16 @@ private:
 
             if (compact) uiImSameLine();
             drawUtilityButton("\ue2c8", "Models", [&] {
-                const std::array<TFD_Filter,1> filters{{{{"*.inp","*.inx"},"Puppet Files (*.inp, *.inx)"}}};
-                auto file=insShowOpenDialog(filters,_("Open..."));
-                if(!file.empty())loadModels({file});
+                openModels();
             }, compact);
 
             for (const auto& item : NAV_ITEMS) {
                 if (compact) uiImSameLine();
                 drawRailButton(item, compact);
             }
+
+            if(compact)uiImSameLine();
+            drawUtilityButton("\ue3c2","Transparent window",[&]{setTransparentMode(true);},compact);
 
             if (compact) {
                 uiImSameLine();
@@ -917,20 +969,42 @@ protected:
 #ifndef NIJIEXPOSE_VULKAN
         insSendFrame();
         ogl::glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        ogl::oglPresentSceneToBackbuffer(width(),height());
+        ogl::oglPresentSceneToBackbuffer(width(),height(),
+#ifdef _WIN32
+            transparentMode
+#else
+            false
+#endif
+        );
 #endif
 #ifndef NIJIEXPOSE_VULKAN
         updateOverlayBlurTexture();
 #endif
     }
 
-    void onPlatformUpdate() override { tracking::neTracker()->update(); }
+    void onPlatformUpdate() override {
+        SDL_UpdateTrays();
+        if(pendingTransparent) {
+            auto enabled=*pendingTransparent;pendingTransparent.reset();
+            try{applyTransparentMode(enabled);}
+            catch(const std::exception& ex){uiImDialog(__("Error"),ex.what());}
+        }
+        tracking::neTracker()->update();
+    }
     bool onPlatformEvent(const SDL_Event& event) override { return tracking::neTracker()->handleEvent(event); }
     void onUpdate() {
+        while(!pendingTrayCommands.empty()) {
+            int command=pendingTrayCommands.front();pendingTrayCommands.pop_front();
+            if(command==100||command==103)setTransparentMode(false);
+            else if(command==101)openModels();
+            else if(command==102)insScene()->deleteSelectedSceneItem();
+            else if(command==104)close();
+            else {showUI=true;activePanel=static_cast<ActivePanelId>(command);overlayOpen=true;focus();}
+        }
         syncPanelVisibility();
         updateNavFadeState();
         if (!inInputIsnijiui()) {
-            if (inInputMouseDoubleClicked(MouseButton::Left)) this->showUI = !showUI;
+            if (!transparentMode && inInputMouseDoubleClicked(MouseButton::Left)) this->showUI = !showUI;
             insScene()->interact();
 
             if (!getDraggedFiles().empty()) {
@@ -956,6 +1030,8 @@ protected:
 #endif
     }
 public:
+    void setTransparentMode(bool enabled) override {pendingTransparent=enabled;}
+    ~nijiexposeWindow() override {destroyTray();render::transparentWindow=false;}
 
     /**
         Construct nijiexpose

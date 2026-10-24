@@ -23,7 +23,14 @@ class InApplicationWindow : public InWindow {
     int throttlingRate=1;
     unsigned renderThrottlingCount=0;
     unsigned fbo=0,fboTexture=0;
+    SDL_Surface* windowIcon=nullptr;
+    bool transparencyRetryPending=false;
+    bool normalWindowMaximized=false;
+    int normalWindowX=0, normalWindowY=0, normalWindowWidth=0, normalWindowHeight=0;
 protected:
+    SDL_Window* nativeWindow() const { return window; }
+    SDL_Surface* nativeIcon() const { return windowIcon; }
+    void setBorderlessTransparency(bool enabled);
     std::vector<std::string>& getDraggedFiles() { return draggedFiles; }
     void cleanup();
     void initStyling();
@@ -35,6 +42,7 @@ public:
     void onUpdate() override {}
     virtual void onPlatformUpdate() {}
     virtual bool onPlatformEvent(const SDL_Event&) {return false;}
+    virtual void setTransparentMode(bool) {}
     void setThrottlingRate(int rate=1);
     bool shouldProcess() override;
     void update();
