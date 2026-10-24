@@ -1,6 +1,8 @@
 #include "context.hpp"
 #include "backend.hpp"
 #include "render/window_mode.hpp"
+#include "vulkan/opaque_alpha_vert.hpp"
+#include "vulkan/opaque_alpha_frag.hpp"
 #ifdef _WIN32
 #include "windows_spout.hpp"
 #endif
@@ -173,6 +175,8 @@ void Context::release() {
     renderBackend_->shutdown();
   shutdownImGui();
   if (device) {
+    vkDestroyPipeline(device, opaqueAlphaPipeline_, nullptr);
+    vkDestroyPipelineLayout(device, opaqueAlphaLayout_, nullptr);
     destroy(pointerPixel_);
     vkDestroySampler(device, sampler, nullptr);
     vkDestroyCommandPool(device, uploadPool_, nullptr);
@@ -298,6 +302,75 @@ bool Context::beginFrame() {
   check(vkBeginCommandBuffer(command, &b));
   return true;
 }
+void Context::makePresentationOpaque() {
+  if (!opaqueAlphaPipeline_) {
+    if (!opaqueAlphaLayout_) {
+      VkPipelineLayoutCreateInfo layout{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
+      check(vkCreatePipelineLayout(device, &layout, nullptr, &opaqueAlphaLayout_));
+    }
+    VkShaderModule modules[2]{};
+    auto createShader = [&](const auto &code, VkShaderModule &module) {
+      VkShaderModuleCreateInfo info{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
+      info.codeSize = sizeof(code);
+      info.pCode = code;
+      check(vkCreateShaderModule(device, &info, nullptr, &module));
+    };
+    try {
+      createShader(opaque_alpha_vert, modules[0]);
+      createShader(opaque_alpha_frag, modules[1]);
+      VkPipelineShaderStageCreateInfo stages[2]{};
+      for (int i = 0; i < 2; ++i) {
+        stages[i].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        stages[i].stage = i ? VK_SHADER_STAGE_FRAGMENT_BIT : VK_SHADER_STAGE_VERTEX_BIT;
+        stages[i].module = modules[i];
+        stages[i].pName = "main";
+      }
+      VkPipelineVertexInputStateCreateInfo vertex{VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
+      VkPipelineInputAssemblyStateCreateInfo assembly{VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
+      assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+      VkPipelineViewportStateCreateInfo viewport{VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO};
+      viewport.viewportCount = viewport.scissorCount = 1;
+      VkPipelineRasterizationStateCreateInfo raster{VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
+      raster.polygonMode = VK_POLYGON_MODE_FILL;
+      raster.cullMode = VK_CULL_MODE_NONE;
+      raster.lineWidth = 1;
+      VkPipelineMultisampleStateCreateInfo samples{VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
+      samples.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+      VkPipelineColorBlendAttachmentState attachment{};
+      attachment.colorWriteMask = VK_COLOR_COMPONENT_A_BIT;
+      VkPipelineColorBlendStateCreateInfo blend{VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO};
+      blend.attachmentCount = 1;
+      blend.pAttachments = &attachment;
+      VkDynamicState states[]{VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+      VkPipelineDynamicStateCreateInfo dynamic{VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO};
+      dynamic.dynamicStateCount = 2;
+      dynamic.pDynamicStates = states;
+      VkGraphicsPipelineCreateInfo info{VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
+      info.stageCount = 2;
+      info.pStages = stages;
+      info.pVertexInputState = &vertex;
+      info.pInputAssemblyState = &assembly;
+      info.pViewportState = &viewport;
+      info.pRasterizationState = &raster;
+      info.pMultisampleState = &samples;
+      info.pColorBlendState = &blend;
+      info.pDynamicState = &dynamic;
+      info.layout = opaqueAlphaLayout_;
+      info.renderPass = swap_.RenderPass;
+      check(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr, &opaqueAlphaPipeline_));
+    } catch (...) {
+      for (auto module : modules) vkDestroyShaderModule(device, module, nullptr);
+      throw;
+    }
+    for (auto module : modules) vkDestroyShaderModule(device, module, nullptr);
+  }
+  VkViewport viewport{0, 0, float(swap_.Width), float(swap_.Height), 0, 1};
+  VkRect2D scissor{{0, 0}, {uint32_t(swap_.Width), uint32_t(swap_.Height)}};
+  vkCmdSetViewport(command, 0, 1, &viewport);
+  vkCmdSetScissor(command, 0, 1, &scissor);
+  vkCmdBindPipeline(command, VK_PIPELINE_BIND_POINT_GRAPHICS, opaqueAlphaPipeline_);
+  vkCmdDraw(command, 3, 1, 0, 0);
+}
 void Context::present(ImDrawData *data, Image &scene) {
   auto &f = swap_.Frames[swap_.FrameIndex];
   auto &sync = swap_.FrameSemaphores[swap_.SemaphoreIndex];
@@ -323,6 +396,10 @@ void Context::present(ImDrawData *data, Image &scene) {
   r.clearValueCount = 1;
   r.pClearValues = &swap_.ClearValue;
   vkCmdBeginRenderPass(command, &r, VK_SUBPASS_CONTENTS_INLINE);
+  // Scene alpha belongs to Spout and transparent desktop mode. In a normal
+  // window only the presentation image must be opaque, including after resize.
+  if (!render::transparentWindow)
+    makePresentationOpaque();
   ImGui_ImplVulkan_RenderDrawData(data, command);
   vkCmdEndRenderPass(command);
 #ifdef NIJIEXPOSE_DYNAMIC_MOUSE_PASSTHROUGH

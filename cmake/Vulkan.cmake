@@ -1,5 +1,5 @@
 set(vulkan_shader_headers)
-foreach(shader part.vert part.frag part_stage1.frag part_stage2.frag part_mask.frag mask.vert mask.frag overlay_blur.frag emission_combine.frag)
+foreach(shader part.vert part.frag part_stage1.frag part_stage2.frag part_mask.frag mask.vert mask.frag overlay_blur.frag emission_combine.frag opaque_alpha.vert opaque_alpha.frag)
     string(REPLACE "." "_" symbol "${shader}")
     set(spv "${CMAKE_CURRENT_BINARY_DIR}/vulkan/${shader}.spv")
     set(header "${CMAKE_CURRENT_BINARY_DIR}/vulkan/${symbol}.hpp")

@@ -48,6 +48,9 @@ class Context {
   int pointerX_ = 0, pointerY_ = 0;
   bool rebuild_ = false, imgui_ = false;
   int throttle_ = 1;
+  VkPipeline opaqueAlphaPipeline_{};
+  VkPipelineLayout opaqueAlphaLayout_{};
+  void makePresentationOpaque();
   void release();
 
 public:

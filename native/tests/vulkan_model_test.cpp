@@ -18,7 +18,8 @@ static void require(bool v, const char *message) {
   if (!v)
     throw std::runtime_error(message);
 }
-static double clockNow() { return double(SDL_GetTicks()) / 1000.; }
+static double testTime = 0;
+static double clockNow() { return testTime; }
 static void writePPM(const std::string &path, const std::vector<uint8_t> &p,
                      int w, int h) {
   std::ofstream f(path, std::ios::binary);
@@ -63,6 +64,7 @@ int main(int argc, char **argv) {
       require(id.deviceLUIDValid, "Receiver requires device LUID");
 #endif
       auto frame = [&](const std::shared_ptr<core::Puppet> &puppet) {
+        testTime += 1.0 / 60.0;
         SDL_PumpEvents();
         require(context.beginFrame(), "Cannot acquire frame");
         backend->resizeViewportTargets(context.width(), context.height());
@@ -171,6 +173,16 @@ int main(int argc, char **argv) {
                  baseline, context.width(), context.height());
         for (int i = 0; i < 24; ++i)
           frame(puppet);
+        writePPM(std::string(argv[3]) + "-settled-" + std::to_string(model) + ".ppm",
+                 frame(puppet), context.width(), context.height());
+        for (auto& parameter : puppet->parameters) {
+          if (parameter->name == "Face::Roll") parameter->value.x = .5f;
+          if (parameter->name == "Body::Roll") parameter->value.x = .3f;
+          if (parameter->name == "Face::Yaw-Pitch") parameter->value = {.25f, .2f};
+        }
+        for (int i = 0; i < 24; ++i) frame(puppet);
+        writePPM(std::string(argv[3]) + "-pose-" + std::to_string(model) + ".ppm",
+                 frame(puppet), context.width(), context.height());
         puppet->transform.translation.x += 50;
         puppet->transform.update();
         auto moved = frame(puppet);

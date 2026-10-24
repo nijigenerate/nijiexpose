@@ -641,7 +641,7 @@ if(NIJIEXPOSE_RENDERER STREQUAL "VULKAN")
     if(MSVC)
         target_compile_options(nijiexpose_vulkan_regression_test PRIVATE /utf-8 /fp:strict)
     endif()
-    target_link_libraries(nijiexpose_vulkan_model_test PRIVATE nijiexpose_vulkan nijiexpose_model_io)
+    target_link_libraries(nijiexpose_vulkan_model_test PRIVATE nijiexpose_vulkan nijiexpose_model_io nijiexpose_appwindow)
     if(WIN32)
         target_link_libraries(nijiexpose_vulkan_model_test PRIVATE nijiexpose_framesend d3d11 dxgi)
         # The legacy DLL is an independent test receiver, not a Vulkan runtime dependency.
