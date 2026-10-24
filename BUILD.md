@@ -4,6 +4,48 @@ Build the native C++20 application from the repository root. CMake 3.24+,
 Python 3 and Git are required. The commands below build the application without
 the optional comparison tests. Do not build the archived D application.
 
+## Vulkan renderer (`native-vulkan`)
+
+The model renderer is a C++ port of `nijimi/source/render/vulkan/vulkan_backend.d`.
+The model shaders are copied without changes; source hashes are recorded in
+`native/nijimi-vulkan-provenance.json`. SDL3 owns the surface and the official
+Dear ImGui Vulkan backend renders the existing UI. No nicxlive API extension is
+required.
+
+Install the Vulkan SDK (including `glslc`) and set `VULKAN_SDK`, then add
+`-DNIJIEXPOSE_RENDERER=VULKAN` to the configure command below. The executable name
+and install layout stay the same. `-DNIJIEXPOSE_RENDERER=OPENGL` selects the existing
+renderer and remains the default for existing build/packaging jobs.
+
+Windows rendering has been checked with the Vulkan validation layer using Kurone
+and Midori models: model movement, resize, removal, switching, and ImGui rendering.
+The manual integration test accepts two actual model paths and an output prefix:
+
+```powershell
+cmake --build build/native --config Release --target nijiexpose_vulkan_model_test
+$env:VK_INSTANCE_LAYERS="VK_LAYER_KHRONOS_validation"
+./build/native/native/Release/nijiexpose_vulkan_model_test.exe first.inp second.inp out/vulkan-model
+```
+
+On Windows, Spout publishes a D3D11 shared texture imported into Vulkan with
+`VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_KMT_BIT`. The sender uses the
+vendored official Spout sender registry, access mutex, and frame counter. It
+renders directly into the published image: there is no send-side GPU copy,
+extra send submission, hidden OpenGL context, or CPU image readback. The
+D3D11 adapter is matched to Vulkan by LUID; the driver must support importing
+the shared RGBA8 render target. The named Spout mutex covers rendering and GPU
+completion before the frame counter is advanced. A CPU fence wait remains for
+this synchronization; zero-copy does not mean synchronization-free delivery.
+The previous D3D11 allocation stays alive until replacement metadata is published.
+The integration test uses the existing Spout DLL as an independent
+receiver registry to verify that the published handle is the render target,
+and D3D11 to compare all RGBA bytes before and after movement,
+resize, removal, and model switching.
+
+The single-pass shading and offscreen mask behavior follow nijimi's Vulkan backend;
+this is not a claim of complete parity with the OpenGL backend. macOS/Linux
+Vulkan runtime verification has not been performed.
+
 ## Windows x64
 
 Use PowerShell 7 in a Visual Studio 2022 x64 developer environment with the C++

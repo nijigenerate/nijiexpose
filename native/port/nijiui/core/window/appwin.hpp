@@ -4,6 +4,7 @@
 #include <imgui.h>
 #include <string>
 namespace nicxlive::core { class ShallowTexture; }
+namespace nijiexpose::vulkan { class Context; }
 namespace nijiui {
 // Windows win32-full configuration of nijiui.core.window.appwin.
 // Windows nijiui enables SafeThrottling; UIViewports remains disabled.
@@ -12,6 +13,9 @@ class InApplicationWindow : public InWindow {
     ImGuiContext* ctx=nullptr;
     ImGuiIO* io=nullptr;
     SDL_GLContext glctx=nullptr;
+#ifdef NIJIEXPOSE_VULKAN
+    std::unique_ptr<nijiexpose::vulkan::Context> vulkanContext;
+#endif
     bool done=false,show=true;
     int width_=0,height_=0;
     std::vector<std::string> draggedFiles;

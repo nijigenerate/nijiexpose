@@ -1,5 +1,6 @@
 // dlang_archive/source/nijiexpose/scene/package.d: SceneItem, in original operation order.
 #include "item.hpp"
+#include "render/renderer.hpp"
 #include "nijilive/opengl/backend.hpp"
 #include "nijilive/model_io.hpp"
 #include <core/math/triangle.hpp>
@@ -117,7 +118,7 @@ bool SceneItem::detach() {
     for(auto& child:children)traverse(traverse,child);return true;
 }
 bool SceneItem::intersects(Vec2 mouse) {auto b=getBounds();return !(mouse.x>=b[0]+std::abs(b[2]-b[0]) || mouse.x<=b[0] || mouse.y>=b[1]+std::abs(b[3]-b[1]) || mouse.y<=b[1]);}
-void SceneItem::draw(){for(auto& b:bindings)b->update();for(auto& ac:animations)ac->update();player->update(static_cast<float>(nicxlive::core::deltaTime()));puppet->update();if(fitOnFirstDraw){fitOnFirstDraw=false;try{fitToViewport(80,false);}catch(const std::exception&){/* Empty/nonfinite models have no fit rectangle. */}}if(attachedParent.expired()){auto backend=std::dynamic_pointer_cast<ogl::Backend>(nicxlive::core::getCurrentRenderBackend());if(backend)backend->drawPuppet(*puppet);}for(auto& b:bindings)b->lateUpdate();}
+void SceneItem::draw(){for(auto& b:bindings)b->update();for(auto& ac:animations)ac->update();player->update(static_cast<float>(nicxlive::core::deltaTime()));puppet->update();if(fitOnFirstDraw){fitOnFirstDraw=false;try{fitToViewport(80,false);}catch(const std::exception&){/* Empty/nonfinite models have no fit rectangle. */}}if(attachedParent.expired()){auto backend=std::dynamic_pointer_cast<ApplicationRenderBackend>(nicxlive::core::getCurrentRenderBackend());if(backend)backend->drawPuppet(*puppet);}for(auto& b:bindings)b->lateUpdate();}
 void SceneItem::updateTransform(){auto b=getBounds();startPos={puppet->transform.translation.x,puppet->transform.translation.y};targetScale=puppet->transform.scale.x;targetPos=startPos;targetSize={b[2]-b[0],b[3]-b[1]};}
 std::string SceneItem::dump(int index) const {std::string result=std::format("{}{}({:.2f})\n",std::string(index*2,' '),name(),zSort);for(auto& child:children)result+=child->dump(index+1);return result;}
 }

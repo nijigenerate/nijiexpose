@@ -14,10 +14,21 @@
 #include <core/texture.hpp>
 #include <filesystem>
 #include <stdexcept>
+#ifdef NIJIEXPOSE_VULKAN
+#include "render/vulkan/backend.hpp"
+#include "framesend.hpp"
+#endif
 namespace nijiui {
 namespace { bool isGLLoaded=false; }
 InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsigned height,int rate)
     : width_(static_cast<int>(width)),height_(static_cast<int>(height)) {
+#ifdef NIJIEXPOSE_VULKAN
+    SDL_SetHint(SDL_HINT_APP_NAME,inGetApplication().humanName.c_str());
+    window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_VULKAN|SDL_WINDOW_RESIZABLE);
+    if(!window)throw std::runtime_error(SDL_GetError());
+    vulkanContext=std::make_unique<nijiexpose::vulkan::Context>(window);
+    setThrottlingRate(rate);
+#else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION,2);
@@ -34,14 +45,20 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
         if(!glctx) throw std::runtime_error("No valid OpenGL context was found!");
         nijiexpose::ogl::loadApi();
     }
+#endif
     ctx=ImGui::CreateContext();
     io=&ImGui::GetIO();
     io->ConfigFlags|=ImGuiConfigFlags_DockingEnable;
     io->ConfigWindowsResizeFromEdges=true;
     iniPath=(std::filesystem::path(inGetAppConfigPath())/"imgui.ini").string();
     io->IniFilename=iniPath.c_str();
+#ifdef NIJIEXPOSE_VULKAN
+    ImGui_ImplSDL3_InitForVulkan(window);
+    vulkanContext->initializeImGui();
+#else
     ImGui_ImplSDL3_InitForOpenGL(window,glctx);
     ImGui_ImplOpenGL3_Init("#version 330");
+#endif
     initStyling();
     initDarkMode();
     inInitFonts();
@@ -49,12 +66,21 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
 }
 InApplicationWindow::~InApplicationWindow() { cleanup(); }
 void InApplicationWindow::cleanup() {
+#ifdef NIJIEXPOSE_VULKAN
+    nijiexpose::insCleanupFrameSending();
+    vulkanContext->shutdownImGui();
+#else
     ImGui_ImplOpenGL3_Shutdown();
+#endif
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext(ctx);
+#ifdef NIJIEXPOSE_VULKAN
+    vulkanContext.reset();
+#else
     if(fboTexture)nijiexpose::ogl::glDeleteTextures(1,&fboTexture);
     if(fbo)nijiexpose::ogl::glDeleteFramebuffers(1,&fbo);
     SDL_GL_DestroyContext(glctx);
+#endif
     SDL_DestroyWindow(window);
 }
 void InApplicationWindow::setIcon(const nicxlive::core::ShallowTexture& texture) {
@@ -73,9 +99,16 @@ void InApplicationWindow::setIcon(const nicxlive::core::ShallowTexture& texture)
 void InApplicationWindow::setThrottlingRate(int rate) {
     throttlingRate=rate;
     if(rate>1 && ctx && io)onResized(static_cast<int>(io->DisplaySize.x),static_cast<int>(io->DisplaySize.y));
+#ifdef NIJIEXPOSE_VULKAN
+    vulkanContext->setThrottle(rate);
+#else
     SDL_GL_SetSwapInterval(rate>0?1:0);
+#endif
 }
 void InApplicationWindow::onResized(int width,int height) {
+#ifdef NIJIEXPOSE_VULKAN
+    vulkanContext->resize();
+#else
     using namespace nijiexpose::ogl;
     if(fboTexture){nijiexpose::ogl::glDeleteTextures(1,&fboTexture);fboTexture=0;}
     if(fbo){nijiexpose::ogl::glDeleteFramebuffers(1,&fbo);fbo=0;}
@@ -89,6 +122,7 @@ void InApplicationWindow::onResized(int width,int height) {
         nijiexpose::ogl::glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_TEXTURE_2D,fboTexture,0);
         nijiexpose::ogl::glBindFramebuffer(GL_FRAMEBUFFER,0);
     }
+#endif
 }
 bool InApplicationWindow::shouldProcess() { return window && !done && !(SDL_GetWindowFlags(window)&SDL_WINDOW_MINIMIZED); }
 void InApplicationWindow::focus() { SDL_RaiseWindow(window); }
@@ -96,6 +130,12 @@ void InApplicationWindow::close() { done=true; onClosed(); }
 void InApplicationWindow::update() {
     // Same SafeThrottling path as the Windows D nijiui configuration.
     if(throttlingRate>0 && renderThrottlingCount++ % static_cast<unsigned>(throttlingRate)!=0) {
+#ifdef NIJIEXPOSE_VULKAN
+        // The compositor retains the last presented image. Skip simulation/UI
+        // exactly as SafeThrottling does, without rerendering the same scene.
+        SDL_DisplayMode const* mode=SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window));
+        SDL_DelayNS(static_cast<Uint64>(1e9/(mode&&mode->refresh_rate>0?mode->refresh_rate:60)));
+#else
         using namespace nijiexpose::ogl;
         auto size=io->DisplaySize;
         if(!fbo)onResized(static_cast<int>(size.x),static_cast<int>(size.y));
@@ -103,6 +143,7 @@ void InApplicationWindow::update() {
         nijiexpose::ogl::glBindFramebuffer(GL_DRAW_FRAMEBUFFER,0);
         nijiexpose::ogl::glBlitFramebuffer(0,0,static_cast<int>(size.x),static_cast<int>(size.y),0,0,static_cast<int>(size.x),static_cast<int>(size.y),GL_COLOR_BUFFER_BIT,GL_NEAREST);
         SDL_GL_SwapWindow(window);
+#endif
         return;
     }
     inUpdateTime();
@@ -127,10 +168,19 @@ void InApplicationWindow::update() {
         }
     }
     onPlatformUpdate();
+#ifdef NIJIEXPOSE_VULKAN
+    if(!vulkanContext->beginFrame())return;
+    ImGui_ImplVulkan_NewFrame();
+#else
     SDL_GL_MakeCurrent(window,glctx);
     ImGui_ImplOpenGL3_NewFrame();
+#endif
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
+#ifdef NIJIEXPOSE_VULKAN
+    auto& renderer=nijiexpose::vulkan::backend();
+    renderer.resizeViewportTargets(vulkanContext->width(),vulkanContext->height());
+#endif
     inInputUpdate();
     if(!draggedFiles.empty() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceExtern)) {
         // D copies the array descriptor. C++ copies a pointer to the same frame-owned array.
@@ -150,6 +200,12 @@ void InApplicationWindow::update() {
         for(auto& win:inWindowListGet()) { win->onEarlyUpdate(); win->onUpdate(); }
     }
     ImGui::Render();
+#ifdef NIJIEXPOSE_VULKAN
+    onEarlyUpdate();
+    renderer.render();
+    vulkanContext->present(ImGui::GetDrawData(),renderer.sceneImage());
+    nijiexpose::insSendFrame();
+#else
     // Settings can create/destroy a tracker preview renderer during this frame.
     SDL_GL_MakeCurrent(window,glctx);
     nijiexpose::ogl::glViewport(0,0,static_cast<int>(io->DisplaySize.x),static_cast<int>(io->DisplaySize.y));
@@ -166,6 +222,7 @@ void InApplicationWindow::update() {
         nijiexpose::ogl::glBlitFramebuffer(0,0,static_cast<int>(size.x),static_cast<int>(size.y),0,0,static_cast<int>(size.x),static_cast<int>(size.y),GL_COLOR_BUFFER_BIT,GL_NEAREST);
     }
     SDL_GL_SwapWindow(window);
+#endif
     uiImCleanupDialogs();
 }
 }

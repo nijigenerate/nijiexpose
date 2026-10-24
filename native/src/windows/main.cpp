@@ -12,6 +12,7 @@
 #include "panels/scene.hpp"
 #include "nijilive/model_io.hpp"
 #include "nijilive/opengl/backend.hpp"
+#include "render/renderer.hpp"
 #include "nijilive/opengl/runtime.hpp"
 #include "nijiui/core/core.hpp"
 #include "nijiui/core/resource.hpp"
@@ -93,7 +94,7 @@ namespace { struct ScopeExit {std::function<void()> fn;~ScopeExit(){fn();}};
 class nijiexposeWindow : public InApplicationWindow {
 private:
     std::shared_ptr<ft::Adaptor> adaptor;
-    std::shared_ptr<ogl::Backend> backend;
+    std::shared_ptr<ApplicationRenderBackend> backend;
     std::shared_ptr<core::Texture> logo;
     std::shared_ptr<SettingWindow> settingWindow;
     std::shared_ptr<SpaceEditor> spaceEditor;
@@ -409,6 +410,9 @@ private:
     }
 
     void updateOverlayBlurTexture() {
+#ifdef NIJIEXPOSE_VULKAN
+        return;
+#endif
         if (!showUI || !overlayOpen || width() <= 0 || height() <= 0) return;
 
         const int blurW = std::max(1, width() / 4);
@@ -467,14 +471,20 @@ private:
     }
 
     void drawBlurBackdrop(float x, float y, float w, float h, float rounding) {
+#ifdef NIJIEXPOSE_VULKAN
+        auto textureId=backend->overlayBlurTexture();
+#else
         if (overlayBlurTextureA == 0 || overlayBlurWidth <= 0 || overlayBlurHeight <= 0) return;
-
-        auto bgDrawList = ImGui::GetBackgroundDrawList();
         auto textureId = static_cast<ImTextureID>(overlayBlurTextureA);
+#endif
+        auto bgDrawList = ImGui::GetBackgroundDrawList();
         float u0 = x / static_cast<float>(width());
         float v0 = 1.0f - (y / static_cast<float>(height()));
         float u1 = (x + w) / static_cast<float>(width());
         float v1 = 1.0f - ((y + h) / static_cast<float>(height()));
+#ifdef NIJIEXPOSE_VULKAN
+        v0=1-v0;v1=1-v1;
+#endif
 
         bgDrawList->AddImageRounded(textureId,
             ImVec2(x, y),
@@ -904,9 +914,11 @@ protected:
     void onEarlyUpdate() {
         nijiexpose::control::poll();
         insScene()->update();
+#ifndef NIJIEXPOSE_VULKAN
         insSendFrame();
         ogl::glBindFramebuffer(GL_FRAMEBUFFER, 0);
         ogl::oglPresentSceneToBackbuffer(width(),height());
+#endif
         updateOverlayBlurTexture();
     }
 
@@ -947,7 +959,7 @@ public:
     nijiexposeWindow(const std::vector<std::string>& args, InochiWindowSettings ws)
         : InApplicationWindow("nijiexpose " NIJIEXPOSE_NATIVE_VERSION, ws.width, ws.height, inSettingsGet<int>("throttlingRate",1)) {
         core::inInit(&nijiui::inGetTime);
-        backend=std::make_shared<ogl::Backend>();
+        backend=std::make_shared<ApplicationRenderBackend>();
         core::inSetRenderBackend(backend);
         backend->initializeRenderer();
         uiImInitDialogs();

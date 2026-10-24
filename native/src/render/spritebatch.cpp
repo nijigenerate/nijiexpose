@@ -4,6 +4,9 @@
 #include <core/runtime_state.hpp>
 #include <algorithm>
 #include <cmath>
+#ifdef NIJIEXPOSE_VULKAN
+#include "vulkan/backend.hpp"
+#endif
 namespace nijiexpose {
 thread_local std::shared_ptr<SpriteBatch> AppBatch;
 namespace {
@@ -25,6 +28,7 @@ void SpriteBatch::updateVP() {
     viewProjection=mat4::orthographic(0,float(w),float(h),0,0,float(largest))*mat4::translation(0,0,-10);
 }
 SpriteBatch::SpriteBatch() : data(DataSize*EntryCount,std::numeric_limits<float>::quiet_NaN()) {
+#ifndef NIJIEXPOSE_VULKAN
     ogl::glGenVertexArrays(1,&vao);
     ogl::glBindVertexArray(vao);
     ogl::glGenBuffers(1,&buffer);
@@ -32,6 +36,7 @@ SpriteBatch::SpriteBatch() : data(DataSize*EntryCount,std::numeric_limits<float>
     ogl::glBufferData(GL_ARRAY_BUFFER,sizeof(float)*data.size(),data.data(),GL_DYNAMIC_DRAW);
     spriteBatchShader=ogl::Shader(SpriteBatchShaderSource);
     vp=spriteBatchShader.getUniformLocation("vp");
+#endif
     updateVP();
 }
 void SpriteBatch::draw(const std::shared_ptr<nicxlive::core::Texture>& texture,SpriteRect position,SpriteRect cutout,vec2 origin,float rotation,SpriteFlip flip,vec4 color) {
@@ -62,6 +67,9 @@ void SpriteBatch::draw(const std::shared_ptr<nicxlive::core::Texture>& texture,S
 void SpriteBatch::flush() {
     updateVP();
     if(!currentTexture) return;
+#ifdef NIJIEXPOSE_VULKAN
+    vulkan::backend().drawSprites(currentTexture->backendId(),data.data(),tris*3,viewProjection);
+#else
     ogl::glBindVertexArray(vao);
     ogl::glBindBuffer(GL_ARRAY_BUFFER,buffer);
     ogl::glBufferSubData(GL_ARRAY_BUFFER,0,dataOffset*sizeof(float),data.data());
@@ -78,6 +86,7 @@ void SpriteBatch::flush() {
     ogl::glDisableVertexAttribArray(0);
     ogl::glDisableVertexAttribArray(1);
     ogl::glDisableVertexAttribArray(2);
+#endif
     currentTexture.reset(); dataOffset=0; tris=0;
 }
 }

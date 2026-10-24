@@ -42,12 +42,12 @@ void Scene::cleanup(){
     hasDonePuppetSelect=false;isDragDown=false;backgroundImage.reset();
 }
 void Scene::update(){
-    int width,height;core::inGetViewport(width,height);core::inUpdate();space->update();ogl::oglBeginScene();
+    int width,height;core::inGetViewport(width,height);core::inUpdate();space->update();core::getCurrentRenderBackend()->beginScene();
     if(backgroundImage){float tw=static_cast<float>(backgroundImage->width()),th=static_cast<float>(backgroundImage->height());float scale=std::max(width/tw,height/th);SpriteRect bounds{static_cast<float>(width/2),static_cast<float>(height/2),tw*scale,th*scale};AppBatch->draw(backgroundImage,bounds,{}, {bounds.width/2,bounds.height/2});AppBatch->flush();}
     for(auto& plugin:plugins::insPlugins){if(!plugin->isEnabled())continue;if(plugin->hasEvent("onUpdate"))plugin->callEvent("onUpdate",core::deltaTime());}
     if(!space->isCurrentZoneActive()){zoneInactiveTimer=static_cast<float>(zoneInactiveTimer+core::deltaTime());if(zoneInactiveTimer>=5&&!sleeping){for(auto& item:sceneItems)item->sleep();sleeping=true;}}
     else{zoneInactiveTimer=static_cast<float>(zoneInactiveTimer-core::deltaTime());if(sleeping){for(auto& item:sceneItems)item->awake();sleeping=false;}}
-    zoneInactiveTimer=std::clamp(zoneInactiveTimer,0.f,6.f);for(auto& item:sceneItems)item->draw();ogl::oglEndScene();if(shouldPostProcess)ogl::oglPostProcessScene();
+    zoneInactiveTimer=std::clamp(zoneInactiveTimer,0.f,6.f);for(auto& item:sceneItems)item->draw();core::getCurrentRenderBackend()->endScene();if(shouldPostProcess)core::getCurrentRenderBackend()->postProcessScene();
     if(measureFPS){double latest=core::currentTime();++loopCount;if(latest-lastMeasureTime>=1){lastFPS=loopCount/(latest-lastMeasureTime);lastMeasureTime=latest;loopCount=0;}}
 }
 std::shared_ptr<SceneItem> Scene::selectedSceneItem(){if(selectedPuppet<0||static_cast<size_t>(selectedPuppet)>=sceneItems.size())return nullptr;return sceneItems[selectedPuppet];}

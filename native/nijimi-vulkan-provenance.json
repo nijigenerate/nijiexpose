@@ -1,0 +1,18 @@
+{
+  "source": "nijimi/source/render/vulkan",
+  "backend_sha256": "008e8d5c80c059ddc2c1974bd6449fb99c9490e4a1fa6afc56aed902f431d8cd",
+  "shaders": {
+    "mask.frag": "dc54b9a0ddb4914085f9ce0dde6828abb01a55e5a0a8bc2029edfb4df8963390",
+    "mask.vert": "4e0639822ca0ce93005dbd9ab27987489aa065e618da2dc4f0b656a7d7eed457",
+    "part_mask.frag": "7bd89d6064fc7c568a3a0b2a1a0bef564d8085bbbabbf5bc49dbda88f8ed5d54",
+    "part_stage1.frag": "a69f3a9bf52cd9c2e3c7af15600ff0c3d8f2377bfd2598e074b491de0e1bb7cb",
+    "part_stage2.frag": "7eeec29f889a8679b6383844ac5647cbe451aad7d1e9ae99c7f081d31f6bc28d",
+    "part.frag": "63824891e50440e104e1ac43f61a14fec80d15e73a9a419f2383eec82515ed22",
+    "part.vert": "c0c99a0a52cb407f9545e48731bf8a7e18db3fd74489ab6d3423b9a34ca67707",
+    "simple.frag": "fcd77b04cba403c5a075d53621c8d58438c8433b6e2860c6c360906cdfecbdd0",
+    "simple.vert": "2ded8a46904afc14402bc94c27d6c85fd598fc3de8286a73acea14c5c892acd4"
+  },
+  "adaptation": "C++ host for nicxlive native packets and nijiexpose SDL3/ImGui; shader source copied byte-for-byte",
+  "status": "Windows model and ImGui rendering, resize, model switch/removal and Vulkan validation tested; complete OpenGL feature parity is not claimed",
+  "license": "BSD-2-Clause (nijimi/dub.sdl)"
+}

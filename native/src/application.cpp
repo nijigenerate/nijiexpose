@@ -1,5 +1,6 @@
 // dlang_archive/source/app.d startup and shutdown, shared by the executable and app interaction tests.
 #include "application.hpp"
+#include "render/renderer.hpp"
 #include "i18n.hpp"
 #include "plugins/package.hpp"
 #include "scene/package.hpp"
@@ -33,9 +34,11 @@ std::shared_ptr<nijiui::InApplicationWindow> initializeApplication(const std::ve
     scene::insScene()->init();
     tracking::neInitTracker();
     insInitFrameSending();
-    ogl::oglAddBasicLightingPostProcess();
+    nicxlive::core::getCurrentRenderBackend()->addBasicLightingPostProcess();
+#ifndef NIJIEXPOSE_VULKAN
     bool fallback=nijiui::inSettingsGet<bool>("TripleBufferFallback",ogl::nlIsTripleBufferFallbackEnabled());
     ogl::nlSetTripleBufferFallback(fallback);
+#endif
     return window;
 }
 void shutdownApplication(){
@@ -44,10 +47,14 @@ void shutdownApplication(){
     plugins::insLuaUnload();
     insCleanupFrameSending();
     scene::insScene()->cleanup();
+#ifdef NIJIEXPOSE_VULKAN
+    nicxlive::core::inSetRenderBackend(nullptr);
+#else
     if(SDL_GL_GetCurrentContext()) {
         nicxlive::core::inSetRenderBackend(nullptr);
         ogl::oglCollectDynamicFramebuffers(true);
     }
+#endif
     nijiui::inSettingsSave();
 }
 }
