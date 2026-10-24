@@ -113,6 +113,12 @@ their notices, fixes library paths and ad-hoc signs the app. Developer ID signin
 and notarization are not configured. The pinned tracker recipe targets arm64;
 these commands do not produce an Intel or universal package.
 
+For Vulkan, install the macOS Vulkan SDK and select `native-vulkan-release`
+with `VULKAN_SDK` pointing to its `macOS` directory. The installed app bundles
+the Vulkan loader, MoltenVK, its driver manifest and the SDK license notices.
+The manifest uses a bundle-relative library path, so the installed app does not
+require the SDK environment variables to locate MoltenVK.
+
 ## Linux x86_64 (Ubuntu 24.04 / WSL2)
 
 Install binary development dependencies:

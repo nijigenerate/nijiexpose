@@ -38,6 +38,15 @@ public:
             std::chrono::steady_clock::time_point *captured_at = nullptr,
             const std::function<bool()> &stopped = {}) {
     while (!stopped || !stopped()) {
+      // SDL can still be resolving permission after OpenCamera succeeds,
+      // including when macOS already has authorization for this application.
+      const auto permission = SDL_GetCameraPermissionState(camera_);
+      if (permission < 0)
+        throw std::runtime_error("Camera permission denied");
+      if (permission == 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        continue;
+      }
       SDL_ClearError();
       Uint64 timestamp = 0;
       SDL_Surface *frame = SDL_AcquireCameraFrame(camera_, &timestamp);

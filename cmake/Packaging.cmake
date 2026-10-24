@@ -45,6 +45,29 @@ elseif(APPLE)
         endif()
         install(FILES ${notices} DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/homebrew/${dependency}")
     endforeach()
+    if(NIJIEXPOSE_RENDERER STREQUAL "VULKAN")
+        get_filename_component(vulkan_library_dir "${Vulkan_LIBRARY}" DIRECTORY)
+        get_filename_component(vulkan_sdk_prefix "${vulkan_library_dir}" DIRECTORY)
+        list(APPEND brew_library_dirs "${vulkan_library_dir}")
+        find_file(NIJIEXPOSE_MOLTENVK_LIBRARY NAMES libMoltenVK.dylib
+            PATHS "${vulkan_library_dir}" NO_DEFAULT_PATH REQUIRED)
+        find_file(NIJIEXPOSE_MOLTENVK_MANIFEST NAMES MoltenVK_icd.json
+            PATHS "${vulkan_sdk_prefix}/share/vulkan/icd.d" NO_DEFAULT_PATH REQUIRED)
+        find_file(NIJIEXPOSE_VULKAN_LICENSE NAMES LICENSE.txt
+            PATHS "${vulkan_sdk_prefix}/../Licenses" NO_DEFAULT_PATH REQUIRED)
+        install(FILES "${NIJIEXPOSE_MOLTENVK_LIBRARY}"
+            DESTINATION "nijiexpose-native.app/Contents/Frameworks")
+        # The loader discovers bundled drivers in Resources/vulkan/icd.d.
+        # Preserve the SDK manifest's version and portability metadata.
+        file(READ "${NIJIEXPOSE_MOLTENVK_MANIFEST}" moltenvk_manifest)
+        string(JSON moltenvk_manifest SET "${moltenvk_manifest}" ICD library_path
+            "\"../../../Frameworks/libMoltenVK.dylib\"")
+        file(WRITE "${CMAKE_BINARY_DIR}/MoltenVK_icd.json" "${moltenvk_manifest}\n")
+        install(FILES "${CMAKE_BINARY_DIR}/MoltenVK_icd.json"
+            DESTINATION "nijiexpose-native.app/Contents/Resources/vulkan/icd.d")
+        install(FILES "${NIJIEXPOSE_VULKAN_LICENSE}"
+            DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/vulkan-sdk")
+    endif()
     install(FILES "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua"
         "${PROJECT_SOURCE_DIR}/native/res/fonts/NotoSansCJK-Regular-LICENSE"
         "${PROJECT_SOURCE_DIR}/native/res/fonts/MaterialIcons-LICENSE"

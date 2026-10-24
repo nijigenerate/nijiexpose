@@ -47,6 +47,7 @@
     "OSC sender replaced by a bounded latest-frame queue carrying NtFrame data.",
     "Preview receives host-dispatched events; never polls or quits the host SDL runtime.",
     "Camera permission denied uses the SDL3 integer API (< 0).",
+    "Camera acquisition waits for SDL permission resolution (0 pending, < 0 denied) before requesting frames; the wait remains cancellable.",
     "SDK is isolated in a same-process DLL to preserve its /MT runtime; only C structures cross the boundary."
   ],
   "macos_sdk": {
