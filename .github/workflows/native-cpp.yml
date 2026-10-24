@@ -11,37 +11,52 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Package selection (manual runs do not publish)
+        description: verify = check only; nightly/release = build and publish
         type: choice
         options: [verify, nightly, release]
         default: verify
+      release_tag:
+        description: Existing release tag (required for release mode when running from a branch)
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 concurrency:
   # Only branch pushes and their PR checks share a group. Scheduled publishing,
-  # tag publishing and manual checks cannot cancel one another.
-  group: native-${{ github.event_name == 'pull_request' && 'push' || github.event_name }}-${{ github.head_ref && format('refs/heads/{0}', github.head_ref) || github.ref }}-${{ inputs.mode || 'auto' }}
-  cancel-in-progress: true
+  # tag publishing and manual runs cannot cancel one another. Never cancel
+  # a running publication workflow when another publication is requested.
+  group: native-${{ github.event_name == 'pull_request' && 'push' || github.event_name }}-${{ github.head_ref && format('refs/heads/{0}', github.head_ref) || github.ref }}-${{ inputs.mode || 'auto' }}-${{ inputs.release_tag || 'none' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) }}
 
 jobs:
   package-mode:
     runs-on: ubuntu-24.04
     outputs:
       mode: ${{ steps.mode.outputs.mode }}
+      build_ref: ${{ steps.mode.outputs.build_ref }}
+      publish: ${{ steps.mode.outputs.publish }}
+      release_tag: ${{ steps.mode.outputs.release_tag }}
+      prerelease: ${{ steps.mode.outputs.prerelease }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - run: python3 build-aux/test_package_mode.py
       - run: python3 build-aux/test_git_version.py
       - id: mode
         env:
           REQUESTED_MODE: ${{ inputs.mode }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
         run: python3 build-aux/package-mode.py >> "$GITHUB_OUTPUT"
   translations:
+    needs: package-mode
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.package-mode.outputs.build_ref }}
       - name: Compile gettext catalogs
         run: |
           sudo apt-get update
@@ -69,6 +84,7 @@ jobs:
         with:
           submodules: false
           fetch-depth: 0
+          ref: ${{ needs.package-mode.outputs.build_ref }}
       - name: Verify D reference sources
         shell: pwsh
         run: ./native/tools/verify-reference.ps1
@@ -111,7 +127,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: build/native-release/tracker-cache
-          key: nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ steps.tracker-environment.outputs.id }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-${{ github.sha }}
+          key: nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ steps.tracker-environment.outputs.id }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-${{ needs.package-mode.outputs.build_ref }}
           restore-keys: |
             nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ steps.tracker-environment.outputs.id }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-
             nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-
@@ -247,6 +263,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ needs.package-mode.outputs.build_ref }}
       - uses: mozilla-actions/sccache-action@v0.0.11
         with:
           version: v0.16.0
@@ -324,7 +341,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: build/native-release/tracker-cache
-          key: nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-${{ github.sha }}
+          key: nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-${{ needs.package-mode.outputs.build_ref }}
           restore-keys: |
             nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-
       - name: Restore C and C++ compiler cache
@@ -332,7 +349,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: build/compiler-cache
-          key: native-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ github.sha }}
+          key: native-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ needs.package-mode.outputs.build_ref }}
           restore-keys: |
             native-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-
       - name: Configure
@@ -369,12 +386,10 @@ jobs:
         shell: bash
         run: |
           cpack --config build/native-release/CPackConfig.cmake -C Release -G ZIP
-          if [[ "$PACKAGE_MODE" != nightly ]]; then
-            if [[ "$RUNNER_OS" == macOS ]]; then
-              cpack --config build/native-release/CPackConfig.cmake -C Release -G DragNDrop
-            else
-              python3 build-aux/linux/appimage.py build/native-release
-            fi
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            cpack --config build/native-release/CPackConfig.cmake -C Release -G DragNDrop
+          elif [[ "$PACKAGE_MODE" != nightly ]]; then
+            python3 build-aux/linux/appimage.py build/native-release
           fi
       - name: Verify unpacked package
         shell: bash
@@ -387,7 +402,7 @@ jobs:
             python3 native/tools/verify-package.py "out/package-check/$(basename "$archive" .zip)" "${verify_options[@]}"
           done
       - name: Verify mounted macOS DMG
-        if: runner.os == 'macOS' && env.PACKAGE_MODE != 'nightly'
+        if: runner.os == 'macOS'
         shell: bash
         run: |
           mountpoint="$PWD/out/dmg-mount"
@@ -411,12 +426,10 @@ jobs:
         run: |
           mkdir -p out/dist
           if [[ "$PACKAGE_MODE" != release ]]; then cp build/native-release/packages/*.zip out/dist/; fi
-          if [[ "$PACKAGE_MODE" != nightly ]]; then
-            if [[ "$RUNNER_OS" == macOS ]]; then
-              cp build/native-release/packages/*.dmg out/dist/
-            else
-              cp build/native-release/packages/*.AppImage out/dist/
-            fi
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            cp build/native-release/packages/*.dmg out/dist/
+          elif [[ "$PACKAGE_MODE" != nightly ]]; then
+            cp build/native-release/packages/*.AppImage out/dist/
           fi
       - name: Upload packages
         uses: actions/upload-artifact@v4
@@ -426,7 +439,10 @@ jobs:
           if-no-files-found: error
   publish:
     needs: [package-mode, windows-native, unix-native]
-    if: github.event_name == 'schedule' || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
+    if: needs.package-mode.outputs.publish == 'true'
+    concurrency:
+      group: publish-${{ needs.package-mode.outputs.release_tag }}
+      cancel-in-progress: false
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -440,14 +456,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
+          RELEASE_TAG: ${{ needs.package-mode.outputs.release_tag }}
+          RELEASE_PRERELEASE: ${{ needs.package-mode.outputs.prerelease }}
+          BUILD_REF: ${{ needs.package-mode.outputs.build_ref }}
         shell: bash
         run: |
-          tag="$GITHUB_REF_NAME"
-          if [[ "$PACKAGE_MODE" == nightly ]]; then tag=nightly; fi
-          flags=()
-          if [[ "$PACKAGE_MODE" == nightly || "$tag" == *-rc* ]]; then flags+=(--prerelease); fi
-          if ! gh release view "$tag" >/dev/null 2>&1; then
-            gh release create "$tag" --target "$GITHUB_SHA" --title "$tag" --generate-notes "${flags[@]}"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --prerelease="$RELEASE_PRERELEASE"
+          else
+            gh release create "$RELEASE_TAG" --target "$BUILD_REF" --title "$RELEASE_TAG" --generate-notes --prerelease="$RELEASE_PRERELEASE"
           fi
-          gh release upload "$tag" dist/* --clobber
+          gh release upload "$RELEASE_TAG" dist/* --clobber

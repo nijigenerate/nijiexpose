@@ -253,9 +253,10 @@ details, including MSI upgrade-version behavior, are in
 ## Nightly and tagged releases
 
 The native workflow runs daily at 00:00 UTC once it is on the default branch.
-Scheduled builds and the `nightly` tag publish ZIP files to the nightly prerelease.
+Scheduled builds and the `nightly` tag publish ZIP files for all platforms and
+a macOS DMG to the nightly prerelease.
 Push `[v]MAJOR.MINOR.PATCH` to build and publish MSI (Windows), DMG (macOS) and
-AppImage (Linux). A `-rcN` suffix marks a prerelease. Application versions are derived from Git:
+AppImage (Linux). A `-betaN` or `-rcN` suffix marks a prerelease. Application versions are derived from Git:
 an exact tag uses its name; later commits use `<nearest-tag>-g<12-digit-commit>`;
 repositories without tags use the 12-digit commit ID. CI fetches history and tags.
 The same version appears in `--version`, the window title and distribution filenames.
@@ -266,5 +267,16 @@ Tags are not created automatically for testing.
 
 Branch/PR builds validate both ZIP and installer/AppImage packaging without
 publishing releases. Manual runs offer `verify`, `nightly` and `release` modes;
-manual runs only upload Actions artifacts. Release publishing waits for all
-platform jobs and their package checks to succeed.
+`verify` only uploads Actions artifacts, while `nightly` and `release` publish
+once all platform jobs and package checks succeed. Manual `release` runs require
+an existing version tag: supply `release_tag` when running from a branch, or
+select the tag as the workflow ref. All jobs build that tag's pinned commit,
+including translations. Missing tags fail before the platform builds start.
+Manual `nightly` builds the selected ref and publishes to `nightly`.
+The `release_tag` input does not create or move Git tags. Example commands:
+
+```sh
+gh workflow run native-cpp.yml --ref main -f mode=nightly
+gh workflow run native-cpp.yml --ref main -f mode=release -f release_tag=v1.2.3-beta1
+gh workflow run native-cpp.yml --ref main -f mode=verify
+```
