@@ -221,6 +221,7 @@ void InApplicationWindow::update() {
     draggedFiles.clear();
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
+        nijiexpose::render::processWindowPointerEvent(window,event);
         if(onPlatformEvent(event))continue;
         switch(event.type) {
         case SDL_EVENT_QUIT: close(); break;
@@ -303,10 +304,9 @@ void InApplicationWindow::update() {
             nijiexpose::ogl::glBindFramebuffer(GL_READ_FRAMEBUFFER,0);
             glReadPixels(x,h-1-y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,pixel);
         }
-        const bool dragging=SDL_GetGlobalMouseState(nullptr,nullptr)&SDL_BUTTON_LMASK;
-        nijiexpose::render::setWindowMousePassthrough(window,(!inside || pixel[3]<8) && !dragging);
+        nijiexpose::render::updateWindowMousePassthrough(window,!inside || pixel[3]<8);
     } else {
-        nijiexpose::render::setWindowMousePassthrough(window,false);
+        nijiexpose::render::updateWindowMousePassthrough(window,false);
     }
 #endif
     SDL_GL_SwapWindow(window);

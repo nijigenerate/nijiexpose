@@ -180,6 +180,12 @@ leaving transparent mode. Linux input passthrough uses XShape and restores the
 default input region so later resizes remain interactive. Wayland input
 passthrough is not implemented, matching the current nijimi Linux backend.
 
+Transparent mode retains mouse input only for drags that begin in the application
+window. Drags begun in another application keep passing through the overlay.
+On macOS, transparent mode also unregisters the window as a file/text drop target;
+normal window mode restores SDL's file/text drop registration. Vulkan keeps the previous
+hit result until the next pointer pixel sample is available.
+
 Windows CI uses sccache with the GitHub Actions cache backend for C/C++
 compilation. Boost headers are cached separately; SDL3, gettext/libiconv and
 FreeType are downloaded as binaries. Each run records build

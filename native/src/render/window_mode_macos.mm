@@ -82,6 +82,9 @@ void configureWindowTransparency(SDL_Window* window,bool enabled) {
             native.opaque=NO;
             native.backgroundColor=NSColor.clearColor;
             native.hasShadow=NO;
+            // Cocoa drag destinations are separate from mouse hit testing.
+            // The desktop overlay must not claim a file being dragged to an app below it.
+            [native unregisterDraggedTypes];
             applyView(native.contentView,*state);
         } else {
             native.ignoresMouseEvents=NO;
@@ -89,6 +92,9 @@ void configureWindowTransparency(SDL_Window* window,bool enabled) {
             native.opaque=state->opaque;
             native.backgroundColor=state->background;
             native.hasShadow=state->shadow;
+            // Restore the same types SDL's Cocoa_AcceptDragAndDrop registers.
+            if (SDL_EventEnabled(SDL_EVENT_DROP_FILE) || SDL_EventEnabled(SDL_EVENT_DROP_TEXT))
+                [native registerForDraggedTypes:@[NSPasteboardTypeFileURL,NSPasteboardTypeString]];
             for (const auto& saved:state->contexts) {
                 GLint opacity=saved.opacity;
                 [saved.context setValues:&opacity forParameter:NSOpenGLCPSurfaceOpacity];

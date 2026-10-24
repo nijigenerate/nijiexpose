@@ -261,12 +261,11 @@ bool Context::beginFrame() {
     const bool inside=render::windowPointerPixel(window_,swap_.Width,swap_.Height,x,y);
     const bool valid=pointerPixelPending_ && x==pointerX_ && y==pointerY_;
     const bool transparent=!inside || (valid && static_cast<uint8_t*>(pointerPixel_.mapped)[3]<8);
-    // Retain input while dragging, as nijimi does. Consume the single-pixel
+    // Retain only drags begun in this window. Consume the single-pixel
     // sample after the existing frame fence; no additional GPU wait/readback.
-    const bool dragging=SDL_GetGlobalMouseState(nullptr,nullptr)&SDL_BUTTON_LMASK;
-    render::setWindowMousePassthrough(window_,transparent && !dragging);
+    render::updateWindowMousePassthrough(window_,transparent,!inside || valid);
   } else {
-    render::setWindowMousePassthrough(window_,false);
+    render::updateWindowMousePassthrough(window_,false);
   }
 #endif
   pointerPixelPending_=false;
