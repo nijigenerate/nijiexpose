@@ -3,6 +3,11 @@
 #include <stdexcept>
 int main(int argc,char** argv) {
  try {
+  if(argc==3 && std::string(argv[2])=="--discovery-only") {
+   if(i18n::i18nGetLanguageName(argv[1]).empty())throw std::runtime_error("Missing catalog label");
+   if(i18n::_("Language")!="Language")throw std::runtime_error("Discovery changed selected language");
+   std::cout<<"Catalog discovery without a non-C locale passed\n";return 0;
+  }
   if(argc!=2 || !i18n::i18nLoadLanguage(argv[1])) throw std::runtime_error("Catalog load failed");
   if(i18n::_("Language")!="言語") throw std::runtime_error("C locale suppressed explicit translation");
   auto held=i18n::__("Language");

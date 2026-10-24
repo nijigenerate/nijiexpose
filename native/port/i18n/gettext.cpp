@@ -234,8 +234,14 @@ std::string i18nGetCultureCountry(std::string_view code) {
 std::string i18nGetLanguageName(std::string_view file) {
     auto& state = catalogs();
     const auto temporary = state.stage(file);
-    state.activate(temporary);
-    std::string result(dgettext(temporary.domain.c_str(), "LANG_NAME"));
+    std::string result="LANG_NAME";
+    try {
+        state.activate(temporary);
+        result=dgettext(temporary.domain.c_str(), "LANG_NAME");
+    } catch (const std::runtime_error&) {
+        // Catalog discovery must remain usable without an installed message
+        // locale. Activation reports failure separately when selected.
+    }
     state.activate(state.loaded);
     const auto code = nijiexpose::dcompat::pathToUTF8(path(file).stem());
     if (result == "LANG_NAME") result = i18nGetCultureNativeLanguageEstimate(code);
