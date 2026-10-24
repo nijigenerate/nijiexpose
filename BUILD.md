@@ -60,6 +60,11 @@ The single-pass shading follows nijimi's Vulkan backend, with composite stencil 
 this is not a claim of complete parity with the OpenGL backend. macOS/Linux
 Vulkan runtime verification has not been performed.
 
+Advanced blending enables coherent operations when the device supports them.
+Otherwise, advanced-blended geometry uses explicit color-attachment dependencies
+between triangles to preserve ordering even within overlapping meshes. This
+slower path is limited to devices without coherent advanced blending.
+
 ## Windows x64
 
 Use PowerShell 7 in a Visual Studio 2022 x64 developer environment with the C++

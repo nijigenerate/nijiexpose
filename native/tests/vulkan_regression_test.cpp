@@ -44,6 +44,21 @@ int main() {
     bool visible=false;
     for(size_t i=0;i<pixels.size();i+=4) if(pixels[i+3]){visible=true;check(abs(int(pixels[i])-128)<=1 && abs(int(pixels[i+3])-128)<=1,"Opacity not premultiplied");}
     check(visible,"Quad invisible");packet.opacity=1;
+    if(context.advancedBlendSupported) {
+     const bool coherent=context.advancedBlendCoherent;
+     for(bool useCoherent : {coherent,false}) {
+      context.advancedBlendCoherent=useCoherent;
+      pixels=frame([&]{
+       backend->drawPartPacket(packet);
+       auto overlap=packet;overlap.clampedTint={.5f,1,1};
+       overlap.blendMode=core::nodes::BlendMode::Multiply;backend->drawPartPacket(overlap);
+       overlap.blendMode=core::nodes::BlendMode::Screen;backend->drawPartPacket(overlap);
+      });
+      for(size_t i=0;i<pixels.size();i+=4)if(pixels[i+3])check(abs(int(pixels[i])-192)<=2 && pixels[i+3]==255,"Advanced blend ordering differs");
+     }
+     context.advancedBlendCoherent=coherent;
+     std::cout<<"Advanced overlap pixels passed, coherent feature="<<coherent<<", explicit barrier path tested\n";
+    }
     backend->addBasicLightingPostProcess();nijiexpose::render::inSceneAmbientLight={.25f,1,1};
     pixels=frame([&]{backend->drawPartPacket(packet);backend->postProcessScene();});
     for(size_t i=0;i<pixels.size();i+=4)if(pixels[i+3])check(abs(int(pixels[i])-64)<=1 && pixels[i+3]==255,"Ambient light/alpha differs");

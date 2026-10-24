@@ -60,6 +60,7 @@ public:
   VkSampler sampler{};
   VkCommandBuffer command{};
   bool advancedBlendSupported = false;
+  bool advancedBlendCoherent = false;
   bool externalWin32Supported = false;
   explicit Context(SDL_Window *window);
   ~Context();

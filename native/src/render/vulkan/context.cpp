@@ -108,7 +108,16 @@ Context::Context(SDL_Window *window) : window_(window) {
     }
 #endif
     VkPhysicalDeviceFeatures features{};
+    VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT blendFeatures{
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_FEATURES_EXT};
+    if (advancedBlendSupported) {
+      VkPhysicalDeviceFeatures2 available{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
+      available.pNext=&blendFeatures;
+      vkGetPhysicalDeviceFeatures2(physical,&available);
+      advancedBlendCoherent=blendFeatures.advancedBlendCoherentOperations==VK_TRUE;
+    }
     VkDeviceCreateInfo dc{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+    if (advancedBlendSupported) dc.pNext=&blendFeatures;
     dc.queueCreateInfoCount = 1;
     dc.pQueueCreateInfos = &q;
     dc.enabledExtensionCount = uint32_t(required.size());

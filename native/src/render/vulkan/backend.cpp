@@ -315,13 +315,21 @@ struct Backend::Impl {
                         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
                         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
                         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    if(c.advancedBlendSupported) dep.dstAccessMask|=VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT;
+    VkSubpassDependency dependencies[2]{dep,{}};
+    auto& blendDependency=dependencies[1];
+    blendDependency.srcSubpass=blendDependency.dstSubpass=0;
+    blendDependency.srcStageMask=blendDependency.dstStageMask=VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    blendDependency.srcAccessMask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    blendDependency.dstAccessMask=VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT;
+    blendDependency.dependencyFlags=VK_DEPENDENCY_BY_REGION_BIT;
     VkRenderPassCreateInfo rp{VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO};
     rp.attachmentCount = 2;
     rp.pAttachments = attachments;
     rp.subpassCount = 1;
     rp.pSubpasses = &sub;
-    rp.dependencyCount = 1;
-    rp.pDependencies = &dep;
+    rp.dependencyCount = c.advancedBlendSupported ? 2 : 1;
+    rp.pDependencies = dependencies;
     check(vkCreateRenderPass(c.device, &rp, nullptr, &pass));
     check(vkCreateRenderPass(c.device, &rp, nullptr, &offscreenPass));
     VkDescriptorSetLayoutBinding bindings[3]{};
@@ -585,7 +593,19 @@ struct Backend::Impl {
       VkDeviceSize offset = 0;
       vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer.handle, &offset);
       vkCmdBindIndexBuffer(cmd, indexBuffer.handle, 0, VK_INDEX_TYPE_UINT16);
-      vkCmdDrawIndexed(cmd, b.count, 1, b.first, b.base, 0);
+      if (c.advancedBlendSupported && !c.advancedBlendCoherent && advanced(b.blend)) {
+        VkMemoryBarrier barrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
+        barrier.srcAccessMask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        barrier.dstAccessMask=VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT;
+        // Noncoherent hardware also needs ordering for overlapping triangles
+        // within a part. Coherent devices keep the single-draw fast path.
+        for(uint32_t offset=0;offset<b.count;offset+=3) {
+          vkCmdPipelineBarrier(cmd,VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+              VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,VK_DEPENDENCY_BY_REGION_BIT,
+              1,&barrier,0,nullptr,0,nullptr);
+          vkCmdDrawIndexed(cmd,std::min(3u,b.count-offset),1,b.first+offset,b.base,0);
+        }
+      } else vkCmdDrawIndexed(cmd, b.count, 1, b.first, b.base, 0);
     }
     end();
   }

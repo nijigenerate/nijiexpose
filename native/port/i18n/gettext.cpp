@@ -166,7 +166,8 @@ struct Catalogs {
         // macOS locale identifiers differ from bare catalog language codes.
         // Let the user's installed locale drive LC_MESSAGES and let GNU
         // gettext's LANGUAGE override select the in-app translation.
-        setEnvironment("LC_MESSAGES", nullptr, systemLocaleName());
+        const auto systemLocale=systemLocaleName();
+        if (!systemLocale.empty()) setEnvironment("LC_MESSAGES", nullptr, systemLocale);
         if (!std::setlocale(LC_MESSAGES, "")) throw std::runtime_error("Unable to select gettext message locale");
         if (!catalog.language.empty()) {
             const std::string current=std::setlocale(LC_MESSAGES,nullptr);
