@@ -17,6 +17,20 @@ Install the Vulkan SDK (including `glslc`) and set `VULKAN_SDK`, then add
 and install layout stay the same. `-DNIJIEXPOSE_RENDERER=OPENGL` selects the existing
 renderer and remains the default for existing build/packaging jobs.
 
+Use `native-opengl-release` or `native-vulkan-release` in place of
+`native-release` in the configure/build/test commands below to keep separate
+build directories. Install and package from the corresponding
+`build/native-opengl-release` or `build/native-vulkan-release` directory.
+The original `native-release` preset remains available and selects OpenGL.
+
+Each configuration compiles only its selected model renderer and ImGui renderer.
+OpenGL builds do not require the Vulkan SDK; Vulkan builds do not find or link
+OpenGL or compile the OpenGL ImGui backend. On Windows, only OpenGL application
+packages include `SpoutLibrary.dll`; Vulkan uses the static Spout registry and
+D3D11 sharing implementation. The separate Vulkan integration test still uses
+that DLL for its independent receiver. OpenGL-specific GPU tests are built only
+in the OpenGL configuration; the Vulkan model test is an explicit build target.
+
 Windows rendering has been checked with the Vulkan validation layer using Kurone
 and Midori models: model movement, resize, removal, switching, and ImGui rendering.
 The manual integration test accepts two actual model paths and an output prefix:
@@ -125,9 +139,19 @@ so CMake builds the pinned official SDL3 source when no suitable installed SDL3
 is available. Lua links statically from the distribution-provided `liblua5.1.a`; its shared
 library is not required at runtime. MediaPipe also builds from source using the
 pinned nijitrack recipe.
+For the Vulkan configuration, also install the Ubuntu binary packages
+`libvulkan-dev` and `glslc`, then select `native-vulkan-release` instead of
+`native-release`. The OpenGL configuration does not require these packages.
 Linux packages require compatible system runtime libraries; see the
 [package guide](build-aux/README.md). File dialogs need an XDG desktop portal
 or Zenity. Global keyboard capture uses X11; Spout is unavailable.
+On WSLg, install `zenity` (`sudo apt-get install zenity`). The application
+defaults to SDL's Zenity file dialog driver when `/usr/bin/zenity` or
+`/bin/zenity` is executable, avoiding the unresponsive GTK portal modal observed
+with an X11 parent. An explicit `SDL_FILE_DIALOG_DRIVER` setting takes priority;
+other Linux environments retain SDL's default driver selection.
+AppImage builds also use the host's portal and do not bundle Zenity or GTK.
+The WSLg Zenity preference is a workaround, not a fix for the portal input issue.
 
 To build and validate an AppImage after the Linux build:
 

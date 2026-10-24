@@ -1,6 +1,8 @@
 // Port of dlang_archive/source/nijiexpose/render/spritebatch.d.
 #include "spritebatch.hpp"
+#ifndef NIJIEXPOSE_VULKAN
 #include "spritebatch_assets.hpp"
+#endif
 #include <core/runtime_state.hpp>
 #include <algorithm>
 #include <cmath>
@@ -10,7 +12,9 @@
 namespace nijiexpose {
 thread_local std::shared_ptr<SpriteBatch> AppBatch;
 namespace {
+#ifndef NIJIEXPOSE_VULKAN
 thread_local ogl::Shader spriteBatchShader;
+#endif
 vec2 transformVerts(vec2 position,mat4 matrix) {
     const auto v=matrix.transformPoint({position.x,position.y,0});
     return {v.x,v.y};

@@ -13,7 +13,7 @@ namespace nijiexpose::ogl {
 using nicxlive::core::inSetViewport;
 using nicxlive::core::inGetClearColor;
 using std::max;
-thread_local vec3 inSceneAmbientLight{1, 1, 1};
+
 std::shared_ptr<nicxlive::core::Texture> boundAlbedo;
 static int viewportWidth() { int w,h; nicxlive::core::inGetViewport(w,h); return w; }
 static int viewportHeight() { int w,h; nicxlive::core::inGetViewport(w,h); return h; }

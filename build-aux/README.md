@@ -66,6 +66,12 @@ Linux Lua 5.1 is statically linked using the distribution archive. Generate the
 AppImage with `python3 build-aux/linux/appimage.py <build-directory> --version <version>`.
 Unlike the ZIP, it bundles the runtime libraries selected by linuxdeploy and
 their package notices. The resulting image is extracted and launched for verification.
+File dialogs use the host's XDG Desktop Portal (including its desktop-specific
+backend). Zenity, GTK and portal services are not bundled; the AppImage build
+rejects those components if they enter the package. Do not enable a GTK
+linuxdeploy plugin for file dialogs. SDL's driver selection is not overridden
+by the launcher. On WSLg, the application temporarily prefers system Zenity
+when installed, unless the user explicitly selects another SDL dialog driver.
 CPack can still produce a tar.gz locally, but CI release distribution uses AppImage.
 
 Nightly publishes ZIP only; version tags publish MSI/DMG/AppImage after all

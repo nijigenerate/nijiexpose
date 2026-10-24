@@ -1,9 +1,10 @@
 #pragma once
 #include "shader.hpp"
+#include "render/settings.hpp"
 #include <core/texture.hpp>
 #include <vector>
 namespace nijiexpose::ogl {
-extern thread_local vec3 inSceneAmbientLight;
+using render::inSceneAmbientLight;
 extern std::shared_ptr<nicxlive::core::Texture> boundAlbedo;
 void oglInitRenderer();
 void oglBeginScene();

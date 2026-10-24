@@ -13,6 +13,21 @@ def run(*args, **kwargs):
     return subprocess.run(args, check=True, **kwargs)
 
 
+def verify_host_dialogs(appdir):
+    """Dialogs belong to the host desktop, not to this AppImage."""
+    forbidden = []
+    for path in appdir.rglob("*"):
+        if not (path.is_file() or path.is_symlink()):
+            continue
+        name = path.name
+        if (name == "zenity" or name.startswith("xdg-desktop-portal") or
+                name.startswith(("libgtk-", "libgtk-x11-", "libgdk-",
+                                 "libgdk-x11-", "libadwaita-"))):
+            forbidden.append(str(path.relative_to(appdir)))
+    if forbidden:
+        raise RuntimeError("Host dialog components must not be bundled: " + ", ".join(forbidden))
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("build", type=Path)
@@ -48,6 +63,9 @@ def main():
             str(prefix / "share/applications/nijiexpose.desktop"), "--icon-file",
             str(source / "build-aux/osx/nijiexpose.iconset/icon_256x256.png"), "--icon-filename", "nijiexpose",
             env=env)
+        # Keep SDL's host portal selection; do not add a GTK deployment plugin
+        # or bundle Zenity. Fail rather than silently strip linked dependencies.
+        verify_host_dialogs(appdir)
         notices = prefix / "share/licenses/nijiexpose/system"
         # linuxdeploy bundles distro libraries; retain the corresponding package notices.
         for library in (prefix / "lib").rglob("*.so*"):
@@ -69,6 +87,7 @@ def main():
         # Extract the final artifact, then test its actual packaged content and launcher.
         run(str(output), "--appimage-extract", cwd=work, stdout=subprocess.DEVNULL)
         extracted = work / "squashfs-root"
+        verify_host_dialogs(extracted)
         run(sys.executable, str(source / "native/tools/verify-package.py"), str(extracted / "usr"))
         run(str(extracted / "AppRun"), "--version", cwd=work)
         run(str(output), "--version", env=env, cwd=work)

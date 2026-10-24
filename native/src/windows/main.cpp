@@ -220,6 +220,7 @@ private:
         }
     }
 
+#ifndef NIJIEXPOSE_VULKAN
     void destroyOverlayBlurResources() {
         if (overlayBlurProgram != 0) {
             ogl::glDeleteProgram(overlayBlurProgram);
@@ -410,9 +411,6 @@ private:
     }
 
     void updateOverlayBlurTexture() {
-#ifdef NIJIEXPOSE_VULKAN
-        return;
-#endif
         if (!showUI || !overlayOpen || width() <= 0 || height() <= 0) return;
 
         const int blurW = std::max(1, width() / 4);
@@ -469,6 +467,8 @@ private:
         if (wasScissorEnabled) ogl::glEnable(GL_SCISSOR_TEST); else ogl::glDisable(GL_SCISSOR_TEST);
         if (wasCullEnabled) ogl::glEnable(GL_CULL_FACE); else ogl::glDisable(GL_CULL_FACE);
     }
+
+#endif
 
     void drawBlurBackdrop(float x, float y, float w, float h, float rounding) {
 #ifdef NIJIEXPOSE_VULKAN
@@ -919,7 +919,9 @@ protected:
         ogl::glBindFramebuffer(GL_FRAMEBUFFER, 0);
         ogl::oglPresentSceneToBackbuffer(width(),height());
 #endif
+#ifndef NIJIEXPOSE_VULKAN
         updateOverlayBlurTexture();
+#endif
     }
 
     void onPlatformUpdate() override { tracking::neTracker()->update(); }
@@ -949,7 +951,9 @@ protected:
     }
 
     void onClosed() {
+#ifndef NIJIEXPOSE_VULKAN
         destroyOverlayBlurResources();
+#endif
     }
 public:
 

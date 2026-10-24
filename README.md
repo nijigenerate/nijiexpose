@@ -57,6 +57,7 @@ separate tracker download, Python environment or tracker executable is required.
 The quick start guide [BUILD.md](BUILD.md) contains instructions for building,
 testing and packaging nijiexpose on Windows, macOS and Linux.
 The `native-vulkan` branch also provides a [Vulkan model and ImGui renderer](BUILD.md#vulkan-renderer-native-vulkan), based on nijimi.
+Use the `native-opengl-release` and `native-vulkan-release` CMake presets for separate builds with renderer-specific dependencies.
 
 Translations use GNU gettext; see [translation maintenance](tl/README.md).
 The previous D implementation and its build assets are retained in

@@ -1,7 +1,9 @@
 #include "settings.hpp"
 #include "i18n.hpp"
 #include "scene/package.hpp"
+#ifndef NIJIEXPOSE_VULKAN
 #include "nijilive/opengl/blending.hpp"
+#endif
 #include "nijiui/core/settings.hpp"
 #include "nijiui/widgets/input.hpp"
 #include "nijiui/widgets/category.hpp"
@@ -14,7 +16,9 @@ namespace nijiexpose::windows {
 using namespace nijiui;
 using namespace tracking;
 using namespace scene;
+#ifndef NIJIEXPOSE_VULKAN
 using namespace ogl;
+#endif
 using i18n::_; using i18n::__;
 namespace {
 struct ScopeExit { std::function<void()> fn; ~ScopeExit(){fn();} };
@@ -40,7 +44,11 @@ void SettingWindow::ensureDraftLoaded() {
         }
         copyTrackerState(trackerDraft, tracker);
         throttlingDraft = inSettingsGet<int>("throttlingRate", 1);
+#ifdef NIJIEXPOSE_VULKAN
+        tripleFallbackDraft = inSettingsGet<bool>("TripleBufferFallback", false);
+#else
         tripleFallbackDraft = inSettingsGet<bool>("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
+#endif
         languageDraft = neLocaleCurrentCode();
         pythonPathTested = false;
         trackerDraftLoaded = true;
@@ -74,7 +82,9 @@ void SettingWindow::applyRenderingSettings() {
         inSettingsSet("throttlingRate", throttlingDraft);
         setThrottling(throttlingDraft);
         inSettingsSet("TripleBufferFallback", tripleFallbackDraft);
+#ifndef NIJIEXPOSE_VULKAN
         nlSetTripleBufferFallback(tripleFallbackDraft);
+#endif
         inSettingsSave();
     }
 

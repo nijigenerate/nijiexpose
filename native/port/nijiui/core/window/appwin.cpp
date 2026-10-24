@@ -8,9 +8,11 @@
 #include "nijiui/toolwindow.hpp"
 #include "nijiui/widgets/dialog.hpp"
 #include "nijiui/input.hpp"
+#ifndef NIJIEXPOSE_VULKAN
 #include "nijilive/opengl/api.hpp"
-#include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
+#endif
+#include <imgui_impl_sdl3.h>
 #include <core/texture.hpp>
 #include <filesystem>
 #include <stdexcept>

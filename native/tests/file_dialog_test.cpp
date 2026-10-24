@@ -8,9 +8,14 @@
 static int mode;
 static SDL_Window* parent;
 static std::thread worker;
+static const char* expectedDriver;
 static void check(bool ok) { if(!ok) throw std::runtime_error("dialog assertion failed"); }
 extern "C" void __wrap_SDL_ShowFileDialogWithProperties(SDL_FileDialogType type,
     SDL_DialogFileCallback callback, void* data, SDL_PropertiesID props) {
+    if(expectedDriver) {
+        const auto* driver=SDL_GetHint(SDL_HINT_FILE_DIALOG_DRIVER);
+        check(std::string(driver?driver:"")==expectedDriver);
+    }
     auto* filters=static_cast<const SDL_DialogFileFilter*>(SDL_GetPointerProperty(props,SDL_PROP_FILE_DIALOG_FILTERS_POINTER,nullptr));
     check(type==SDL_FILEDIALOG_OPENFILE);
     check(SDL_GetPointerProperty(props,SDL_PROP_FILE_DIALOG_WINDOW_POINTER,nullptr)==parent);
@@ -32,7 +37,8 @@ extern "C" void __wrap_SDL_ShowFileDialogWithProperties(SDL_FileDialogType type,
         complete();
     });
 }
-int main() {
+int main(int argc,char** argv) {
+    if(argc>1) expectedDriver=argv[1];
     check(SDL_Init(SDL_INIT_VIDEO));
     parent=SDL_CreateWindow("Dialog test",32,32,SDL_WINDOW_HIDDEN);
     check(parent!=nullptr);

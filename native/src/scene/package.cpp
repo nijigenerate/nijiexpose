@@ -1,3 +1,4 @@
+#include "render/settings.hpp"
 // dlang_archive/source/nijiexpose/scene/package.d: Scene orchestration and pointer interaction.
 #include "package.hpp"
 #include "panels/tracking_state.hpp"
@@ -32,7 +33,7 @@ void Scene::addPuppet(const std::string& path,const std::shared_ptr<Puppet>& pup
 void Scene::init(){
     auto scene=insScene();scene->space=tracking::insLoadVSpace();AppBatch=std::make_shared<SpriteBatch>();scene->bgPath=nijiui::inSettingsGet<std::string>("bgPath");
     if(!scene->bgPath.empty())try{core::ShallowTexture tex(scene->bgPath);if(tex.channels==4)inTexPremultiply(tex.data);scene->backgroundImage=std::make_shared<core::Texture>(tex);}catch(const std::exception& ex){insLogErr("%s",ex.what());}
-    scene->shouldPostProcess=nijiui::inSettingsGet<bool>("shouldPostProcess",true);auto ambient=nijiui::inSettingsGet<std::array<float,3>>("ambientLight",{1,1,1});ogl::inSceneAmbientLight={ambient[0],ambient[1],ambient[2]};auto color=nijiui::inSettingsGet<std::array<float,4>>("bgColor",{.5f,.5f,.5f,0});core::inSetClearColor(color[0],color[1],color[2],color[3]);
+    scene->shouldPostProcess=nijiui::inSettingsGet<bool>("shouldPostProcess",true);auto ambient=nijiui::inSettingsGet<std::array<float,3>>("ambientLight",{1,1,1});render::inSceneAmbientLight={ambient[0],ambient[1],ambient[2]};auto color=nijiui::inSettingsGet<std::array<float,4>>("bgColor",{.5f,.5f,.5f,0});core::inSetClearColor(color[0],color[1],color[2],color[3]);
 }
 void Scene::cleanup(){
     tracking::insSaveVSpace(space);

@@ -4,19 +4,36 @@
   "configurePresets": [
     {
       "name": "native-release",
-      "displayName": "Native C++ / SDL3 (Release)",
+      "displayName": "Native C++ / SDL3 / OpenGL (Release)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/native-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "ON",
+        "NIJIEXPOSE_RENDERER": "OPENGL"
       }
+    },
+    {
+      "name": "native-opengl-release",
+      "inherits": "native-release",
+      "binaryDir": "${sourceDir}/build/native-opengl-release"
+    },
+    {
+      "name": "native-vulkan-release",
+      "displayName": "Native C++ / SDL3 / Vulkan (Release)",
+      "inherits": "native-release",
+      "binaryDir": "${sourceDir}/build/native-vulkan-release",
+      "cacheVariables": { "NIJIEXPOSE_RENDERER": "VULKAN" }
     }
   ],
   "buildPresets": [
-    { "name": "native-release", "configurePreset": "native-release" }
+    { "name": "native-release", "configurePreset": "native-release" },
+    { "name": "native-opengl-release", "configurePreset": "native-opengl-release" },
+    { "name": "native-vulkan-release", "configurePreset": "native-vulkan-release" }
   ],
   "testPresets": [
-    { "name": "native-release", "configurePreset": "native-release", "output": { "outputOnFailure": true } }
+    { "name": "native-release", "configurePreset": "native-release", "output": { "outputOnFailure": true } },
+    { "name": "native-opengl-release", "configurePreset": "native-opengl-release", "output": { "outputOnFailure": true } },
+    { "name": "native-vulkan-release", "configurePreset": "native-vulkan-release", "output": { "outputOnFailure": true } }
   ]
 }

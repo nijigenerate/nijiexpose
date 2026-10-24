@@ -3,8 +3,23 @@
 #include <SDL3/SDL.h>
 #include <atomic>
 #include <memory>
+#if defined(__linux__)
+#include <cstdlib>
+#include <unistd.h>
+#endif
 namespace nijiexpose::io {
 std::string insShowOpenDialog(std::span<const TFD_Filter> filters,const std::string& title,SDL_Window* parentWindow){
+#if defined(__linux__)
+    // WSLg's GTK portal can display an unresponsive modal for an X11 parent.
+    // Prefer the working SDL Zenity driver there, without overriding user hints
+    // or disabling portal fallback on systems where Zenity is not installed.
+    const auto* distro=std::getenv("WSL_DISTRO_NAME");
+    const auto* wayland=std::getenv("WAYLAND_DISPLAY");
+    if(distro&&*distro&&wayland&&*wayland&&
+       (access("/usr/bin/zenity",X_OK)==0||access("/bin/zenity",X_OK)==0)) {
+        SDL_SetHintWithPriority(SDL_HINT_FILE_DIALOG_DRIVER,"zenity",SDL_HINT_DEFAULT);
+    }
+#endif
     // The callback may run on another thread, including after a quit request.
     struct Result {
         std::atomic<bool> done{false};

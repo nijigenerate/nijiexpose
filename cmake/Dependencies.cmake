@@ -65,4 +65,6 @@ if(MSVC)
     target_compile_options(nicxlive PRIVATE /utf-8)
 endif()
 
-find_package(OpenGL REQUIRED)
+if(NIJIEXPOSE_RENDERER STREQUAL "OPENGL")
+    find_package(OpenGL REQUIRED)
+endif()
