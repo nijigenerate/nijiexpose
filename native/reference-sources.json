@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "referenceCommit": "0b308fed7d1909c772f7390998d96e80d25312f8",
+  "meaning": "Current D reference files only; hashes do not establish C++ equivalence.",
+  "excludedGeneratedSource": "dlang_archive/source/nijiexpose/ver.d",
+  "files": [
+    {
+      "path": "dlang_archive/source/app.d",
+      "sha256": "af8759807c9f42caa1b8397ff5aa423eb1d37431782951104c79bd487253ddfe"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/animation/package.d",
+      "sha256": "cd9c4972b5c8143fe1b77f5951442c08270aca30754c48b83b720df95583f45c"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/framesend.d",
+      "sha256": "cd245de9991810d4fa85b4835526537bcc53d10c63ed69e3cc34525fe335c489"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/i18n.d",
+      "sha256": "4a4b7597b8ee3df18e02ac51cbd53d361405942c6da855d9f051e374285f0849"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/io/image.d",
+      "sha256": "04ea5f1566c5e78e139fc698b860e40395aba62395a639538f82c13d06608dac"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/io/package.d",
+      "sha256": "35b7789c290fbcde156a47b5bb9797596235bd1a6fd1c1709136b99c1aead7f5"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/log.d",
+      "sha256": "e224abdc661430c46eeb583cf80f98dface7a405dc085043e939cc11a09557ed"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/panels/animations.d",
+      "sha256": "dcd37d42aee7dcb0ce0c0444dce25bdd914d2ebc85726f95152d0788d905c028"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/panels/blends.d",
+      "sha256": "a7eb19e4d3e629ef7f800b2e59d6e118170cc970aac9b6b57b3d2176cd19d32d"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/panels/plugin.d",
+      "sha256": "a9be1e4728286e01bf6b1daf49b432628605118259294dd0a5ce48cdbf3f41af"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/panels/scene.d",
+      "sha256": "98bbfa5e4b3c1b2232d62ee6524000aadbd58084dd81a71d6fb8b618f4403b2b"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/panels/tracking.d",
+      "sha256": "941487f18edd712df708bd2121985e084e2defa0a18c05d4be190dfca84a2349"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/plugins/api/base.d",
+      "sha256": "a59621a34c3755044c6d1cf2055074a62272379139a5760d1259da4a59b89976"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/plugins/api/package.d",
+      "sha256": "0fc9f8a818e850122d3ba98bdc81e0d9a09e70321e170dcc343b8b4aa9bfd3df"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/plugins/api/scene.d",
+      "sha256": "f8451c38ec3d72ef384e7bee4be8c424c0c814fc051fc994c6a981b5cc4c5e8e"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/plugins/api/ui.d",
+      "sha256": "2f274aea15aa628e31022c5a6ef065a9be783a34c6f906d3217dd885789d4735"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/plugins/package.d",
+      "sha256": "b60932fd2f678d34054fdb66dc8a212991d7870918d1ccdf13de1b449d0f944f"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/plugins/plugin.d",
+      "sha256": "ff96c204d95479ede32536d82e19d07c6e69ca97da976c13f8f8ecc31a059834"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/render/spritebatch.d",
+      "sha256": "3e7e610757c9e8751a332dc06ebdcf58ee1229ab2df0a6c18683d8ef785c65ee"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/scene/package.d",
+      "sha256": "0916db31c0dc50a6278a7311fb740c2bea2cedae6bc21afc9063982489f2f6ed"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/compoundbinding.d",
+      "sha256": "8dbfddb8e123d7de2c0989e29327236fce0c20ff04bb194f66afca1475325e7d"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/eventbinding.d",
+      "sha256": "64a219ff0a9fb40fa2a0754b7098433920d9ef0353f056d66f18f2f8c6a38e47"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/expr.d",
+      "sha256": "cd6e61237d38ca668f2aa65b3232815942dee7d42b9371523389b5b740954e4e"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/exprbinding.d",
+      "sha256": "87876b31000ce5389c6ff49f1310eb721187f2a83176ad51f1856ae91506014a"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/ext/exvmc.d",
+      "sha256": "1dcde4e0c07b2b1498be8688de991930e46ce660d9f544f04edc69158aa52579"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/ext/package.d",
+      "sha256": "9ab8810749d377d2f0f14defe3cb8b8c0a8c99411b99012406d45f39bcf38dad"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/package.d",
+      "sha256": "814e007370b456d30adf445af75218609bb6b0e7f5e593220315a4d071cf1719"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/ratiobinding.d",
+      "sha256": "85895b474cc4ae99ec539447f963ebcda86466e7a65105e680311c31455bb824"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/tracker.d",
+      "sha256": "ccaffad39246fe481bf5d6a3e61b06dcfc6872bcce6ab9e0fe6887cd15deb4a7"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/tracking/vspace.d",
+      "sha256": "14afc3311a01b2b44fbe6c21bf6c5a07e9ed77494f418c61a408e961ef10fcea"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/utils/launchpath.d",
+      "sha256": "03d830dc4abdbf85c7e2a33f9b82288b7801cf38835515fb07813db4759488a9"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/utils/subprocess.d",
+      "sha256": "3009a1abd6ecb020406853fc1792fa457a6ee27e588a0895fb9d532c3f31eec4"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/windows/main.d",
+      "sha256": "5c7975b6903f0e32f04da528428bed104a2944517ab43b7019ba4d6d496c400c"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/windows/package.d",
+      "sha256": "0f1e7b876cf334f18bc26697a864cb50ada236cd2d9bbcaf0b214645496790ad"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/windows/settings.d",
+      "sha256": "066c144c6548bd1a9827287ef76f07297fcada1f43d69b4f6e2d0d6bd0cc6937"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/windows/spaceedit.d",
+      "sha256": "54f53346a480e88dc70c212d3a8d513107f9bdca877da7632605d062e92a2ba2"
+    },
+    {
+      "path": "dlang_archive/source/nijiexpose/windows/utils.d",
+      "sha256": "19e6ad5bff0ae9f98124e69d888c61e93248cfde5ef3947f653868d1d29cdde4"
+    }
+  ]
+}

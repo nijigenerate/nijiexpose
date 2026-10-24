@@ -1,0 +1,61 @@
+{
+  "sdl3": {
+    "version": "3.2.28",
+    "kind": "binary",
+    "url": "https://github.com/libsdl-org/SDL/releases/download/release-3.2.28/SDL3-devel-3.2.28-VC.zip",
+    "sha256": "dc8328a923643a19a53e54ca418e8e2ac49f3cf6c95e90bbebf758cd3a00c2fb",
+    "license": "LICENSE.txt",
+    "abi": "Windows x64 MSVC"
+  },
+  "gettext": {
+    "version": "1.0 / libiconv 1.18",
+    "kind": "binary",
+    "url": "https://github.com/mlocati/gettext-iconv-windows/releases/download/v1.0-v1.18-r3/gettext1.0-iconv1.18-shared-64-dev-msvc.zip",
+    "sha256": "527e519f11ed55365e86136ec1ff83df746d20e898183108b029b049ba7739ea",
+    "license": "licenses/gettext.txt;licenses/iconv.txt",
+    "abi": "Windows x64 MSVC shared",
+    "official_download_page": "https://www.gnu.org/software/gettext/"
+  },
+  "freetype": {
+    "version": "2.12.1",
+    "kind": "binary",
+    "url": "https://codeload.github.com/ubawurinna/freetype-windows-binaries/zip/6de8c68b2b0672ee1d61c19f0cfe81f422b7fd0c",
+    "sha256": "cd70f2cc4753612f6d70cf5ffb2e8f15eb02f2cadb32744c800fa5ca25935bad",
+    "license": "FTL.TXT;LICENSE.TXT",
+    "abi": "Windows x64 MSVC shared",
+    "official_download_page": "https://freetype.org/download.html"
+  },
+  "boost": {
+    "version": "1.90.0",
+    "kind": "headers",
+    "url": "https://archives.boost.io/release/1.90.0/source/boost_1_90_0.tar.gz",
+    "sha256": "5e93d582aff26868d581a52ae78c7d8edf3f3064742c6e77901a1f18a437eea9",
+    "license": "LICENSE_1_0.txt",
+    "directory": "boost_1_90_0"
+  },
+  "nicxlive": {
+    "version": "4f692e8d9bdabe9a06684532b67c4c005f1b887a",
+    "kind": "source",
+    "url": "https://codeload.github.com/nijigenerate/nicxlive/tar.gz/4f692e8d9bdabe9a06684532b67c4c005f1b887a",
+    "sha256": "8b166631fee7983f55bd95ccc00c058a7d99abefc25e124b5273d3c5c798b556",
+    "vendor": "nicxlive.tar.gz",
+    "license": "LICENSE",
+    "source_note": "Committed resource-lifetime source (PR #18), including mask ownership cycle fixes, internal resource retirement, dirty-only uploads and hierarchy-rescan render refresh (PR #19). No external geometry collection API. Not a binary build."
+  },
+  "imgui": {
+    "version": "1.93.0-docking / 4e02e84cbb85d48881388e7090c2dfa1708c02a1",
+    "kind": "source",
+    "url": "https://codeload.github.com/ocornut/imgui/tar.gz/4e02e84cbb85d48881388e7090c2dfa1708c02a1",
+    "sha256": "4737967e4a571038fc8310b355a79e2b3b86e30008f06db3dce812837789c9e9",
+    "vendor": "imgui.tar.gz",
+    "license": "LICENSE.txt"
+  },
+  "imgui_reference": {
+    "version": "dd5b7c6847372016f45d5b5abda687bd5cd19224",
+    "kind": "source",
+    "url": "https://codeload.github.com/Inochi2D/imgui/tar.gz/dd5b7c6847372016f45d5b5abda687bd5cd19224",
+    "sha256": "2d048af300b5d0e43b767c74c1d473155dd45a6f623a15eaaf7ff2fbaee1a051",
+    "vendor": "imgui-reference.tar.gz",
+    "license": "LICENSE.txt"
+  }
+}

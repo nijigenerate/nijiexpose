@@ -18,8 +18,15 @@ nijiexpose-test-*
 out/
 
 dub.selections.json
-source/nijiexpose/ver.d
-build-aux/windows/nijiexpose.res
-build-aux/windows/wix/bin/
-build-aux/windows/wix/obj/
+dlang_archive/source/nijiexpose/ver.d
+dlang_archive/build-aux/windows/nijiexpose.res
+dlang_archive/build-aux/windows/wix/bin/
+dlang_archive/build-aux/windows/wix/obj/
+/build/
+/CMakeUserPresets.json
+/imgui.ini
 version.txt
+
+/dlang_archive/nijiexpose
+__pycache__/
+*.pyc

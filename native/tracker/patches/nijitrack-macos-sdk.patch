@@ -1,0 +1,35 @@
+--- a/native/scripts/build_mediapipe_halide.sh
++++ b/native/scripts/build_mediapipe_halide.sh
+@@ -25,6 +25,15 @@
+ startup=(--nosystem_rc --nohome_rc --noworkspace_rc --batch "--output_user_root=$work/bazel")
+ repositories=(--enable_bzlmod=true --experimental_repo_remote_exec "--repo_env=PATH=$PATH" \
+   "--override_repository=python_version_repo=$stub" "--override_repository=python=$stub")
++platform_options=()
++if [[ "$platform" == macos-arm64 ]]; then
++  sdk_version=$(xcrun --sdk macosx --show-sdk-version)
++  xcrun --sdk "macosx$sdk_version" --show-sdk-path >/dev/null
++  platform_options+=("--macos_sdk_version=$sdk_version")
++fi
++if [[ ${NIJITRACK_ANALYZE_ONLY:-OFF} == ON ]]; then
++  platform_options+=(--nobuild)
++fi
+ cd "$source"
+ if [[ ${NIJITRACK_OFFLINE:-OFF} == ON ]]; then
+   repositories+=(--nofetch)
+@@ -32,7 +41,7 @@
+   "$bazel" "${startup[@]}" fetch "${repositories[@]}" --repo=@llvm-raw --repo=@XNNPACK --repo=@com_google_protobuf
+ fi
+ patch_dependencies
+-"$bazel" "${startup[@]}" build "${repositories[@]}" --compilation_mode=opt --jobs=4 \
++"$bazel" "${startup[@]}" build "${repositories[@]}" ${platform_options[@]+"${platform_options[@]}"} --compilation_mode=opt --jobs=4 \
+   --define=MEDIAPIPE_DISABLE_OPENCV=1 --define=MEDIAPIPE_ENABLE_HALIDE=1 \
+   --copt=-DNDEBUG --copt=-DLITERT_DISABLE_NPU --cxxopt=-std=c++20 --host_cxxopt=-std=c++20 \
+   --repo_env=CC=clang --repo_env=CXX=clang++ \
+@@ -40,6 +49,7 @@
+   "--action_env=PYTHON_BIN_PATH=$PYTHON_BIN_PATH" \
+   "--override_repository=local_execution_config_python=$stub" --extra_toolchains=@python//:py_toolchain \
+   --output_groups=+linkdeps,+linkopts //mediapipe/tasks/c/nijitrack_tracking:mediapipe_tracking
++[[ ${NIJITRACK_ANALYZE_ONLY:-OFF} != ON ]] || exit 0
+ artifacts="$source/bazel-bin/mediapipe/tasks/c/nijitrack_tracking"
+ while IFS= read -r dependency || [[ -n "$dependency" ]]; do
+   case "$dependency" in ''|//mediapipe/calculators/tensor/nijitrack_halide:warp|@//mediapipe/calculators/tensor/nijitrack_halide:warp|@@//mediapipe/calculators/tensor/nijitrack_halide:warp) ;;

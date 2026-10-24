@@ -1,0 +1,1207 @@
+vmc
+state 1 0 0 0
+vmc
+state 1 1 1 1
+blend Smile 1059061760
+bone Head 1065353216 3221225472 1077936128 1053609165 3197737370 1036831949 3192704205
+vmc
+state 1 1 1 1
+blend PermittedByAnd 3208642560
+blend Smile 1059061760
+bone Head 1065353216 3221225472 1077936128 1053609165 3197737370 1036831949 3192704205
+vmc
+state 1 1 1 1
+blend PermittedByAnd 3208642560
+blend Smile 1059061760
+bone Head 1065353216 3221225472 1077936128 1053609165 3197737370 1036831949 3192704205
+vmc
+state 1 1 1 1
+blend PermittedByAnd 3208642560
+blend Smile 1059061760
+bone Head 1065353216 3221225472 1077936128 1053609165 3197737370 1036831949 3192704205
+vmc
+state 1 0 1 1
+blend PermittedByAnd 3208642560
+blend Smile 1059061760
+bone Head 1065353216 3221225472 1077936128 1053609165 3197737370 1036831949 3192704205
+vmc
+state 1 1 0 1
+blend PermittedByAnd 3208642560
+blend Smile 1059061760
+bone Head 1065353216 3221225472 1077936128 1053609165 3197737370 1036831949 3192704205
+phiz
+state 1 0 0 0
+phiz
+state 1 1 0 0
+bone Head 2143289344 2143289344 2143289344 1053609165 3197737370 1036831949 3192704205
+bone LeftGaze 2143289344 2143289344 2143289344 1065353216 3204448256 0 1056964608
+bone RightGaze 2143289344 2143289344 2143289344 0 3212836864 3212836864 2147483648
+phiz
+state 1 1 0 0
+blend browDownLeft 1015021568
+blend browDownRight 1023410176
+blend browInnerUp 0
+blend browOuterUpLeft 1027604480
+blend browOuterUpRight 1031798784
+blend cheekPuff 1050148864
+blend cheekSquintLeft 1050673152
+blend cheekSquintRight 1051197440
+blend eyeBlinkLeft 1045430272
+blend eyeBlinkRight 1046478848
+blend eyeLookDownLeft 1038090240
+blend eyeLookDownRight 1040187392
+blend eyeLookInLeft 1041235968
+blend eyeLookInRight 1042284544
+blend eyeLookOutLeft 1043333120
+blend eyeLookOutRight 1044381696
+blend eyeLookUpLeft 1033895936
+blend eyeLookUpRight 1035993088
+blend eyeSquintLeft 1047527424
+blend eyeSquintRight 1048576000
+blend eyeWideLeft 1049100288
+blend eyeWideRight 1049624576
+blend jawForward 1061158912
+blend jawLeft 1061421056
+blend jawOpen 1060896768
+blend jawRight 1061683200
+blend mouthClose 1055916032
+blend mouthDimpleLeft 1057751040
+blend mouthDimpleRight 1058013184
+blend mouthFrownLeft 1057226752
+blend mouthFrownRight 1057488896
+blend mouthFunnel 1052770304
+blend mouthLeft 1060372480
+blend mouthLowerDownLeft 1058799616
+blend mouthLowerDownRight 1059061760
+blend mouthPressLeft 1059323904
+blend mouthPressRight 1059586048
+blend mouthPucker 1053294592
+blend mouthRight 1060634624
+blend mouthRollLower 1054343168
+blend mouthRollUpper 1053818880
+blend mouthShrugLower 1055391744
+blend mouthShrugUpper 1054867456
+blend mouthSmileLeft 1056440320
+blend mouthSmileRight 1056964608
+blend mouthStretchLeft 1059848192
+blend mouthStretchRight 1060110336
+blend mouthUpperUpLeft 1058275328
+blend mouthUpperUpRight 1058537472
+blend noseSneerLeft 1051721728
+blend noseSneerRight 1052246016
+blend tongueOut 1061945344
+bone Head 2143289344 2143289344 2143289344 1053609165 3197737370 1036831949 3192704205
+bone LeftGaze 2143289344 2143289344 2143289344 1065353216 3204448256 0 1056964608
+bone RightGaze 2143289344 2143289344 2143289344 0 3212836864 3212836864 2147483648
+phiz
+state 1 1 0 0
+blend browDownLeft 1015021568
+blend browDownRight 1023410176
+blend browInnerUp 0
+blend browOuterUpLeft 1027604480
+blend browOuterUpRight 1031798784
+blend cheekPuff 1050148864
+blend cheekSquintLeft 1050673152
+blend cheekSquintRight 1051197440
+blend eyeBlinkLeft 1045430272
+blend eyeBlinkRight 1046478848
+blend eyeLookDownLeft 1038090240
+blend eyeLookDownRight 1040187392
+blend eyeLookInLeft 1041235968
+blend eyeLookInRight 1042284544
+blend eyeLookOutLeft 1043333120
+blend eyeLookOutRight 1044381696
+blend eyeLookUpLeft 1033895936
+blend eyeLookUpRight 1035993088
+blend eyeSquintLeft 1047527424
+blend eyeSquintRight 1048576000
+blend eyeWideLeft 1049100288
+blend eyeWideRight 1049624576
+blend jawForward 1061158912
+blend jawLeft 1061421056
+blend jawOpen 1060896768
+blend jawRight 1061683200
+blend mouthClose 1055916032
+blend mouthDimpleLeft 1057751040
+blend mouthDimpleRight 1058013184
+blend mouthFrownLeft 1057226752
+blend mouthFrownRight 1057488896
+blend mouthFunnel 1052770304
+blend mouthLeft 1060372480
+blend mouthLowerDownLeft 1058799616
+blend mouthLowerDownRight 1059061760
+blend mouthPressLeft 1059323904
+blend mouthPressRight 1059586048
+blend mouthPucker 1053294592
+blend mouthRight 1060634624
+blend mouthRollLower 1054343168
+blend mouthRollUpper 1053818880
+blend mouthShrugLower 1055391744
+blend mouthShrugUpper 1054867456
+blend mouthSmileLeft 1056440320
+blend mouthSmileRight 1056964608
+blend mouthStretchLeft 1059848192
+blend mouthStretchRight 1060110336
+blend mouthUpperUpLeft 1058275328
+blend mouthUpperUpRight 1058537472
+blend noseSneerLeft 1051721728
+blend noseSneerRight 1052246016
+blend tongueOut 1061945344
+bone Head 2143289344 2143289344 2143289344 1053609165 3197737370 1036831949 3192704205
+bone LeftGaze 2143289344 2143289344 2143289344 1065353216 3204448256 0 1056964608
+bone RightGaze 2143289344 2143289344 2143289344 0 3212836864 3212836864 2147483648
+phiz
+state 1 0 0 0
+blend browDownLeft 1015021568
+blend browDownRight 1023410176
+blend browInnerUp 0
+blend browOuterUpLeft 1027604480
+blend browOuterUpRight 1031798784
+blend cheekPuff 1050148864
+blend cheekSquintLeft 1050673152
+blend cheekSquintRight 1051197440
+blend eyeBlinkLeft 1045430272
+blend eyeBlinkRight 1046478848
+blend eyeLookDownLeft 1038090240
+blend eyeLookDownRight 1040187392
+blend eyeLookInLeft 1041235968
+blend eyeLookInRight 1042284544
+blend eyeLookOutLeft 1043333120
+blend eyeLookOutRight 1044381696
+blend eyeLookUpLeft 1033895936
+blend eyeLookUpRight 1035993088
+blend eyeSquintLeft 1047527424
+blend eyeSquintRight 1048576000
+blend eyeWideLeft 1049100288
+blend eyeWideRight 1049624576
+blend jawForward 1061158912
+blend jawLeft 1061421056
+blend jawOpen 1060896768
+blend jawRight 1061683200
+blend mouthClose 1055916032
+blend mouthDimpleLeft 1057751040
+blend mouthDimpleRight 1058013184
+blend mouthFrownLeft 1057226752
+blend mouthFrownRight 1057488896
+blend mouthFunnel 1052770304
+blend mouthLeft 1060372480
+blend mouthLowerDownLeft 1058799616
+blend mouthLowerDownRight 1059061760
+blend mouthPressLeft 1059323904
+blend mouthPressRight 1059586048
+blend mouthPucker 1053294592
+blend mouthRight 1060634624
+blend mouthRollLower 1054343168
+blend mouthRollUpper 1053818880
+blend mouthShrugLower 1055391744
+blend mouthShrugUpper 1054867456
+blend mouthSmileLeft 1056440320
+blend mouthSmileRight 1056964608
+blend mouthStretchLeft 1059848192
+blend mouthStretchRight 1060110336
+blend mouthUpperUpLeft 1058275328
+blend mouthUpperUpRight 1058537472
+blend noseSneerLeft 1051721728
+blend noseSneerRight 1052246016
+blend tongueOut 1061945344
+bone Head 2143289344 2143289344 2143289344 1053609165 3197737370 1036831949 3192704205
+bone LeftGaze 2143289344 2143289344 2143289344 1065353216 3204448256 0 1056964608
+bone RightGaze 2143289344 2143289344 2143289344 0 3212836864 3212836864 2147483648
+llf
+state 1 0 0 0
+llf
+state 1 0 0 0
+llf
+state 1 1 0 0
+blend BrowDownLeft 1051721728
+blend BrowDownRight 1052770304
+blend BrowInnerUp 1053818880
+blend BrowOuterUpLeft 1054867456
+blend BrowOuterUpRight 1055916032
+blend CheekPuff 1056964608
+blend CheekSquintLeft 1057488896
+blend CheekSquintRight 1058013184
+blend EyeBlinkLeft 3211788288
+blend EyeBlinkRight 3208118272
+blend EyeLookDownLeft 3211264000
+blend EyeLookDownRight 3207593984
+blend EyeLookInLeft 3210739712
+blend EyeLookInRight 3207069696
+blend EyeLookOutLeft 3210215424
+blend EyeLookOutRight 3206545408
+blend EyeLookUpLeft 3209691136
+blend EyeLookUpRight 3206021120
+blend EyeSquintLeft 3209166848
+blend EyeSquintRight 3205496832
+blend EyeWideLeft 3208642560
+blend EyeWideRight 3204972544
+blend JawForward 3204448256
+blend JawLeft 3203399680
+blend JawOpen 3201302528
+blend JawRight 3202351104
+blend MouthClose 3200253952
+blend MouthDimpleLeft 3183476736
+blend MouthDimpleRight 3179282432
+blend MouthFrownLeft 3189768192
+blend MouthFrownRight 3187671040
+blend MouthFunnel 3199205376
+blend MouthLeft 3197108224
+blend MouthLowerDownLeft 1046478848
+blend MouthLowerDownRight 1048576000
+blend MouthPressLeft 1042284544
+blend MouthPressRight 1044381696
+blend MouthPucker 3198156800
+blend MouthRight 3196059648
+blend MouthRollLower 1023410176
+blend MouthRollUpper 1031798784
+blend MouthShrugLower 1035993088
+blend MouthShrugUpper 1040187392
+blend MouthSmileLeft 3193962496
+blend MouthSmileRight 3191865344
+blend MouthStretchLeft 3170893824
+blend MouthStretchRight 0
+blend MouthUpperUpLeft 1049624576
+blend MouthUpperUpRight 1050673152
+blend NoseSneerLeft 1058537472
+blend NoseSneerRight 1059061760
+blend TongueOut 1059586048
+blend headPitch 1060634624
+blend headRoll 1061158912
+blend headYaw 1060110336
+blend leftEyePitch 1062207488
+blend leftEyeRoll 1062731776
+blend leftEyeYaw 1061683200
+blend rightEyePitch 1063780352
+blend rightEyeRoll 1064304640
+blend rightEyeYaw 1063256064
+llf
+state 1 1 0 0
+blend BrowDownLeft 0
+blend BrowDownRight 0
+blend BrowInnerUp 0
+blend BrowOuterUpLeft 0
+blend BrowOuterUpRight 0
+blend CheekPuff 0
+blend CheekSquintLeft 0
+blend CheekSquintRight 0
+blend EyeBlinkLeft 1065353216
+blend EyeBlinkRight 0
+blend EyeLookDownLeft 3212836864
+blend EyeLookDownRight 0
+blend EyeLookInLeft 0
+blend EyeLookInRight 0
+blend EyeLookOutLeft 0
+blend EyeLookOutRight 0
+blend EyeLookUpLeft 0
+blend EyeLookUpRight 0
+blend EyeSquintLeft 0
+blend EyeSquintRight 0
+blend EyeWideLeft 0
+blend EyeWideRight 0
+blend JawForward 0
+blend JawLeft 0
+blend JawOpen 0
+blend JawRight 0
+blend MouthClose 0
+blend MouthDimpleLeft 0
+blend MouthDimpleRight 0
+blend MouthFrownLeft 0
+blend MouthFrownRight 0
+blend MouthFunnel 0
+blend MouthLeft 0
+blend MouthLowerDownLeft 0
+blend MouthLowerDownRight 0
+blend MouthPressLeft 0
+blend MouthPressRight 0
+blend MouthPucker 0
+blend MouthRight 0
+blend MouthRollLower 0
+blend MouthRollUpper 0
+blend MouthShrugLower 0
+blend MouthShrugUpper 0
+blend MouthSmileLeft 0
+blend MouthSmileRight 0
+blend MouthStretchLeft 0
+blend MouthStretchRight 0
+blend MouthUpperUpLeft 0
+blend MouthUpperUpRight 0
+blend NoseSneerLeft 0
+blend NoseSneerRight 0
+blend TongueOut 0
+blend headPitch 0
+blend headRoll 0
+blend headYaw 0
+blend leftEyePitch 0
+blend leftEyeRoll 0
+blend leftEyeYaw 0
+blend rightEyePitch 0
+blend rightEyeRoll 0
+blend rightEyeYaw 0
+llf
+state 1 1 0 0
+blend BrowDownLeft 0
+blend BrowDownRight 0
+blend BrowInnerUp 0
+blend BrowOuterUpLeft 0
+blend BrowOuterUpRight 0
+blend CheekPuff 0
+blend CheekSquintLeft 0
+blend CheekSquintRight 0
+blend EyeBlinkLeft 1065353216
+blend EyeBlinkRight 0
+blend EyeLookDownLeft 3212836864
+blend EyeLookDownRight 0
+blend EyeLookInLeft 0
+blend EyeLookInRight 0
+blend EyeLookOutLeft 0
+blend EyeLookOutRight 0
+blend EyeLookUpLeft 0
+blend EyeLookUpRight 0
+blend EyeSquintLeft 0
+blend EyeSquintRight 0
+blend EyeWideLeft 0
+blend EyeWideRight 0
+blend JawForward 0
+blend JawLeft 0
+blend JawOpen 0
+blend JawRight 0
+blend MouthClose 0
+blend MouthDimpleLeft 0
+blend MouthDimpleRight 0
+blend MouthFrownLeft 0
+blend MouthFrownRight 0
+blend MouthFunnel 0
+blend MouthLeft 0
+blend MouthLowerDownLeft 0
+blend MouthLowerDownRight 0
+blend MouthPressLeft 0
+blend MouthPressRight 0
+blend MouthPucker 0
+blend MouthRight 0
+blend MouthRollLower 0
+blend MouthRollUpper 0
+blend MouthShrugLower 0
+blend MouthShrugUpper 0
+blend MouthSmileLeft 0
+blend MouthSmileRight 0
+blend MouthStretchLeft 0
+blend MouthStretchRight 0
+blend MouthUpperUpLeft 0
+blend MouthUpperUpRight 0
+blend NoseSneerLeft 0
+blend NoseSneerRight 0
+blend TongueOut 0
+blend headPitch 0
+blend headRoll 0
+blend headYaw 0
+blend leftEyePitch 0
+blend leftEyeRoll 0
+blend leftEyeYaw 0
+blend rightEyePitch 0
+blend rightEyeRoll 0
+blend rightEyeYaw 0
+llf
+state 1 0 0 0
+blend BrowDownLeft 0
+blend BrowDownRight 0
+blend BrowInnerUp 0
+blend BrowOuterUpLeft 0
+blend BrowOuterUpRight 0
+blend CheekPuff 0
+blend CheekSquintLeft 0
+blend CheekSquintRight 0
+blend EyeBlinkLeft 1065353216
+blend EyeBlinkRight 0
+blend EyeLookDownLeft 3212836864
+blend EyeLookDownRight 0
+blend EyeLookInLeft 0
+blend EyeLookInRight 0
+blend EyeLookOutLeft 0
+blend EyeLookOutRight 0
+blend EyeLookUpLeft 0
+blend EyeLookUpRight 0
+blend EyeSquintLeft 0
+blend EyeSquintRight 0
+blend EyeWideLeft 0
+blend EyeWideRight 0
+blend JawForward 0
+blend JawLeft 0
+blend JawOpen 0
+blend JawRight 0
+blend MouthClose 0
+blend MouthDimpleLeft 0
+blend MouthDimpleRight 0
+blend MouthFrownLeft 0
+blend MouthFrownRight 0
+blend MouthFunnel 0
+blend MouthLeft 0
+blend MouthLowerDownLeft 0
+blend MouthLowerDownRight 0
+blend MouthPressLeft 0
+blend MouthPressRight 0
+blend MouthPucker 0
+blend MouthRight 0
+blend MouthRollLower 0
+blend MouthRollUpper 0
+blend MouthShrugLower 0
+blend MouthShrugUpper 0
+blend MouthSmileLeft 0
+blend MouthSmileRight 0
+blend MouthStretchLeft 0
+blend MouthStretchRight 0
+blend MouthUpperUpLeft 0
+blend MouthUpperUpRight 0
+blend NoseSneerLeft 0
+blend NoseSneerRight 0
+blend TongueOut 0
+blend headPitch 0
+blend headRoll 0
+blend headYaw 0
+blend leftEyePitch 0
+blend leftEyeRoll 0
+blend leftEyeYaw 0
+blend rightEyePitch 0
+blend rightEyeRoll 0
+blend rightEyeYaw 0
+ifm
+state 1 0 0 0
+ifm
+state 1 1 0 0
+blend eyeBlink_L 0
+blend eyeBlink_R 1061494456
+blend eyeLookDown_L 1049582633
+blend eyeLookDown_R 1025758986
+blend eyeLookIn_L 1041194025
+blend eyeLookIn_R 1063843267
+blend eyeLookOut_L 1032805417
+blend eyeLookOut_R 1062668861
+blend eyeLookUp_L 1045891645
+blend eyeLookUp_R 1065017672
+blend eyeSquint_L 1051931443
+blend eyeSquint_R 1038174126
+blend eyeWide_L 1054280253
+blend eyeWide_R 1043878380
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1061494456
+blend ftEyeSquintLeft 1051931443
+blend ftEyeSquintRight 1038174126
+blend ftEyeWidenLeft 1054280253
+blend ftEyeWidenRight 1043878380
+blend ftEyeXLeft 3180289065
+blend ftEyeXRight 1032805424
+blend ftEyeYLeft 3180289066
+blend ftEyeYRight 1064346583
+blend ftMouthEmotion 1055203000
+blend ftMouthOpen 1062165544
+blend ftMouthX 1055790202
+blend mouthFrown_L 1060320051
+blend mouthFrown_R 1055622431
+blend mouthLeft 1057467924
+blend mouthLowerDown_L 1056629064
+blend mouthLowerDown_R 1048576000
+blend mouthRight 1058642330
+blend mouthSmile_L 1059145646
+blend mouthSmile_R 1053273620
+blend mouthUpperUp_L 1057971241
+blend mouthUpperUp_R 1050924810
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+bone LeftEye 0 0 0 1065334965 1024262633 1021002787 1015503342
+bone RightEye 3212836864 1073741824 1077936128 1065285395 1030759468 1029744681 1025835858
+ifm
+state 1 1 0 0
+blend eyeBlink_L 0
+blend eyeBlink_R 1061494456
+blend eyeLookDown_L 1049582633
+blend eyeLookDown_R 1025758986
+blend eyeLookIn_L 1041194025
+blend eyeLookIn_R 1063843267
+blend eyeLookOut_L 1032805417
+blend eyeLookOut_R 1062668861
+blend eyeLookUp_L 1045891645
+blend eyeLookUp_R 1065017672
+blend eyeSquint_L 1051931443
+blend eyeSquint_R 1038174126
+blend eyeWide_L 1054280253
+blend eyeWide_R 1043878380
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1061494456
+blend ftEyeSquintLeft 1051931443
+blend ftEyeSquintRight 1038174126
+blend ftEyeWidenLeft 1054280253
+blend ftEyeWidenRight 1043878380
+blend ftEyeXLeft 3180289065
+blend ftEyeXRight 1032805424
+blend ftEyeYLeft 3180289066
+blend ftEyeYRight 1064346583
+blend ftMouthEmotion 1055203000
+blend ftMouthOpen 1062165544
+blend ftMouthX 1055790202
+blend mouthFrown_L 1060320051
+blend mouthFrown_R 1055622431
+blend mouthLeft 1057467924
+blend mouthLowerDown_L 1056629064
+blend mouthLowerDown_R 1048576000
+blend mouthRight 1058642330
+blend mouthSmile_L 1059145646
+blend mouthSmile_R 1053273620
+blend mouthUpperUp_L 1057971241
+blend mouthUpperUp_R 1050924810
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+bone LeftEye 0 0 0 1065334965 1024262633 1021002787 1015503342
+bone RightEye 3212836864 1073741824 1077936128 1065285395 1030759468 1029744681 1025835858
+ifm
+state 1 0 0 0
+blend eyeBlink_L 0
+blend eyeBlink_R 1061494456
+blend eyeLookDown_L 1049582633
+blend eyeLookDown_R 1025758986
+blend eyeLookIn_L 1041194025
+blend eyeLookIn_R 1063843267
+blend eyeLookOut_L 1032805417
+blend eyeLookOut_R 1062668861
+blend eyeLookUp_L 1045891645
+blend eyeLookUp_R 1065017672
+blend eyeSquint_L 1051931443
+blend eyeSquint_R 1038174126
+blend eyeWide_L 1054280253
+blend eyeWide_R 1043878380
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1061494456
+blend ftEyeSquintLeft 1051931443
+blend ftEyeSquintRight 1038174126
+blend ftEyeWidenLeft 1054280253
+blend ftEyeWidenRight 1043878380
+blend ftEyeXLeft 3180289065
+blend ftEyeXRight 1032805424
+blend ftEyeYLeft 3180289066
+blend ftEyeYRight 1064346583
+blend ftMouthEmotion 1055203000
+blend ftMouthOpen 1062165544
+blend ftMouthX 1055790202
+blend mouthFrown_L 1060320051
+blend mouthFrown_R 1055622431
+blend mouthLeft 1057467924
+blend mouthLowerDown_L 1056629064
+blend mouthLowerDown_R 1048576000
+blend mouthRight 1058642330
+blend mouthSmile_L 1059145646
+blend mouthSmile_R 1053273620
+blend mouthUpperUp_L 1057971241
+blend mouthUpperUp_R 1050924810
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+bone LeftEye 0 0 0 1065334965 1024262633 1021002787 1015503342
+bone RightEye 3212836864 1073741824 1077936128 1065285395 1030759468 1029744681 1025835858
+fm3d
+state 1 0 0 0
+fm3d
+state 1 1 0 0
+blend eyeBlinkLeft 0
+blend eyeBlinkRight 1061494456
+blend eyeLookDownLeft 1049582633
+blend eyeLookDownRight 1025758986
+blend eyeLookInLeft 1041194025
+blend eyeLookInRight 1063843267
+blend eyeLookOutLeft 1032805417
+blend eyeLookOutRight 1062668861
+blend eyeLookUpLeft 1045891645
+blend eyeLookUpRight 1065017672
+blend eyeSquintLeft 1051931443
+blend eyeSquintRight 1038174126
+blend eyeWideLeft 1054280253
+blend eyeWideRight 1043878380
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1061494456
+blend ftEyeSquintLeft 1051931443
+blend ftEyeSquintRight 1038174126
+blend ftEyeWidenLeft 1054280253
+blend ftEyeWidenRight 1043878380
+blend ftEyeXLeft 3180289065
+blend ftEyeXRight 1032805424
+blend ftEyeYLeft 3180289066
+blend ftEyeYRight 1064346583
+blend ftMouthEmotion 1055203000
+blend ftMouthOpen 1062165544
+blend ftMouthX 1055790202
+blend mouthFrownLeft 1060320051
+blend mouthFrownRight 1055622431
+blend mouthLeft 1057467924
+blend mouthLowerDownLeft 1056629064
+blend mouthLowerDownRight 1048576000
+blend mouthRight 1058642330
+blend mouthSmileLeft 1059145646
+blend mouthSmileRight 1053273620
+blend mouthUpperUpLeft 1057971241
+blend mouthUpperUpRight 1050924810
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+bone LeftEye 0 0 0 1065334965 1024262633 1021002787 1015503342
+bone RightEye 3212836864 1073741824 1077936128 1065285395 1030759468 1029744681 1025835858
+fm3d
+state 1 1 0 0
+blend eyeBlinkLeft 0
+blend eyeBlinkRight 1061494456
+blend eyeLookDownLeft 1049582633
+blend eyeLookDownRight 1025758986
+blend eyeLookInLeft 1041194025
+blend eyeLookInRight 1063843267
+blend eyeLookOutLeft 1032805417
+blend eyeLookOutRight 1062668861
+blend eyeLookUpLeft 1045891645
+blend eyeLookUpRight 1065017672
+blend eyeSquintLeft 1051931443
+blend eyeSquintRight 1038174126
+blend eyeWideLeft 1054280253
+blend eyeWideRight 1043878380
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1061494456
+blend ftEyeSquintLeft 1051931443
+blend ftEyeSquintRight 1038174126
+blend ftEyeWidenLeft 1054280253
+blend ftEyeWidenRight 1043878380
+blend ftEyeXLeft 3180289065
+blend ftEyeXRight 1032805424
+blend ftEyeYLeft 3180289066
+blend ftEyeYRight 1064346583
+blend ftMouthEmotion 1055203000
+blend ftMouthOpen 1062165544
+blend ftMouthX 1055790202
+blend mouthFrownLeft 1060320051
+blend mouthFrownRight 1055622431
+blend mouthLeft 1057467924
+blend mouthLowerDownLeft 1056629064
+blend mouthLowerDownRight 1048576000
+blend mouthRight 1058642330
+blend mouthSmileLeft 1059145646
+blend mouthSmileRight 1053273620
+blend mouthUpperUpLeft 1057971241
+blend mouthUpperUpRight 1050924810
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+bone LeftEye 0 0 0 1065334965 1024262633 1021002787 1015503342
+bone RightEye 3212836864 1073741824 1077936128 1065285395 1030759468 1029744681 1025835858
+fm3d
+state 1 0 0 0
+blend eyeBlinkLeft 0
+blend eyeBlinkRight 1061494456
+blend eyeLookDownLeft 1049582633
+blend eyeLookDownRight 1025758986
+blend eyeLookInLeft 1041194025
+blend eyeLookInRight 1063843267
+blend eyeLookOutLeft 1032805417
+blend eyeLookOutRight 1062668861
+blend eyeLookUpLeft 1045891645
+blend eyeLookUpRight 1065017672
+blend eyeSquintLeft 1051931443
+blend eyeSquintRight 1038174126
+blend eyeWideLeft 1054280253
+blend eyeWideRight 1043878380
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1061494456
+blend ftEyeSquintLeft 1051931443
+blend ftEyeSquintRight 1038174126
+blend ftEyeWidenLeft 1054280253
+blend ftEyeWidenRight 1043878380
+blend ftEyeXLeft 3180289065
+blend ftEyeXRight 1032805424
+blend ftEyeYLeft 3180289066
+blend ftEyeYRight 1064346583
+blend ftMouthEmotion 1055203000
+blend ftMouthOpen 1062165544
+blend ftMouthX 1055790202
+blend mouthFrownLeft 1060320051
+blend mouthFrownRight 1055622431
+blend mouthLeft 1057467924
+blend mouthLowerDownLeft 1056629064
+blend mouthLowerDownRight 1048576000
+blend mouthRight 1058642330
+blend mouthSmileLeft 1059145646
+blend mouthSmileRight 1053273620
+blend mouthUpperUpLeft 1057971241
+blend mouthUpperUpRight 1050924810
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+bone LeftEye 0 0 0 1065334965 1024262633 1021002787 1015503342
+bone RightEye 3212836864 1073741824 1077936128 1065285395 1030759468 1029744681 1025835858
+osf
+state 1 0 0 0
+osf
+state 1 0 0 0
+osf
+state 1 1 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 1064544779 3175377852 1045431125 1046877654
+bone RightGaze 0 0 0 1057202040 1043713886 1038138052 3210016872
+osf
+state 1 1 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 1064196984 3179872218 1049695664 1046549238
+bone RightGaze 0 0 0 1057079472 1046961730 1041170000 3209818555
+osf
+state 1 1 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 2752327986 3204448256 2752327986 1056964608
+bone RightGaze 0 0 0 2752327986 3204448256 2752327986 1056964608
+osf
+state 1 1 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 1047124063 1037749435 1020173119 3212289380
+bone RightGaze 0 0 0 3210331201 616715672 2746712360 3204879952
+osf
+state 1 1 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 1047217242 609350558 615111357 3212388056
+bone RightGaze 0 0 0 3210292153 3172937623 1031850171 3204855819
+osf
+state 1 1 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 1047206576 3172221386 3154902706 3212376760
+bone RightGaze 0 0 0 3210262580 3176327688 1034592791 3204837543
+osf
+state 1 1 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 1047206576 3172221386 3154902706 3212376760
+bone RightGaze 0 0 0 3210262580 3176327688 1034592791 3204837543
+osf
+state 1 1 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 1047206576 3172221386 3154902706 3212376760
+bone RightGaze 0 0 0 3210262580 3176327688 1034592791 3204837543
+osf
+state 1 0 0 0
+blend EyeOpenLeft 1048576000
+blend EyeOpenRight 1061158912
+blend eyeLeft 0
+blend eyeRight 1031798784
+blend eyebrowQuirkLeft 1048576000
+blend eyebrowQuirkRight 1054867456
+blend eyebrowSteppnessLeft 1040187392
+blend eyebrowSteppnessRight 1050673152
+blend eyebrowUpDownLeft 1044381696
+blend eyebrowUpDownRight 1052770304
+blend ftEyeBlinkLeft 1061158912
+blend ftEyeBlinkRight 1048576000
+blend ftMouthEmotion 1059061760
+blend ftMouthOpen 1061158912
+blend ftMouthX 1054867456
+blend mouthCornerInOutLeft 1058013184
+blend mouthCornerInOutRight 1060110336
+blend mouthCornerUpDownLeft 1056964608
+blend mouthCornerUpDownRight 1059061760
+blend mouthOpen 1061158912
+blend mouthWide 1062207488
+bone Head 1065353216 3221225472 1077936128 3193518372 1032900803 3201906978 3210295587
+bone LeftGaze 0 0 0 1047206576 3172221386 3154902706 3212376760
+bone RightGaze 0 0 0 3210262580 3176327688 1034592791 3204837543
+vts
+state 1 0 0 0
+vts
+state 1 1 0 0
+blend EyeBlinkLeft 0
+blend EyeBlinkRight 1051721728
+blend eyeLookDown_L 1040187392
+blend eyeLookDown_R 1055916032
+blend eyeLookIn_L 1031798784
+blend eyeLookIn_R 1053818880
+blend eyeLookOut_L 1023410176
+blend eyeLookOut_R 1052770304
+blend eyeLookUp_L 1035993088
+blend eyeLookUp_R 1054867456
+blend eyeSquint_L 1042284544
+blend eyeSquint_R 1056964608
+blend eyeWide_L 1044381696
+blend eyeWide_R 1057488896
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1051721728
+blend ftEyeSquintLeft 1042284544
+blend ftEyeSquintRight 1056964608
+blend ftEyeWidenLeft 1042284544
+blend ftEyeWidenRight 1056964608
+blend ftEyeXLeft 3170893824
+blend ftEyeXRight 1023410176
+blend ftEyeYLeft 3170893824
+blend ftEyeYRight 3170893824
+blend ftMouthEmotion 1056178176
+blend ftMouthOpen 1061158912
+blend ftMouthX 1056440320
+blend jawOpen 1061158912
+blend mouthFrown_L 1050673152
+blend mouthFrown_R 1059586048
+blend mouthLeft 1060110336
+blend mouthLowerDown_L 1046478848
+blend mouthLowerDown_R 1058013184
+blend mouthRight 1060634624
+blend mouthSmile_L 1049624576
+blend mouthSmile_R 1059061760
+blend mouthUpperUp_L 1048576000
+blend mouthUpperUp_R 1058537472
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+vts
+state 1 1 0 0
+blend eyeBlinkLeft 0
+blend eyeBlinkRight 1051721728
+blend eyeLookDownLeft 1040187392
+blend eyeLookDownRight 1055916032
+blend eyeLookInLeft 1031798784
+blend eyeLookInRight 1053818880
+blend eyeLookOutLeft 1023410176
+blend eyeLookOutRight 1052770304
+blend eyeLookUpLeft 1035993088
+blend eyeLookUpRight 1054867456
+blend eyeSquintLeft 1042284544
+blend eyeSquintRight 1056964608
+blend eyeWideLeft 1044381696
+blend eyeWideRight 1057488896
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1051721728
+blend ftEyeSquintLeft 1042284544
+blend ftEyeSquintRight 1056964608
+blend ftEyeWidenLeft 1042284544
+blend ftEyeWidenRight 1056964608
+blend ftEyeXLeft 3170893824
+blend ftEyeXRight 1023410176
+blend ftEyeYLeft 3170893824
+blend ftEyeYRight 3170893824
+blend ftMouthEmotion 1056178176
+blend ftMouthOpen 1061158912
+blend ftMouthX 1056440320
+blend jawOpen 1061158912
+blend mouthFrownLeft 1050673152
+blend mouthFrownRight 1059586048
+blend mouthLeft 1060110336
+blend mouthLowerDownLeft 1046478848
+blend mouthLowerDownRight 1058013184
+blend mouthRight 1060634624
+blend mouthSmileLeft 1049624576
+blend mouthSmileRight 1059061760
+blend mouthUpperUpLeft 1048576000
+blend mouthUpperUpRight 1058537472
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+vts
+state 1 1 0 0
+blend EyeBlinkLeft 0
+blend EyeBlinkRight 1051721728
+blend EyeLookDownLeft 1040187392
+blend EyeLookDownRight 1055916032
+blend EyeLookInLeft 1031798784
+blend EyeLookInRight 1053818880
+blend EyeLookOutLeft 1023410176
+blend EyeLookOutRight 1052770304
+blend EyeLookUpLeft 1035993088
+blend EyeLookUpRight 1054867456
+blend EyeSquintLeft 1042284544
+blend EyeSquintRight 1056964608
+blend EyeWideLeft 1044381696
+blend EyeWideRight 1057488896
+blend JawOpen 1061158912
+blend MouthFrownLeft 1050673152
+blend MouthFrownRight 1059586048
+blend MouthLeft 1060110336
+blend MouthLowerDownLeft 1046478848
+blend MouthLowerDownRight 1058013184
+blend MouthRight 1060634624
+blend MouthSmileLeft 1049624576
+blend MouthSmileRight 1059061760
+blend MouthUpperUpLeft 1048576000
+blend MouthUpperUpRight 1058537472
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1051721728
+blend ftEyeSquintLeft 1042284544
+blend ftEyeSquintRight 1056964608
+blend ftEyeWidenLeft 1044381696
+blend ftEyeWidenRight 1057488896
+blend ftEyeXLeft 3170893824
+blend ftEyeXRight 1023410176
+blend ftEyeYLeft 3170893824
+blend ftEyeYRight 3170893824
+blend ftMouthEmotion 1056178176
+blend ftMouthOpen 1062207488
+blend ftMouthX 1056440320
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+vts
+state 1 0 0 0
+blend EyeBlinkLeft 0
+blend EyeBlinkRight 1051721728
+blend EyeLookDownLeft 1040187392
+blend EyeLookDownRight 1055916032
+blend EyeLookInLeft 1031798784
+blend EyeLookInRight 1053818880
+blend EyeLookOutLeft 1023410176
+blend EyeLookOutRight 1052770304
+blend EyeLookUpLeft 1035993088
+blend EyeLookUpRight 1054867456
+blend EyeSquintLeft 1042284544
+blend EyeSquintRight 1056964608
+blend EyeWideLeft 1044381696
+blend EyeWideRight 1057488896
+blend JawOpen 1061158912
+blend MouthFrownLeft 1050673152
+blend MouthFrownRight 1059586048
+blend MouthLeft 1060110336
+blend MouthLowerDownLeft 1046478848
+blend MouthLowerDownRight 1058013184
+blend MouthRight 1060634624
+blend MouthSmileLeft 1049624576
+blend MouthSmileRight 1059061760
+blend MouthUpperUpLeft 1048576000
+blend MouthUpperUpRight 1058537472
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1051721728
+blend ftEyeSquintLeft 1042284544
+blend ftEyeSquintRight 1056964608
+blend ftEyeWidenLeft 1044381696
+blend ftEyeWidenRight 1057488896
+blend ftEyeXLeft 3170893824
+blend ftEyeXRight 1023410176
+blend ftEyeYLeft 3170893824
+blend ftEyeYRight 3170893824
+blend ftMouthEmotion 1056178176
+blend ftMouthOpen 1062207488
+blend ftMouthX 1056440320
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+vts
+state 1 0 0 0
+blend EyeBlinkLeft 0
+blend EyeBlinkRight 1051721728
+blend EyeLookDownLeft 1040187392
+blend EyeLookDownRight 1055916032
+blend EyeLookInLeft 1031798784
+blend EyeLookInRight 1053818880
+blend EyeLookOutLeft 1023410176
+blend EyeLookOutRight 1052770304
+blend EyeLookUpLeft 1035993088
+blend EyeLookUpRight 1054867456
+blend EyeSquintLeft 1042284544
+blend EyeSquintRight 1056964608
+blend EyeWideLeft 1044381696
+blend EyeWideRight 1057488896
+blend JawOpen 1061158912
+blend MouthFrownLeft 1050673152
+blend MouthFrownRight 1059586048
+blend MouthLeft 1060110336
+blend MouthLowerDownLeft 1046478848
+blend MouthLowerDownRight 1058013184
+blend MouthRight 1060634624
+blend MouthSmileLeft 1049624576
+blend MouthSmileRight 1059061760
+blend MouthUpperUpLeft 1048576000
+blend MouthUpperUpRight 1058537472
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1051721728
+blend ftEyeSquintLeft 1042284544
+blend ftEyeSquintRight 1056964608
+blend ftEyeWidenLeft 1044381696
+blend ftEyeWidenRight 1057488896
+blend ftEyeXLeft 3170893824
+blend ftEyeXRight 1023410176
+blend ftEyeYLeft 3170893824
+blend ftEyeYRight 3170893824
+blend ftMouthEmotion 1056178176
+blend ftMouthOpen 1062207488
+blend ftMouthX 1056440320
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240
+vts
+state 1 0 0 0
+blend EyeBlinkLeft 0
+blend EyeBlinkRight 1051721728
+blend EyeLookDownLeft 1040187392
+blend EyeLookDownRight 1055916032
+blend EyeLookInLeft 1031798784
+blend EyeLookInRight 1053818880
+blend EyeLookOutLeft 1023410176
+blend EyeLookOutRight 1052770304
+blend EyeLookUpLeft 1035993088
+blend EyeLookUpRight 1054867456
+blend EyeSquintLeft 1042284544
+blend EyeSquintRight 1056964608
+blend EyeWideLeft 1044381696
+blend EyeWideRight 1057488896
+blend JawOpen 1061158912
+blend MouthFrownLeft 1050673152
+blend MouthFrownRight 1059586048
+blend MouthLeft 1060110336
+blend MouthLowerDownLeft 1046478848
+blend MouthLowerDownRight 1058013184
+blend MouthRight 1060634624
+blend MouthSmileLeft 1049624576
+blend MouthSmileRight 1059061760
+blend MouthUpperUpLeft 1048576000
+blend MouthUpperUpRight 1058537472
+blend ftEyeBlinkLeft 0
+blend ftEyeBlinkRight 1051721728
+blend ftEyeSquintLeft 1042284544
+blend ftEyeSquintRight 1056964608
+blend ftEyeWidenLeft 1044381696
+blend ftEyeWidenRight 1057488896
+blend ftEyeXLeft 3170893824
+blend ftEyeXRight 1023410176
+blend ftEyeYLeft 3170893824
+blend ftEyeYRight 3170893824
+blend ftMouthEmotion 1056178176
+blend ftMouthOpen 1062207488
+blend ftMouthX 1056440320
+bone Head 3212836864 1073741824 1077936128 1064540335 1047857824 1044503019 1025258240

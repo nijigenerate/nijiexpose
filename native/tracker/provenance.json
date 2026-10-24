@@ -1,0 +1,71 @@
+{
+  "source": "https://github.com/nijigenerate/nijitrack/tree/ac76c322aedd62740eee01c3ea1c528f7de51f6c/native",
+  "files": [
+    {
+      "source": "src/tracking.hpp",
+      "sha256": "e6659f6abbc1a9145f482b3f08705b843c3ac8efee3ad6ab4ecb9917665e5942"
+    },
+    {
+      "source": "src/timing.hpp",
+      "sha256": "3dde46290260ea147eeccd9cf678cf6a4ee401f0bdf393123266b2ce5636018d"
+    },
+    {
+      "source": "src/stream.hpp",
+      "sha256": "0f9048629b28c2a5cc460a4c1cd492637aca97d4532d0a5b8d0b66446e7b388f"
+    },
+    {
+      "source": "src/sdl_preview.hpp",
+      "sha256": "783f6a94ef33bd7797e7805d2d831a5a8efa34a7769e0ebfbe2558668df87cb6"
+    },
+    {
+      "source": "src/sdl_media.hpp",
+      "sha256": "46769227b43e5f6106ea950509e773329f8756c676c933f31dffd38d560753eb"
+    },
+    {
+      "source": "src/sdl_camera.hpp",
+      "sha256": "318140e855cda06fd8555090b7e8de8bc48f1b72f766229e5c1b59725aad18ca"
+    },
+    {
+      "source": "src/paths.hpp",
+      "sha256": "ba48b0b662d56ebb8a76d36ac910e559c4906a4054701d903cc8a12f5fa04c9b"
+    },
+    {
+      "source": "src/face_connections.hpp",
+      "sha256": "ac5e43edef44c09c762be6203bbd0d09f3becd17724333bf2c36d4f5a942b8f8"
+    },
+    {
+      "source": "keyboard/macos.cpp",
+      "sha256": "dc807eea44e25a8e7a4e589cd892a5a3887f64e9caf1b277db7d6ecb5e3345bf"
+    },
+    {
+      "source": "keyboard/x11.cpp",
+      "sha256": "30d12a8eb84c9a920f32bc01595a283bd12c2e71e5c6f8a9ce22a0c28329c258"
+    }
+  ],
+  "adaptations": [
+    "Inference body and mirror_rgb copied from native main.cpp/cli_defaults.hpp; direct settings structure replaces CLI parsing.",
+    "OSC sender replaced by a bounded latest-frame queue carrying NtFrame data.",
+    "Preview receives host-dispatched events; never polls or quits the host SDL runtime.",
+    "Camera permission denied uses the SDL3 integer API (< 0).",
+    "Camera acquisition waits for SDL permission resolution (0 pending, < 0 denied) before requesting frames; the wait remains cancellable.",
+    "SDK is isolated in a same-process DLL to preserve its /MT runtime; only C structures cross the boundary."
+  ],
+  "macos_sdk": {
+    "recipe": "native/build.sh setup / prepare / sdk",
+    "integration": "NijitrackSource.cmake",
+    "local_mediapipe_patches": false,
+    "build_script_patch": "patches/nijitrack-macos-sdk.patch (installed SDK detection and analysis-only preflight)"
+  },
+  "windows_sdk": {
+    "recipe": "native/scripts/setup_tracking_toolchain.ps1 / prepare_mediapipe_halide.ps1 / build_mediapipe_halide.ps1",
+    "integration": "WindowsSource.cmake",
+    "local_mediapipe_patches": false,
+    "build_script_patch": "patches/enable-windows-cache.ps1 (first-run bundled Java initialization and Bazel action cache)"
+  },
+  "linux_sdk": {
+    "recipe": "native/build.sh setup / prepare / sdk",
+    "integration": "LinuxSource.cmake",
+    "local_mediapipe_patches": false,
+    "build_script_patch": "patches/linux-cache.cmake (Bazel action cache)"
+  }
+}

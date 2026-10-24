@@ -2,20 +2,28 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
+    <key>CFBundleShortVersionString</key>
+    <string>${MACOSX_BUNDLE_SHORT_VERSION_STRING}</string>
+    <key>CFBundleGetInfoString</key>
+    <string>nijiexpose ${NIJIEXPOSE_VERSION_PLIST}</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>LSMinimumSystemVersion</key>
+    <string>${NIJIEXPOSE_MACOS_MINIMUM_VERSION}</string>
     <key>CFBundleName</key>
     <string>nijiexpose</string>
     <key>CFBundleDisplayName</key>
     <string>nijiexpose</string>
     <key>CFBundleIdentifier</key>
-    <string>nijigenerate.nijiexpose</string>
+    <string>${MACOSX_BUNDLE_GUI_IDENTIFIER}</string>
     <key>CFBundleVersion</key>
-    <string>0.7.4</string>
+    <string>${MACOSX_BUNDLE_BUNDLE_VERSION}</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleSignature</key>
     <string>inoc</string>
     <key>CFBundleExecutable</key>
-    <string>nijiexpose</string>
+    <string>${MACOSX_BUNDLE_EXECUTABLE_NAME}</string>
     <key>CFBundleIconFile</key>
     <string>nijiexpose</string>
     <key>NSCameraUsageDescription</key>
@@ -24,7 +32,7 @@
     <array>
       <dict>
         <key>CFBundleTypeIconFile</key>
-        <string>project.icns</string>
+        <string>nijiexpose.icns</string>
         <key>CFBundleTypeName</key>
         <string>nijilive Puppet</string>
         <key>CFBundleTypeRole</key>
@@ -45,7 +53,7 @@
         <key>UTTypeDescription</key>
         <string>nijilive Puppet</string>
         <key>UTTypeIconFile</key>
-        <string>puppet.icns</string>
+        <string>nijiexpose.icns</string>
         <key>UTTypeConformsTo</key>
         <array>
           <string>public.data</string>
