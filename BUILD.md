@@ -15,7 +15,8 @@ required.
 Install the Vulkan SDK (including `glslc`) and set `VULKAN_SDK`, then add
 `-DNIJIEXPOSE_RENDERER=VULKAN` to the configure command below. The executable name
 and install layout stay the same. `-DNIJIEXPOSE_RENDERER=OPENGL` selects the existing
-renderer and remains the default for existing build/packaging jobs.
+renderer and remains the default preset. macOS CI explicitly selects Vulkan;
+Windows and Linux CI select OpenGL.
 
 Use `native-opengl-release` or `native-vulkan-release` in place of
 `native-release` in the configure/build/test commands below to keep separate
@@ -56,9 +57,19 @@ receiver registry to verify that the published handle is the render target,
 and D3D11 to compare all RGBA bytes before and after movement,
 resize, removal, and model switching.
 
-The single-pass shading follows nijimi's Vulkan backend, with composite stencil masking and the application's ambient-light setting supported;
-this is not a claim of complete parity with the OpenGL backend. macOS/Linux
-Vulkan runtime verification has not been performed.
+Vulkan retains albedo and emission in separate color planes, including dynamic
+composites. Ambient light modulates albedo; emission is added afterwards without
+changing coverage alpha. Each plane has its own stencil and uses single-color
+render passes so advanced blending does not require multiple color attachments.
+Postprocessing disabled uses unmodulated albedo plus emission. Bloom and full
+OpenGL lighting parity are not implemented. Depth/stencil attachment formats are
+selected from the device's supported formats, including MoltenVK on macOS.
+
+The `nijiexpose_vulkan_regression_test` target checks opacity, black/tinted ambient
+light, the postprocessing toggle, emission occlusion/orientation, nested composite
+opacity and normal/dodge stencil masks. These pixel checks run locally on macOS
+with MoltenVK and `VK_LAYER_KHRONOS_validation`. Linux Vulkan runtime validation
+and real noncoherent advanced-blend hardware coverage remain outstanding.
 
 Advanced blending enables coherent operations when the device supports them.
 Otherwise, advanced-blended geometry uses explicit color-attachment dependencies

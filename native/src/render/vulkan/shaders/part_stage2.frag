@@ -4,6 +4,7 @@ layout(set = 0, binding = 1) uniform sampler2D emissiveTex;
 layout(push_constant) uniform Push {
     vec4 tintOpacity;
     vec4 screenEmission;
+    vec4 emission; // x: source has already been premultiplied in a composite
 } pc;
 layout(location = 0) in vec2 outUv;
 layout(location = 0) out vec4 outColor;
@@ -13,6 +14,8 @@ void main() {
     if (albedo.a <= 0.0001) {
         discard;
     }
-    vec3 outE = emissive.rgb * pc.tintOpacity.rgb * max(pc.screenEmission.a, 0.0) * albedo.a;
+    float coverage = pc.emission.x > 0.5 ? 1.0 : albedo.a;
+    vec3 outE = emissive.rgb * max(pc.screenEmission.a, 0.0) * coverage;
+    if (pc.emission.x > 0.5) outE *= pc.tintOpacity.rgb;
     outColor = vec4(clamp(outE, 0.0, 1.0), albedo.a) * pc.tintOpacity.a;
 }

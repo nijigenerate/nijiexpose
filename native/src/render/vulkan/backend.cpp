@@ -30,6 +30,7 @@ struct Vertex {
 struct Material {
   float tint[4]{1, 1, 1, 1};
   float screen[4]{};
+  float emission[4]{}; // x: source is an already-premultiplied composite
 };
 Vec3 transformClip(const Mat4 &m, const Vec3 &v) {
   float in[4] = {v.x, v.y, v.z, 1}, out[4]{};
@@ -210,8 +211,11 @@ struct Backend::Impl {
   };
   struct Target {
     std::array<uint32_t, 3> colors{};
-    Image stencil;
-    VkFramebuffer framebuffer{};
+    // Separate passes keep advanced blending compatible with devices that
+    // support only one advanced-blend color attachment. Each pass preserves
+    // its own stencil when nested composites interrupt a masked draw.
+    std::array<Image, 2> stencil;
+    std::array<VkFramebuffer, 2> framebuffer{};
     uint32_t width{}, height{};
   };
   struct Batch {
@@ -243,13 +247,14 @@ struct Backend::Impl {
   std::vector<uint16_t> elements;
   std::vector<Batch> batches;
   Buffer vertexBuffer, indexBuffer;
+  VkFormat stencilFormat = VK_FORMAT_UNDEFINED;
   VkRenderPass pass{}, offscreenPass{};
   VkDescriptorSetLayout setLayout{};
   VkPipelineLayout layout{};
   VkDescriptorPool pool{};
   std::map<int, VkPipeline> pipelines;
   VkShaderModule vert{}, maskVert{}, frag{}, stage1{}, stage2{}, partMask{},
-      maskFrag{}, blurFrag{};
+      maskFrag{}, blurFrag{}, emissionFrag{};
   uint32_t white{}, black{};
   int mask = 0;
   uint32_t reference = 1;
@@ -258,9 +263,9 @@ struct Backend::Impl {
   bool blurRequested = false;
   std::unique_ptr<Target> blurA, blurB;
   void destroyTarget(Target &t) {
-    if (t.framebuffer)
-      vkDestroyFramebuffer(c.device, t.framebuffer, nullptr);
-    c.destroy(t.stencil);
+    for (auto framebuffer : t.framebuffer)
+      if (framebuffer) vkDestroyFramebuffer(c.device, framebuffer, nullptr);
+    for (auto &stencil : t.stencil) c.destroy(stencil);
     t = {};
   }
   std::unique_ptr<Target> makeTarget(const std::array<uint32_t, 3> &ids,
@@ -270,27 +275,40 @@ struct Backend::Impl {
     auto &first = textures.at(ids[0]).image;
     t->width = first.width;
     t->height = first.height;
-    t->stencil = c.createImage(
-          t->width, t->height, VK_FORMAT_D24_UNORM_S8_UINT,
+    const unsigned channels = ids[1] && ids[1] != ids[0] ? 2 : 1;
+    for (unsigned channel = 0; channel < channels; ++channel) {
+      t->stencil[channel] = c.createImage(
+          t->width, t->height, stencilFormat,
           VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
           VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
-    VkImageView views[2] = {textures.at(ids[0]).image.view, t->stencil.view};
-    VkFramebufferCreateInfo f{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
-    f.renderPass = rootTarget ? pass : offscreenPass;
-    f.attachmentCount = 2;
-    f.pAttachments = views;
-    f.width = t->width;
-    f.height = t->height;
-    f.layers = 1;
-    check(vkCreateFramebuffer(c.device, &f, nullptr, &t->framebuffer));
+      VkImageView views[2] = {textures.at(ids[channel]).image.view, t->stencil[channel].view};
+      VkFramebufferCreateInfo f{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
+      f.renderPass = rootTarget ? pass : offscreenPass;
+      f.attachmentCount = 2;
+      f.pAttachments = views;
+      f.width = t->width;
+      f.height = t->height;
+      f.layers = 1;
+      check(vkCreateFramebuffer(c.device, &f, nullptr, &t->framebuffer[channel]));
+    }
     return t;
   }
   void initialize() {
+    for (auto format : {VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT_S8_UINT}) {
+      VkFormatProperties properties{};
+      vkGetPhysicalDeviceFormatProperties(c.physical, format, &properties);
+      if (properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+        stencilFormat = format;
+        break;
+      }
+    }
+    if (stencilFormat == VK_FORMAT_UNDEFINED)
+      throw std::runtime_error("No supported Vulkan depth/stencil attachment format");
     VkAttachmentDescription attachments[2]{};
     for (int i = 0; i < 2; ++i) {
       auto &a = attachments[i];
       a.format =
-          i == 1 ? VK_FORMAT_D24_UNORM_S8_UINT : VK_FORMAT_R8G8B8A8_UNORM;
+          i == 1 ? stencilFormat : VK_FORMAT_R8G8B8A8_UNORM;
       a.samples = VK_SAMPLE_COUNT_1_BIT;
       a.loadOp = a.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
       a.storeOp = a.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -374,10 +392,11 @@ struct Backend::Impl {
     partMask = shader(part_mask_frag);
     maskFrag = shader(mask_frag);
     blurFrag = shader(overlay_blur_frag);
+    emissionFrag = shader(emission_combine_frag);
   }
-  VkPipeline pipeline(const Batch &b) {
+  VkPipeline pipeline(const Batch &b, unsigned channel) {
     bool offscreen = b.target != root.get();
-    int key = int(b.blend) * 32 + b.kind + (offscreen ? 16 : 0);
+    int key = int(b.blend) * 64 + b.kind + (offscreen ? 16 : 0) + int(channel) * 32;
     if (auto it = pipelines.find(key); it != pipelines.end())
       return it->second;
     VkPipelineShaderStageCreateInfo stages[2]{};
@@ -387,7 +406,9 @@ struct Backend::Impl {
           i == 0 ? VK_SHADER_STAGE_VERTEX_BIT : VK_SHADER_STAGE_FRAGMENT_BIT;
       stages[i].module = i == 0
                              ? ((b.kind == 4 || b.kind == 8) ? maskVert : vert)
-                             : (b.kind == 1                    ? stage1
+                             : (b.kind == 11                   ? emissionFrag
+                                : channel == 1 && b.mask != 1 && b.kind != 3 ? stage2
+                                : b.kind == 1                 ? stage1
                                 : b.kind == 2                  ? stage2
                                 : b.kind == 9                  ? blurFrag
                                 : (b.kind == 3 || b.kind == 6 || b.kind == 7) ? partMask
@@ -430,7 +451,7 @@ struct Backend::Impl {
     ds.front.writeMask = b.mask == 1 ? 255 : 0;
     ds.back = ds.front;
     auto blend = blendState(b.blend);
-    bool useAdvanced = c.advancedBlendSupported && advanced(b.blend);
+    bool useAdvanced = channel == 0 && c.advancedBlendSupported && advanced(b.blend);
     VkPipelineColorBlendAdvancedStateCreateInfoEXT advancedInfo{
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_ADVANCED_STATE_CREATE_INFO_EXT};
     if (useAdvanced) {
@@ -447,6 +468,11 @@ struct Backend::Impl {
     if (b.kind == 10) {
       blend.srcColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR;
       blend.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+      blend.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+      blend.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    }
+    if (b.kind == 11) {
+      blend.srcColorBlendFactor = blend.dstColorBlendFactor = VK_BLEND_FACTOR_ONE;
       blend.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
       blend.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
     }
@@ -497,30 +523,50 @@ struct Backend::Impl {
       std::memcpy(indexBuffer.mapped, elements.data(),
                   elements.size() * sizeof(uint16_t));
     Target *active = nullptr;
+    unsigned activeChannel = 0;
     auto end = [&] {
       if (active) {
         vkCmdEndRenderPass(cmd);
-        c.transition(cmd, textures.at(active->colors[0]).image,
+        c.transition(cmd, textures.at(active->colors[activeChannel]).image,
                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         active = nullptr;
       }
     };
-    for (const auto &b : batches) {
+    // Finish both color planes before a target is sampled by its parent.
+    // Group consecutive draws to avoid changing render passes for every part.
+    std::vector<std::pair<const Batch *, unsigned>> draws;
+    draws.reserve(batches.size() * 2);
+    // Both planes sample the same inputs. Reuse their descriptor set so
+    // separating emission does not halve the supported number of part draws.
+    std::vector<VkDescriptorSet> descriptorSets(batches.size());
+    for (size_t first = 0; first < batches.size();) {
+      size_t last = first + 1;
+      const bool sceneDraw = batches[first].kind < 9;
+      while (last < batches.size() && batches[last].target == batches[first].target &&
+             (batches[last].kind < 9) == sceneDraw) ++last;
+      const unsigned channels = sceneDraw && batches[first].target->framebuffer[1] ? 2 : 1;
+      for (unsigned channel = 0; channel < channels; ++channel)
+        for (size_t i = first; i < last; ++i) draws.emplace_back(&batches[i], channel);
+      first = last;
+    }
+    for (const auto &[batch, channel] : draws) {
+      const auto &b = *batch;
       auto &t = *b.target;
-      if (active != &t) {
+      if (active != &t || activeChannel != channel) {
         end();
-        c.transition(cmd, textures.at(t.colors[0]).image,
+        c.transition(cmd, textures.at(t.colors[channel]).image,
                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-        if (t.stencil.handle)
-          c.transition(cmd, t.stencil,
+        if (t.stencil[channel].handle)
+          c.transition(cmd, t.stencil[channel],
                        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
                        VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
         VkRenderPassBeginInfo r{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         r.renderPass = &t == root.get() ? pass : offscreenPass;
-        r.framebuffer = t.framebuffer;
+        r.framebuffer = t.framebuffer[channel];
         r.renderArea.extent = {t.width, t.height};
         vkCmdBeginRenderPass(cmd, &r, VK_SUBPASS_CONTENTS_INLINE);
         active = &t;
+        activeChannel = channel;
         bool offscreen = &t != root.get();
         VkViewport vp{0,
                       offscreen ? 0.f : float(t.height),
@@ -540,7 +586,7 @@ struct Backend::Impl {
             a.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             a.colorAttachment = i;
             a.clearValue.color = {{0, 0, 0, 0}};
-            if (&t == root.get() && !nijiexpose::render::transparentWindow)
+            if (channel == 0 && &t == root.get() && !nijiexpose::render::transparentWindow)
               core::inGetClearColor(
                   a.clearValue.color.float32[0], a.clearValue.color.float32[1],
                   a.clearValue.color.float32[2], a.clearValue.color.float32[3]);
@@ -551,7 +597,7 @@ struct Backend::Impl {
         stencil.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
         stencil.clearValue.depthStencil = {
             1, uint32_t(std::max(0, b.clearStencil))};
-        if (t.stencil.handle)
+        if (t.stencil[channel].handle)
           clears.push_back(stencil);
         VkClearRect rect{{{0, 0}, {t.width, t.height}}, 0, 1};
         vkCmdClearAttachments(cmd, uint32_t(clears.size()), clears.data(), 1,
@@ -559,31 +605,33 @@ struct Backend::Impl {
       }
       if (!b.count)
         continue;
-      VkDescriptorSet set;
-      VkDescriptorSetAllocateInfo ai{
-          VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-      ai.descriptorPool = pool;
-      ai.descriptorSetCount = 1;
-      ai.pSetLayouts = &setLayout;
-      check(vkAllocateDescriptorSets(c.device, &ai, &set));
-      VkDescriptorImageInfo images[3]{};
-      VkWriteDescriptorSet writes[3]{};
-      for (int i = 0; i < 3; ++i) {
-        auto id = b.textures[i];
-        if (!id || !textures.contains(id))
-          id = i == 0 ? white : black;
-        auto &tex = textures.at(id);
-        images[i] = {tex.sampler ? tex.sampler : c.sampler, tex.image.view,
-                     VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-        writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        writes[i].dstSet = set;
-        writes[i].dstBinding = i;
-        writes[i].descriptorCount = 1;
-        writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        writes[i].pImageInfo = &images[i];
+      auto &set = descriptorSets[size_t(batch - batches.data())];
+      if (!set) {
+        VkDescriptorSetAllocateInfo ai{
+            VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+        ai.descriptorPool = pool;
+        ai.descriptorSetCount = 1;
+        ai.pSetLayouts = &setLayout;
+        check(vkAllocateDescriptorSets(c.device, &ai, &set));
+        VkDescriptorImageInfo images[3]{};
+        VkWriteDescriptorSet writes[3]{};
+        for (int i = 0; i < 3; ++i) {
+          auto id = b.textures[i];
+          if (!id || !textures.contains(id))
+            id = i == 0 ? white : black;
+          auto &tex = textures.at(id);
+          images[i] = {tex.sampler ? tex.sampler : c.sampler, tex.image.view,
+                       VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+          writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+          writes[i].dstSet = set;
+          writes[i].dstBinding = i;
+          writes[i].descriptorCount = 1;
+          writes[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+          writes[i].pImageInfo = &images[i];
+        }
+        vkUpdateDescriptorSets(c.device, 3, writes, 0, nullptr);
       }
-      vkUpdateDescriptorSets(c.device, 3, writes, 0, nullptr);
-      vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline(b));
+      vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline(b, channel));
       vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0,
                               1, &set, 0, nullptr);
       vkCmdPushConstants(cmd, layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0,
@@ -593,7 +641,7 @@ struct Backend::Impl {
       VkDeviceSize offset = 0;
       vkCmdBindVertexBuffers(cmd, 0, 1, &vertexBuffer.handle, &offset);
       vkCmdBindIndexBuffer(cmd, indexBuffer.handle, 0, VK_INDEX_TYPE_UINT16);
-      if (c.advancedBlendSupported && !c.advancedBlendCoherent && advanced(b.blend)) {
+      if (channel == 0 && c.advancedBlendSupported && !c.advancedBlendCoherent && advanced(b.blend)) {
         VkMemoryBarrier barrier{VK_STRUCTURE_TYPE_MEMORY_BARRIER};
         barrier.srcAccessMask=VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         barrier.dstAccessMask=VK_ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT;
@@ -643,7 +691,7 @@ void Backend::shutdown() {
   vkDestroyShaderModule(p->c.device, p->vert, nullptr);
   vkDestroyShaderModule(p->c.device, p->frag, nullptr);
   for (auto shader : {p->maskVert, p->stage1, p->stage2, p->partMask,
-                      p->maskFrag, p->blurFrag})
+                      p->maskFrag, p->blurFrag, p->emissionFrag})
     vkDestroyShaderModule(p->c.device, shader, nullptr);
   vkDestroyDescriptorPool(p->c.device, p->pool, nullptr);
   vkDestroyPipelineLayout(p->c.device, p->layout, nullptr);
@@ -819,6 +867,21 @@ void Backend::postProcessScene() {
   p->batches.push_back(b);
 }
 void Backend::render() {
+  // Ambient light (when enabled) has only modulated albedo. Add the retained
+  // emission afterwards, also when postprocessing is disabled. Keep root[0]
+  // as the final output so Windows still renders into its shared Spout image.
+  Impl::Batch emission;
+  emission.target = p->root.get();
+  emission.base = int32_t(p->vertices.size());
+  emission.first = uint32_t(p->elements.size());
+  emission.count = 6;
+  emission.kind = 11;
+  emission.textures[0] = p->root->colors[1];
+  // Root targets use a negative viewport height; texture rows start at the top.
+  for (auto v : std::array<Vertex,4>{{{-1,-1,0,1},{1,-1,1,1},{1,1,1,0},{-1,1,0,0}}})
+    p->vertices.push_back(v);
+  for (uint16_t i : {0,1,2,0,2,3}) p->elements.push_back(i);
+  p->batches.push_back(emission);
   if (p->blurRequested) {
     auto append = [&](Impl::Target *target, uint32_t source, float x, float y) {
       Impl::Batch b;
@@ -960,6 +1023,12 @@ void Backend::drawPartPacket(const PartDrawPacket &packet) {
   b.material.screen[1] = packet.clampedScreen.y;
   b.material.screen[2] = packet.clampedScreen.z;
   b.material.screen[3] = packet.emissionStrength;
+  for (const auto &[_, composite] : p->composites)
+    if (composite.target->colors[0] == b.textures[0] &&
+        composite.target->colors[1] == b.textures[1]) {
+      b.material.emission[0] = 1;
+      break;
+    }
   b.kind = p->mask == 1 ? 6 : packet.isMask ? 3 : p->mask == 2 ? 5 : 0;
   if (packet.isMask || p->mask == 1)
     b.material.screen[3] = packet.maskThreshold;
