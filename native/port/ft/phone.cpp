@@ -11,7 +11,7 @@ float number(std::string_view text) {
     float result;
     if(!text.empty() && text.front()=='+') text.remove_prefix(1);
     auto parsed=std::from_chars(text.data(),text.data()+text.size(),result);
-    if(parsed.ec!=std::errc{} || parsed.ptr!=text.data()+text.size()) throw std::runtime_error("Invalid tracking number: "+std::string(text));
+    if(parsed.ec!=std::errc{} || parsed.ptr!=text.data()+text.size() || !std::isfinite(result)) throw std::runtime_error("Invalid tracking number");
     return result;
 }
 }
@@ -19,7 +19,8 @@ PhoneTrackingData::PhoneTrackingData(std::string datastr,char delimiter):indata(
     size_t i=0,nBufStart=0,nBufEnd=0,nBufSplit=0;
     try {
         while(i<datastr.size()) {
-            while(datastr.at(i)==' ') ++i;
+            while(i<datastr.size() && datastr[i]==' ') ++i;
+            if(i==datastr.size()) throw std::runtime_error("Incomplete phone tracking packet");
             if(datastr.at(i)!='|') nBufEnd=i;
             else {
                 ++nBufEnd;
@@ -31,6 +32,7 @@ PhoneTrackingData::PhoneTrackingData(std::string datastr,char delimiter):indata(
                         ++rEnd;
                         if(datastr.at(rEnd)==',' || datastr.at(rEnd)=='|') { values.at(aIdx++)=number(std::string_view(datastr).substr(rStart,rEnd-rStart)); rStart=rEnd+1; }
                     }
+                    if(aIdx!=6) throw std::runtime_error("Incomplete head tracking values");
                     headRot={values[0],values[1],values[2]}; headPos={values[3],values[4],values[5]};
                 } else {
                     nBufSplit=nBufStart;
@@ -45,6 +47,7 @@ PhoneTrackingData::PhoneTrackingData(std::string datastr,char delimiter):indata(
                                 ++rEnd;
                                 if(datastr.at(rEnd)==',' || datastr.at(rEnd)=='|') { values.at(aIdx++)=number(std::string_view(datastr).substr(rStart,rEnd-rStart)); rStart=rEnd+1; }
                             }
+                            if(aIdx!=3) throw std::runtime_error("Incomplete eye tracking values");
                             const auto name=datastr.substr(nBufStart,nBufSplit-nBufStart);
                             if(name=="leftEye") leftEye={values[0],values[1],values[2]};
                             else if(name=="rightEye") rightEye={values[0],values[1],values[2]};
@@ -56,8 +59,8 @@ PhoneTrackingData::PhoneTrackingData(std::string datastr,char delimiter):indata(
             }
             ++i;
         }
-    } catch(const std::runtime_error& ex) {
-        std::cout<<ex.what()<<' '<<nBufStart<<' '<<nBufSplit<<' '<<nBufEnd<<' '<<datastr.substr(nBufStart,nBufEnd-nBufStart)<<'\n';
+    } catch(const std::out_of_range&) {
+        throw std::runtime_error("Malformed phone tracking packet");
     }
 }
 void PhoneAdaptor::request() {
@@ -70,18 +73,19 @@ void PhoneAdaptor::listenThread() {
     while(!isCloseRequested) {
         try {
             auto recvBytes=dataIn->receive(buff);
-            if(recvBytes!=-1 && recvBytes<=static_cast<int>(buff.size())) {
+            if(recvBytes>0 && recvBytes<=static_cast<int>(buff.size())) {
                 ++dataPacketsReceivedTotal;
                 PhoneTrackingData trackingData(std::string(reinterpret_cast<char*>(buff.data()),recvBytes),fm3d?'&':'-');
                 failed=0;
                 std::lock_guard lock(mutex); updated_=true; data=std::move(trackingData);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(8));
-        } catch(const std::runtime_error& ex) {
+        } catch(const std::exception& ex) {
             std::cout<<ex.what()<<'\n'; ++failed;
             std::this_thread::sleep_for(std::chrono::milliseconds(8));
             if(failed>100) {
-                request(); std::this_thread::sleep_for(std::chrono::seconds(1)); failed=0; dataLossCounter=RECV_TIMEOUT;
+                try { request(); } catch(const std::exception& error) { std::cout<<error.what()<<'\n'; }
+                std::this_thread::sleep_for(std::chrono::seconds(1)); failed=0;
             }
         }
     }
@@ -122,7 +126,7 @@ void PhoneAdaptor::poll() {
         bones["RightEye"]={{trackingData.headPos.x*-1,trackingData.headPos.y,trackingData.headPos.z},rotation(trackingData.rightEye)};
         blendshapes=trackingData.blendshapes;
         if(!blendshapes.empty()) {
-            auto get=[&](const char* fm,const char* ifm) { return blendshapes.at(fm3d?fm:ifm); };
+            auto get=[&](const char* fm,const char* ifm) { auto it=blendshapes.find(fm3d?fm:ifm); return it==blendshapes.end()?0.f:it->second; };
             blendshapes["ftEyeBlinkLeft"]=get("eyeBlinkLeft","eyeBlink_L");
             blendshapes["ftEyeXLeft"]=get("eyeLookOutLeft","eyeLookOut_L")-get("eyeLookInLeft","eyeLookIn_L");
             blendshapes["ftEyeYLeft"]=get("eyeLookUpLeft","eyeLookUp_L")-get("eyeLookDownLeft","eyeLookDown_L");

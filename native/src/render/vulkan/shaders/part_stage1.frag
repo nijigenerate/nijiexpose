@@ -13,5 +13,5 @@ void main() {
     }
     vec3 base = albedo.rgb * pc.tintOpacity.rgb;
     vec3 screen = vec3(1.0) - ((vec3(1.0)-base) * (vec3(1.0)-pc.screenEmission.rgb*albedo.a));
-    outColor = vec4(clamp(screen, 0.0, 1.0), albedo.a * pc.tintOpacity.a);
+    outColor = vec4(clamp(screen, 0.0, 1.0), albedo.a) * pc.tintOpacity.a;
 }

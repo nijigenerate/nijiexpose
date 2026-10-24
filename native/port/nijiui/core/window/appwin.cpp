@@ -301,7 +301,7 @@ void InApplicationWindow::update() {
         if (inside) {
             // nijimi samples the final alpha at the pointer, including UI.
             nijiexpose::ogl::glBindFramebuffer(GL_READ_FRAMEBUFFER,0);
-            nijiexpose::ogl::glReadPixels(x,h-1-y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,pixel);
+            glReadPixels(x,h-1-y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,pixel);
         }
         const bool dragging=SDL_GetGlobalMouseState(nullptr,nullptr)&SDL_BUTTON_LMASK;
         nijiexpose::render::setWindowMousePassthrough(window,(!inside || pixel[3]<8) && !dragging);

@@ -6,7 +6,7 @@
 #include <clocale>
 #include <cstdlib>
 #include <filesystem>
-#include <list>
+#include <unordered_set>
 #include <cstring>
 #include <stdexcept>
 #include <array>
@@ -88,7 +88,7 @@ struct Catalogs {
     std::filesystem::path root;
     std::size_t sequence = 0;
     Catalog loaded;
-    std::list<std::string> cStrings;
+    std::unordered_set<std::string> cStrings;
     Catalogs() {
         // GNU gettext needs an initialized non-C LC_CTYPE locale. Keep numeric
         // formatting untouched; Boost.JSON is independently locale invariant.
@@ -168,6 +168,21 @@ struct Catalogs {
         // gettext's LANGUAGE override select the in-app translation.
         setEnvironment("LC_MESSAGES", nullptr, systemLocaleName());
         if (!std::setlocale(LC_MESSAGES, "")) throw std::runtime_error("Unable to select gettext message locale");
+        if (!catalog.language.empty()) {
+            const std::string current=std::setlocale(LC_MESSAGES,nullptr);
+            if (current=="C" || current=="POSIX" || current.starts_with("C.") || current.starts_with("POSIX.")) {
+                bool selected=false;
+                // glibc also suppresses LANGUAGE in C.UTF-8. Use a real
+                // installed message locale; keep LC_NUMERIC untouched.
+                for (const auto& fallback : {catalog.language+".UTF-8",std::string("en_US.UTF-8"),std::string("en_US.utf8")}) {
+                    if (std::setlocale(LC_MESSAGES,fallback.c_str())) {
+                        setEnvironment("LC_MESSAGES",nullptr,fallback);
+                        selected=true; break;
+                    }
+                }
+                if (!selected) throw std::runtime_error("No non-C message locale available");
+            }
+        }
 #endif
         // Explicit app selection must work even when the launcher sets LANG=C.
 #ifdef _WIN32
@@ -253,7 +268,6 @@ std::string _(std::string_view text) {
 }
 const char* __(std::string_view text) {
     auto& state = catalogs();
-    state.cStrings.emplace_back(_(text));
-    return state.cStrings.back().c_str();
+    return state.cStrings.emplace(_(text)).first->c_str();
 }
 }

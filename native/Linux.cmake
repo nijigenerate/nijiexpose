@@ -14,6 +14,11 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/res/fonts/NotoSansCJK-Regular-LICENSE
     "${CMAKE_CURRENT_SOURCE_DIR}/res/fonts/MaterialIcons-LICENSE"
     "${PROJECT_SOURCE_DIR}/native/res/licenses/LICENSE-Lua" DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION})
 if(BUILD_TESTING)
+    add_executable(nijiexpose_gettext_adapter_test tests/gettext_adapter_test.cpp)
+    target_link_libraries(nijiexpose_gettext_adapter_test PRIVATE nijiexpose_locales)
+    add_dependencies(nijiexpose_gettext_adapter_test nijiexpose_translations)
+    add_test(NAME native_gettext_c_locale COMMAND nijiexpose_gettext_adapter_test "${CMAKE_CURRENT_BINARY_DIR}/i18n/ja.mo")
+    set_tests_properties(native_gettext_c_locale PROPERTIES ENVIRONMENT "LC_ALL=C;LANG=C")
     if(NIJIEXPOSE_RENDERER STREQUAL "OPENGL")
         add_executable(nijiexpose_scene_item_test tests/scene_item_test.cpp)
         target_link_libraries(nijiexpose_scene_item_test PRIVATE nijiexpose_scene)

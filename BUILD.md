@@ -7,7 +7,7 @@ the optional comparison tests. Do not build the archived D application.
 ## Vulkan renderer (`native-vulkan`)
 
 The model renderer is a C++ port of `nijimi/source/render/vulkan/vulkan_backend.d`.
-The model shaders are copied without changes; source hashes are recorded in
+The model shaders originate from nijimi, with the part-opacity correction documented alongside original source hashes in
 `native/nijimi-vulkan-provenance.json`. SDL3 owns the surface and the official
 Dear ImGui Vulkan backend renders the existing UI. No nicxlive API extension is
 required.
@@ -56,7 +56,7 @@ receiver registry to verify that the published handle is the render target,
 and D3D11 to compare all RGBA bytes before and after movement,
 resize, removal, and model switching.
 
-The single-pass shading and offscreen mask behavior follow nijimi's Vulkan backend;
+The single-pass shading follows nijimi's Vulkan backend, with composite stencil masking and the application's ambient-light setting supported;
 this is not a claim of complete parity with the OpenGL backend. macOS/Linux
 Vulkan runtime verification has not been performed.
 

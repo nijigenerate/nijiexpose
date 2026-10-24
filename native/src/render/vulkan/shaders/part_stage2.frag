@@ -14,5 +14,5 @@ void main() {
         discard;
     }
     vec3 outE = emissive.rgb * pc.tintOpacity.rgb * max(pc.screenEmission.a, 0.0) * albedo.a;
-    outColor = vec4(clamp(outE, 0.0, 1.0), albedo.a * pc.tintOpacity.a);
+    outColor = vec4(clamp(outE, 0.0, 1.0), albedo.a) * pc.tintOpacity.a;
 }

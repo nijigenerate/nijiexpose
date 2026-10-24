@@ -3,6 +3,7 @@
 // presentation and native nicxlive packet/resource access are host adaptations.
 #include "backend.hpp"
 #include "render/window_mode.hpp"
+#include "render/settings.hpp"
 #ifdef _WIN32
 #include "windows_spout.hpp"
 #endif
@@ -269,15 +270,14 @@ struct Backend::Impl {
     auto &first = textures.at(ids[0]).image;
     t->width = first.width;
     t->height = first.height;
-    if (rootTarget)
-      t->stencil = c.createImage(
+    t->stencil = c.createImage(
           t->width, t->height, VK_FORMAT_D24_UNORM_S8_UINT,
           VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
           VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
     VkImageView views[2] = {textures.at(ids[0]).image.view, t->stencil.view};
     VkFramebufferCreateInfo f{VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO};
     f.renderPass = rootTarget ? pass : offscreenPass;
-    f.attachmentCount = rootTarget ? 2 : 1;
+    f.attachmentCount = 2;
     f.pAttachments = views;
     f.width = t->width;
     f.height = t->height;
@@ -323,8 +323,6 @@ struct Backend::Impl {
     rp.dependencyCount = 1;
     rp.pDependencies = &dep;
     check(vkCreateRenderPass(c.device, &rp, nullptr, &pass));
-    rp.attachmentCount = 1;
-    sub.pDepthStencilAttachment = nullptr;
     check(vkCreateRenderPass(c.device, &rp, nullptr, &offscreenPass));
     VkDescriptorSetLayoutBinding bindings[3]{};
     for (int i = 0; i < 3; ++i) {
@@ -384,7 +382,7 @@ struct Backend::Impl {
                              : (b.kind == 1                    ? stage1
                                 : b.kind == 2                  ? stage2
                                 : b.kind == 9                  ? blurFrag
-                                : (b.kind == 3 || b.kind == 7) ? partMask
+                                : (b.kind == 3 || b.kind == 6 || b.kind == 7) ? partMask
                                 : (b.kind == 4 || b.kind == 8) ? maskFrag
                                                                : frag);
       stages[i].pName = "main";
@@ -438,6 +436,12 @@ struct Backend::Impl {
     blend.colorWriteMask = b.mask == 1 ? 0 : 15;
     if (b.kind == 9)
       blend.blendEnable = VK_FALSE;
+    if (b.kind == 10) {
+      blend.srcColorBlendFactor = VK_BLEND_FACTOR_DST_COLOR;
+      blend.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+      blend.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+      blend.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    }
     VkPipelineColorBlendStateCreateInfo cb{
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO};
     cb.attachmentCount = 1;
@@ -649,6 +653,8 @@ void Backend::uploadDrawableIndices(uint32_t id,
 }
 uint32_t Backend::createTexture(const std::vector<uint8_t> &data, int w, int h,
                                 int channels, bool stencil) {
+  if (w == 0 && h == 0 && data.empty())
+    return createTexture({0,0,0,0},1,1,4,false);
   if (w <= 0 || h <= 0 || channels < 1 || channels > 4)
     throw std::runtime_error("Invalid texture dimensions");
   auto id = p->nextTexture++;
@@ -775,7 +781,23 @@ void Backend::beginScene() {
 }
 void Backend::endScene() {}
 void Backend::addBasicLightingPostProcess() { p->lighting = true; }
-void Backend::postProcessScene() {}
+void Backend::postProcessScene() {
+  if (!p->lighting) return;
+  const auto light = nijiexpose::render::inSceneAmbientLight;
+  Impl::Batch b;
+  b.target = p->root.get();
+  b.base = int32_t(p->vertices.size());
+  b.first = uint32_t(p->elements.size());
+  b.count = 6;
+  b.kind = 10;
+  b.material.tint[0] = light.x;
+  b.material.tint[1] = light.y;
+  b.material.tint[2] = light.z;
+  for (auto v : std::array<Vertex,4>{{{-1,-1,0,0},{1,-1,1,0},{1,1,1,1},{-1,1,0,1}}})
+    p->vertices.push_back(v);
+  for (uint16_t i : {0,1,2,0,2,3}) p->elements.push_back(i);
+  p->batches.push_back(b);
+}
 void Backend::render() {
   if (p->blurRequested) {
     auto append = [&](Impl::Target *target, uint32_t source, float x, float y) {
@@ -919,7 +941,7 @@ void Backend::drawPartPacket(const PartDrawPacket &packet) {
   b.material.screen[2] = packet.clampedScreen.z;
   b.material.screen[3] = packet.emissionStrength;
   b.kind = p->mask == 1 ? 6 : packet.isMask ? 3 : p->mask == 2 ? 5 : 0;
-  if (packet.isMask && p->mask != 1)
+  if (packet.isMask || p->mask == 1)
     b.material.screen[3] = packet.maskThreshold;
   if (p->mask == 1)
     p->maskWritten = true;
@@ -927,10 +949,6 @@ void Backend::drawPartPacket(const PartDrawPacket &packet) {
 }
 void Backend::beginMask(bool normal) {
   p->maskWritten = false;
-  if (p->target != p->root.get()) {
-    p->mask = 0;
-    return;
-  }
   p->mask = 1;
   Impl::Batch b;
   b.target = p->target;

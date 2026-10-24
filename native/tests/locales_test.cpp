@@ -15,6 +15,9 @@ int wmain(int argc, wchar_t** argv) {
         CHECK(_("hello") == "こんにちは");
         CHECK(std::string(__("hello")) == "こんにちは");
         const char* held = __("hello");
+        for (int i=0;i<10000;++i) CHECK(__("hello")==held);
+        for (int i=0;i<1000;++i) __("unique-"+std::to_string(i));
+        CHECK(std::string(held)=="こんにちは");
         CHECK(_("missing") == "missing");
         CHECK(i18nGetLanguageName(filename) == "日本語");
         CHECK(_("hello") == "こんにちは");

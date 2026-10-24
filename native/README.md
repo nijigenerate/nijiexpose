@@ -155,6 +155,11 @@ and Input Monitoring permissions respectively.
 
 ## Verification
 
+Linux gettext requires an installed non-C message locale, such as `en_US.UTF-8`,
+for explicit language selection when launched with `LANG=C`. GNU gettext also
+suppresses translations in `C.UTF-8`; if no usable locale is installed, catalog
+loading reports failure instead of silently claiming to activate a translation.
+
 The optional `nijiexpose_transparent_window_test` target loads a supplied real INP
 and checks startup transparency, three mode changes, resizing and navigation
 restoration. Run it for each renderer with isolated configuration:

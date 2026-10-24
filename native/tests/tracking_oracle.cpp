@@ -10,6 +10,19 @@
 #include <bit>
 using namespace nijiexpose;
 int main(int argc,char** argv) {
+    if(argc==2 && std::string(argv[1])=="--malformed-phone") {
+        for(char delimiter : {'-','&'}) {
+            for(const auto* packet : {" ","=|","=head#1,2|","=head#1,2,3,4,5,6,7|","leftEye#1,2,3,4|","leftEye#nan,0,0|"}) {
+                bool rejected=false;
+                try { ft::PhoneTrackingData parsed(packet,delimiter); }
+                catch(const std::runtime_error&) { rejected=true; }
+                if(!rejected) return 1;
+            }
+            ft::PhoneTrackingData valid("=head#10,20,30,1,2,3|leftEye#2,3,4|rightEye#5,6,7|",delimiter);
+            if(valid.headPos.x!=1 || valid.rightEye.z!=7) return 1;
+        }
+        std::cout<<"Malformed phone packets rejected; valid head/eye data retained\n";return 0;
+    }
     if(argc!=3) return 2;
     std::unique_ptr<ft::Adaptor> a;
     if(std::string(argv[1])=="vmc") a=std::make_unique<tracking::ExVMCAdaptor>();
