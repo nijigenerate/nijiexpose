@@ -99,6 +99,10 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
 }
 InApplicationWindow::~InApplicationWindow() { cleanup(); }
 void InApplicationWindow::cleanup() {
+#ifdef _WIN32
+    // Restore SDL's application-wide drop policy before destroying its window.
+    nijiexpose::render::restoreWindowDropEvents(window);
+#endif
 #ifdef NIJIEXPOSE_VULKAN
     nijiexpose::insCleanupFrameSending();
     vulkanContext->shutdownImGui();
@@ -197,7 +201,12 @@ void InApplicationWindow::onResized(int width,int height) {
 }
 bool InApplicationWindow::shouldProcess() { return window && !done && !(SDL_GetWindowFlags(window)&SDL_WINDOW_MINIMIZED); }
 void InApplicationWindow::focus() { SDL_RaiseWindow(window); }
-void InApplicationWindow::close() { done=true; onClosed(); }
+void InApplicationWindow::close() {
+#ifdef _WIN32
+    nijiexpose::render::restoreWindowDropEvents(window);
+#endif
+    done=true; onClosed();
+}
 void InApplicationWindow::update() {
     // Same SafeThrottling path as the Windows D nijiui configuration.
     if(throttlingRate>0 && renderThrottlingCount++ % static_cast<unsigned>(throttlingRate)!=0) {

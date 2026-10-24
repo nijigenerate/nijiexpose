@@ -5,6 +5,28 @@
 #include <commctrl.h>
 namespace nijiexpose::render {
 namespace {
+constexpr const char* dropStateProperty="nijiexpose.window.saved_drop_events";
+void configureDropEvents(SDL_Window* window,bool transparent) {
+    const auto properties=SDL_GetWindowProperties(window);
+    const auto saved=SDL_GetNumberProperty(properties,dropStateProperty,-1);
+    if (transparent) {
+        if (saved>=0) return;
+        const int flags=(SDL_EventEnabled(SDL_EVENT_DROP_FILE)?1:0) |
+                        (SDL_EventEnabled(SDL_EVENT_DROP_TEXT)?2:0);
+        if (!SDL_SetNumberProperty(properties,dropStateProperty,flags))
+            throw std::runtime_error(SDL_GetError());
+        // SDL owns the OLE target (and the legacy WM_DROPFILES fallback).
+        // Disabling both events makes SDL unregister it. Mouse passthrough
+        // alone does not remove an OLE drop target. SDL exposes this policy
+        // application-wide; the main window is our sole external drop receiver.
+        SDL_SetEventEnabled(SDL_EVENT_DROP_FILE,false);
+        SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT,false);
+    } else if (saved>=0) {
+        SDL_SetEventEnabled(SDL_EVENT_DROP_FILE,(saved&1)!=0);
+        SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT,(saved&2)!=0);
+        SDL_ClearProperty(properties,dropStateProperty);
+    }
+}
 LRESULT CALLBACK transparentFrameProc(HWND hwnd,UINT message,WPARAM wparam,LPARAM lparam,UINT_PTR id,DWORD_PTR) {
     // Layered mouse passthrough changes activation. Do not let DefWindowProc
     // repaint a classic caption on the borderless DWM surface on activation loss.
@@ -13,6 +35,9 @@ LRESULT CALLBACK transparentFrameProc(HWND hwnd,UINT message,WPARAM wparam,LPARA
     if (message==WM_NCDESTROY) RemoveWindowSubclass(hwnd,transparentFrameProc,id);
     return DefSubclassProc(hwnd,message,wparam,lparam);
 }
+}
+void restoreWindowDropEvents(SDL_Window* window) {
+    configureDropEvents(window,false);
 }
 void setWindowMousePassthrough(SDL_Window* window,bool enabled) {
 #ifdef NIJIEXPOSE_VULKAN
@@ -33,6 +58,7 @@ void setWindowMousePassthrough(SDL_Window* window,bool enabled) {
 void configureWindowTransparency(SDL_Window* window,bool enabled) {
     auto hwnd=static_cast<HWND>(SDL_GetPointerProperty(SDL_GetWindowProperties(window),SDL_PROP_WINDOW_WIN32_HWND_POINTER,nullptr));
     if(!hwnd)throw std::runtime_error("Missing native window handle");
+    configureDropEvents(window,enabled);
     auto style=GetWindowLongPtrW(hwnd,GWL_EXSTYLE);
     if (enabled) {
         if (!SetWindowSubclass(hwnd,transparentFrameProc,1,0))

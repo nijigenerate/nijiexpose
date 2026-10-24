@@ -7,12 +7,31 @@
 #ifdef _WIN32
 #define NOMINMAX
 #include <windows.h>
+#include <oleidl.h>
 #ifdef NIJIEXPOSE_VULKAN
 #include "render/vulkan/backend.hpp"
 #endif
 #endif
 
 namespace {
+#ifdef _WIN32
+// Probe OLE registration without reading SDL or Windows private structures.
+struct DropProbe final : IDropTarget {
+    ULONG refs=1;
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid,void** value) override {
+        if(!value)return E_POINTER;
+        *value=nullptr;
+        if(iid!=IID_IUnknown && iid!=IID_IDropTarget)return E_NOINTERFACE;
+        *value=static_cast<IDropTarget*>(this);AddRef();return S_OK;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return ++refs; }
+    ULONG STDMETHODCALLTYPE Release() override { return --refs; }
+    HRESULT STDMETHODCALLTYPE DragEnter(IDataObject*,DWORD,POINTL,DWORD*) override { return E_NOTIMPL; }
+    HRESULT STDMETHODCALLTYPE DragOver(DWORD,POINTL,DWORD*) override { return E_NOTIMPL; }
+    HRESULT STDMETHODCALLTYPE DragLeave() override { return S_OK; }
+    HRESULT STDMETHODCALLTYPE Drop(IDataObject*,DWORD,POINTL,DWORD*) override { return E_NOTIMPL; }
+};
+#endif
 void require(bool ok, const char* message) {
     if (!ok) throw std::runtime_error(message);
 }
@@ -29,6 +48,17 @@ int main(int argc, char** argv) {
         require(windows && count > 0, "No application window");
         auto native = windows[0];
         SDL_free(windows);
+        auto requireDropRegistration=[&](bool expected) {
+#ifdef _WIN32
+            auto hwnd=static_cast<HWND>(SDL_GetPointerProperty(SDL_GetWindowProperties(native),SDL_PROP_WINDOW_WIN32_HWND_POINTER,nullptr));
+            DropProbe probe;
+            const auto result=RegisterDragDrop(hwnd,&probe);
+            if(result==S_OK) require(RevokeDragDrop(hwnd)==S_OK,"Cannot revoke probe drop target");
+            require(result==S_OK || result==DRAGDROP_E_ALREADYREGISTERED,"Cannot probe OLE drop registration");
+            require((result==DRAGDROP_E_ALREADYREGISTERED)==expected,
+                    expected?"Normal mode lost its drop target":"Transparent overlay still owns an OLE drop target");
+#endif
+        };
         auto requireNativeFrame = [&](bool transparent) {
 #ifdef _WIN32
             auto hwnd=static_cast<HWND>(SDL_GetPointerProperty(SDL_GetWindowProperties(native),SDL_PROP_WINDOW_WIN32_HWND_POINTER,nullptr));
@@ -74,6 +104,7 @@ int main(int argc, char** argv) {
         frames();
         requireVisibleFrame();
         requireNativeFrame(false);
+        requireDropRegistration(true);
         for (int cycle = 0; cycle < 3; ++cycle) {
             if (cycle==1) {
                 require(SDL_MaximizeWindow(native), SDL_GetError());
@@ -91,6 +122,7 @@ int main(int argc, char** argv) {
             require(top==0 && left==0 && bottom==0 && right==0,
                     "Transparent window has native borders");
             requireNativeFrame(true);
+            requireDropRegistration(false);
             SDL_Rect transparentArea{};
             int tx=0,ty=0,tw=0,th=0;
             SDL_GetDisplayUsableBounds(SDL_GetDisplayForWindow(native),&transparentArea);
@@ -148,6 +180,7 @@ int main(int argc, char** argv) {
                     "Title bar was not restored");
             requireVisibleFrame();
             requireNativeFrame(false);
+            requireDropRegistration(true);
             require(bool(SDL_GetWindowFlags(native)&SDL_WINDOW_MAXIMIZED)==(cycle>=1),
                     "Normal maximized state was not restored");
             require(SDL_GetWindowFlags(native) & SDL_WINDOW_RESIZABLE,
@@ -157,9 +190,35 @@ int main(int argc, char** argv) {
             require(nijiexpose::scene::insScene()->sceneItems.size() == 1,
                     "Mode change lost the model");
         }
+#ifdef _WIN32
+        // Preserve independently disabled file/text events, including across
+        // repeated configuration (resize) and destruction while transparent.
+        for (int flags=0; flags<4; ++flags) {
+            SDL_SetEventEnabled(SDL_EVENT_DROP_FILE,(flags&1)!=0);
+            SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT,(flags&2)!=0);
+            window->setTransparentMode(true);
+            frames();
+            nijiexpose::render::configureWindowTransparency(native,true);
+            requireDropRegistration(false);
+            window->setTransparentMode(false);
+            frames();
+            require(SDL_EventEnabled(SDL_EVENT_DROP_FILE)==bool(flags&1) &&
+                    SDL_EventEnabled(SDL_EVENT_DROP_TEXT)==bool(flags&2),
+                    "Mode switch changed the original drop event policy");
+            requireDropRegistration(flags!=0);
+        }
+        window->setTransparentMode(true);
+        frames();
+        requireDropRegistration(false);
+#endif
         window->close();
         nijiexpose::shutdownApplication();
         window.reset();
+#ifdef _WIN32
+        require(SDL_EventEnabled(SDL_EVENT_DROP_FILE) && SDL_EventEnabled(SDL_EVENT_DROP_TEXT),
+                "Closing the transparent window did not restore drop events");
+        std::cout << "OLE drop target removal/restoration, all event policies, transparent shutdown passed\n";
+#endif
         std::cout << "Real model: startup transparency, three mode cycles, resize, navigation restoration passed\n";
         return 0;
     } catch (const std::exception& ex) {
