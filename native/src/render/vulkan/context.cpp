@@ -14,17 +14,7 @@
 namespace nijiexpose::vulkan {
 namespace {
 Context *current{};
-bool pointerPixel(SDL_Window* window, int width, int height, int& x, int& y) {
-  float gx=0, gy=0;
-  SDL_GetGlobalMouseState(&gx, &gy);
-  int wx=0, wy=0, w=0, h=0;
-  SDL_GetWindowPosition(window, &wx, &wy);
-  SDL_GetWindowSize(window, &w, &h);
-  if (w<=0 || h<=0 || gx<wx || gy<wy || gx>=wx+w || gy>=wy+h) return false;
-  x=static_cast<int>((gx-wx)*width/w);
-  y=static_cast<int>((gy-wy)*height/h);
-  return true;
-}
+
 }
 void check(VkResult result) {
   if (result < 0)
@@ -256,10 +246,10 @@ bool Context::beginFrame() {
   // submission before reusing them or their mapped geometry; no per-draw waits.
   if (lastSubmit_)
     check(vkWaitForFences(device, 1, &lastSubmit_, VK_TRUE, UINT64_MAX));
-#ifdef _WIN32
+#ifdef NIJIEXPOSE_DYNAMIC_MOUSE_PASSTHROUGH
   if (render::transparentWindow) {
     int x=0, y=0;
-    const bool inside=pointerPixel(window_,swap_.Width,swap_.Height,x,y);
+    const bool inside=render::windowPointerPixel(window_,swap_.Width,swap_.Height,x,y);
     const bool valid=pointerPixelPending_ && x==pointerX_ && y==pointerY_;
     const bool transparent=!inside || (valid && static_cast<uint8_t*>(pointerPixel_.mapped)[3]<8);
     // Retain input while dragging, as nijimi does. Consume the single-pixel
@@ -327,8 +317,8 @@ void Context::present(ImDrawData *data, Image &scene) {
   vkCmdBeginRenderPass(command, &r, VK_SUBPASS_CONTENTS_INLINE);
   ImGui_ImplVulkan_RenderDrawData(data, command);
   vkCmdEndRenderPass(command);
-#ifdef _WIN32
-  if (render::transparentWindow && pointerPixel(window_,swap_.Width,swap_.Height,pointerX_,pointerY_)) {
+#ifdef NIJIEXPOSE_DYNAMIC_MOUSE_PASSTHROUGH
+  if (render::transparentWindow && render::windowPointerPixel(window_,swap_.Width,swap_.Height,pointerX_,pointerY_)) {
     ensureBuffer(pointerPixel_,4,VK_BUFFER_USAGE_TRANSFER_DST_BIT);
     // Sample the final image, including any panel opened from the tray.
     back.layout=VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;

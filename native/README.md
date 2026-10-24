@@ -166,6 +166,15 @@ python native/tests/run_with_config.py build/native/native/Release/nijiexpose_tr
 This checks application state; desktop alpha composition must also be verified
 on the running desktop.
 
+Window transparency is implemented separately in `window_mode_windows.cpp`,
+`window_mode_macos.mm` and `window_mode_linux.cpp`; CMake selects only the host
+implementation. Vulkan samples final image alpha for pointer hit testing, while
+OpenGL uses Windows color-key hit testing or a one-pixel alpha read on macOS/X11.
+The macOS implementation restores window, layer and GL surface settings when
+leaving transparent mode. Linux input passthrough uses XShape and restores the
+default input region so later resizes remain interactive. Wayland input
+passthrough is not implemented, matching the current nijimi Linux backend.
+
 Windows CI uses sccache with the GitHub Actions cache backend for C/C++
 compilation. Boost headers are cached separately; SDL3, gettext/libiconv and
 FreeType are downloaded as binaries. Each run records build

@@ -57,7 +57,9 @@ separate tracker download, Python environment or tracker executable is required.
 Select **Transparent window** in the navigation bar, or launch with
 `--transparent-window`, to hide the window border, background and navigation bar.
 The system tray icon provides the navigation commands and **Exit transparent mode**
-to restore the normal window. Windows transparency follows nijimi's rendering path.
+to restore the normal window. Platform transparency follows nijimi's Windows,
+macOS and Linux/X11 paths. Linux click-through requires X11 with the Shape
+extension and an alpha-capable compositor; Wayland click-through is unsupported.
 
 ## Building
 

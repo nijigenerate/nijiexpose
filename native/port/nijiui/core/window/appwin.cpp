@@ -46,7 +46,11 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     : width_(static_cast<int>(width)),height_(static_cast<int>(height)) {
 #ifdef NIJIEXPOSE_VULKAN
     SDL_SetHint(SDL_HINT_APP_NAME,inGetApplication().humanName.c_str());
-    window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_VULKAN|SDL_WINDOW_RESIZABLE);
+    window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_VULKAN|SDL_WINDOW_RESIZABLE
+#ifndef _WIN32
+        |SDL_WINDOW_TRANSPARENT
+#endif
+    );
     if(!window)throw std::runtime_error(SDL_GetError());
     fitDecoratedWindowToDisplay(window);
     vulkanContext=std::make_unique<nijiexpose::vulkan::Context>(window);
@@ -288,6 +292,23 @@ void InApplicationWindow::update() {
         nijiexpose::ogl::glBindFramebuffer(GL_DRAW_FRAMEBUFFER,fbo);
         nijiexpose::ogl::glBlitFramebuffer(0,0,static_cast<int>(size.x),static_cast<int>(size.y),0,0,static_cast<int>(size.x),static_cast<int>(size.y),GL_COLOR_BUFFER_BIT,GL_NEAREST);
     }
+#ifdef NIJIEXPOSE_DYNAMIC_MOUSE_PASSTHROUGH
+    if (nijiexpose::render::transparentWindow) {
+        int w=0,h=0,x=0,y=0;
+        SDL_GetWindowSizeInPixels(window,&w,&h);
+        const bool inside=nijiexpose::render::windowPointerPixel(window,w,h,x,y);
+        unsigned char pixel[4]={0,0,0,255};
+        if (inside) {
+            // nijimi samples the final alpha at the pointer, including UI.
+            nijiexpose::ogl::glBindFramebuffer(GL_READ_FRAMEBUFFER,0);
+            nijiexpose::ogl::glReadPixels(x,h-1-y,1,1,GL_RGBA,GL_UNSIGNED_BYTE,pixel);
+        }
+        const bool dragging=SDL_GetGlobalMouseState(nullptr,nullptr)&SDL_BUTTON_LMASK;
+        nijiexpose::render::setWindowMousePassthrough(window,(!inside || pixel[3]<8) && !dragging);
+    } else {
+        nijiexpose::render::setWindowMousePassthrough(window,false);
+    }
+#endif
     SDL_GL_SwapWindow(window);
 #endif
     // Like nijimi, apply again after the first present for native layers created lazily.
