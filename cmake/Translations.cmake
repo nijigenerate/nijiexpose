@@ -35,7 +35,7 @@ add_custom_target(nijiexpose_translations ALL
     DEPENDS ${compiled_catalogs} VERBATIM)
 add_dependencies(nijiexpose_native nijiexpose_translations)
 if(APPLE)
-    install(FILES ${compiled_catalogs} DESTINATION nijiexpose-native.app/Contents/Resources/i18n)
+    install(FILES ${compiled_catalogs} DESTINATION nijiexpose.app/Contents/Resources/i18n)
 else()
     install(FILES ${compiled_catalogs} DESTINATION bin/i18n)
 endif()

@@ -87,7 +87,7 @@ def main():
     binary_dir = root / "bin"
     resources = binary_dir
     licenses = root / "share/licenses/nijiexpose"
-    executable = binary_dir / "nijiexpose-native"
+    executable = binary_dir / "nijiexpose"
     required = []
     if system == "Windows":
         executable = executable.with_suffix(".exe")
@@ -95,8 +95,8 @@ def main():
             "SDL3.dll", "intl-8.dll", "iconv-2.dll", "charset-1.dll", "freetype.dll",
             "lua51.dll", "SpoutLibrary.dll", "nijiexpose_embedded_tracker.dll", "vcruntime140.dll")]
     elif system == "Darwin":
-        bundle = root / "nijiexpose-native.app/Contents"
-        executable = bundle / "MacOS/nijiexpose-native"
+        bundle = root / "nijiexpose.app/Contents"
+        executable = bundle / "MacOS/nijiexpose"
         resources = bundle / "Resources"
         licenses = resources / "licenses"
         required += [resources / "nijiexpose.icns", bundle / "Frameworks/libnijiexpose_embedded_tracker.dylib"]
@@ -141,7 +141,14 @@ def main():
     if args.require_macos_vulkan:
         runtime_env = {key: value for key, value in runtime_env.items()
                        if not key.startswith(("VK_", "VULKAN_", "DYLD_"))}
-    subprocess.run([str(executable), "--version"], check=True, cwd=executable.parent, env=runtime_env)
+    version = (resources / "version.txt").read_text().strip()
+    output = subprocess.run([str(executable), "--version"], check=True, cwd=executable.parent,
+                            env=runtime_env, text=True, capture_output=True).stdout
+    if not version or not output.startswith(f"nijiexpose {version} / "):
+        raise RuntimeError(f"Packaged version differs: expected {version!r}, got {output!r}")
+    if system == "Darwin" and info.get("CFBundleGetInfoString") != f"nijiexpose {version}":
+        raise RuntimeError("macOS bundle version differs from the executable")
+    print(output, end="")
     print(f"Verified {system} package: runtime, model hashes, gettext catalogs and licenses")
 
 

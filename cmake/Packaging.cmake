@@ -5,9 +5,9 @@ set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY nijiexpose)
 set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/packages")
-set(CPACK_PACKAGE_FILE_NAME "nijiexpose-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
-set(CPACK_PACKAGE_EXECUTABLES "nijiexpose-native;nijiexpose")
-set(CPACK_CREATE_DESKTOP_LINKS nijiexpose-native)
+set(CPACK_PACKAGE_FILE_NAME "nijiexpose-${NIJIEXPOSE_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+set(CPACK_PACKAGE_EXECUTABLES "nijiexpose;nijiexpose")
+set(CPACK_CREATE_DESKTOP_LINKS nijiexpose)
 if(WIN32)
     set(CPACK_GENERATOR "ZIP;WIX")
     set(CPACK_WIX_UPGRADE_GUID "F509F975-F15C-4E61-A436-8FD202A77BCC")
@@ -56,7 +56,7 @@ elseif(APPLE)
         find_file(NIJIEXPOSE_VULKAN_LICENSE NAMES LICENSE.txt
             PATHS "${vulkan_sdk_prefix}/../Licenses" NO_DEFAULT_PATH REQUIRED)
         install(FILES "${NIJIEXPOSE_MOLTENVK_LIBRARY}"
-            DESTINATION "nijiexpose-native.app/Contents/Frameworks")
+            DESTINATION "nijiexpose.app/Contents/Frameworks")
         # The loader discovers bundled drivers in Resources/vulkan/icd.d.
         # Preserve the SDK manifest's version and portability metadata.
         file(READ "${NIJIEXPOSE_MOLTENVK_MANIFEST}" moltenvk_manifest)
@@ -64,7 +64,7 @@ elseif(APPLE)
             "\"../../../Frameworks/libMoltenVK.dylib\"")
         file(WRITE "${CMAKE_BINARY_DIR}/MoltenVK_icd.json" "${moltenvk_manifest}\n")
         install(FILES "${CMAKE_BINARY_DIR}/MoltenVK_icd.json"
-            DESTINATION "nijiexpose-native.app/Contents/Resources/vulkan/icd.d")
+            DESTINATION "nijiexpose.app/Contents/Resources/vulkan/icd.d")
         install(FILES "${NIJIEXPOSE_VULKAN_LICENSE}"
             DESTINATION "${NIJIEXPOSE_LICENSE_DESTINATION}/vulkan-sdk")
         # The SDK's LICENSE.txt is only an overview, not the component licenses.
@@ -89,7 +89,7 @@ if(APPLE)
     install(CODE [[
         include(BundleUtilities)
         get_filename_component(nijiexpose_bundle
-            "${CMAKE_INSTALL_PREFIX}/nijiexpose-native.app" ABSOLUTE)
+            "${CMAKE_INSTALL_PREFIX}/nijiexpose.app" ABSOLUTE)
         # The tracker now contains nijitrack's static SDK. Remove the obsolete
         # shared face SDK left by earlier macOS installations.
         file(REMOVE "${nijiexpose_bundle}/Contents/Frameworks/libface_landmarker.dylib")

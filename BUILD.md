@@ -89,7 +89,7 @@ $boostRoot = (Get-Content build/boost/prefix.txt -Raw).Trim()
 cmake --preset native-release -DBUILD_TESTING=OFF -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON
 cmake --build --preset native-release --parallel 3
 cmake --install build/native-release --prefix out/native
-./out/native/bin/nijiexpose-native.exe
+./out/native/bin/nijiexpose.exe
 ```
 
 CMake downloads verified Windows dependency binaries and the pinned tracker
@@ -120,7 +120,7 @@ export CMAKE_PREFIX_PATH="$(brew --prefix gettext)${CMAKE_PREFIX_PATH:+:$CMAKE_P
 cmake --preset native-release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 cmake --build --preset native-release --parallel 3
 cmake --install build/native-release --prefix out/native-macos
-open out/native-macos/nijiexpose-native.app
+open out/native-macos/nijiexpose.app
 cpack --config build/native-release/CPackConfig.cmake -C Release
 ```
 
@@ -167,7 +167,7 @@ sudo apt-get install -y build-essential cmake ninja-build clang lld git jq curl 
 cmake --preset native-release -DBUILD_TESTING=OFF -DCMAKE_POLICY_VERSION_MINIMUM=3.5
 cmake --build --preset native-release --parallel 3
 cmake --install build/native-release --prefix out/native-linux
-./out/native-linux/bin/nijiexpose-native
+./out/native-linux/bin/nijiexpose
 cpack --config build/native-release/CPackConfig.cmake -C Release
 ```
 
@@ -194,7 +194,7 @@ The WSLg Zenity preference is a workaround, not a fix for the portal input issue
 To build and validate an AppImage after the Linux build:
 
 ```sh
-python3 build-aux/linux/appimage.py build/native-release --version 0.1.0
+python3 build-aux/linux/appimage.py build/native-release
 ```
 
 The script downloads a checksum-pinned official linuxdeploy binary, includes
@@ -255,8 +255,13 @@ details, including MSI upgrade-version behavior, are in
 The native workflow runs daily at 00:00 UTC once it is on the default branch.
 Scheduled builds and the `nightly` tag publish ZIP files to the nightly prerelease.
 Push `[v]MAJOR.MINOR.PATCH` to build and publish MSI (Windows), DMG (macOS) and
-AppImage (Linux). A `-rcN` suffix marks a prerelease. The numeric tag version is
-passed to CMake as `NIJIEXPOSE_VERSION`, including the MSI product version.
+AppImage (Linux). A `-rcN` suffix marks a prerelease. Application versions are derived from Git:
+an exact tag uses its name; later commits use `<nearest-tag>-g<12-digit-commit>`;
+repositories without tags use the 12-digit commit ID. CI fetches history and tags.
+The same version appears in `--version`, the window title and distribution filenames.
+Existing builds reconfigure when Git HEAD or refs change. Numeric-only metadata
+(MSI, Windows fixed version fields and macOS bundle build numbers) uses the tag's
+`MAJOR.MINOR.PATCH`, or `0.0.0` if the tag has no numeric version.
 Tags are not created automatically for testing.
 
 Branch/PR builds validate both ZIP and installer/AppImage packaging without

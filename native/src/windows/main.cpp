@@ -1,3 +1,4 @@
+#include "version.hpp"
 #include "nijimi/opengl/present.hpp"
 // Direct translation of dlang_archive/source/nijiexpose/windows/main.d (Windows).
 #include "main.hpp"

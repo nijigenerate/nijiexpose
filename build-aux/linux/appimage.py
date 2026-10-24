@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -31,9 +32,10 @@ def verify_host_dialogs(appdir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("build", type=Path)
-    parser.add_argument("--version", default="0.1.0")
     args = parser.parse_args()
     build = args.build.resolve()
+    version = (build / "nijiexpose-version.txt").read_text().strip()
+    version = re.sub(r"[^A-Za-z0-9._+-]", "_", version)
     source = Path(__file__).resolve().parents[2]
     tools = build / "packaging-tools"
     tools.mkdir(exist_ok=True)
@@ -47,7 +49,7 @@ def main():
     if hashlib.sha256(deploy.read_bytes()).hexdigest() != digest:
         raise RuntimeError("linuxdeploy checksum mismatch")
     deploy.chmod(0o755)
-    output = build / "packages" / f"nijiexpose-{args.version}-Linux-x86_64.AppImage"
+    output = build / "packages" / f"nijiexpose-{version}-Linux-x86_64.AppImage"
     output.parent.mkdir(exist_ok=True)
     env = dict(os.environ, APPIMAGE_EXTRACT_AND_RUN="1", ARCH="x86_64", LDAI_OUTPUT=str(output))
     with tempfile.TemporaryDirectory(prefix="appimage-", dir=build) as temporary:
@@ -59,7 +61,7 @@ def main():
         # Checkouts shared with Windows can have CRLF; linuxdeploy reads Icon literally.
         desktop.write_text(desktop.read_text(), encoding="utf-8", newline="\n")
         run(str(deploy), "--appdir", str(appdir), "--executable",
-            str(prefix / "bin/nijiexpose-native"), "--desktop-file",
+            str(prefix / "bin/nijiexpose"), "--desktop-file",
             str(prefix / "share/applications/nijiexpose.desktop"), "--icon-file",
             str(source / "build-aux/osx/nijiexpose.iconset/icon_256x256.png"), "--icon-filename", "nijiexpose",
             env=env)

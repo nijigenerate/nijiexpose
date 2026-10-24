@@ -25,9 +25,12 @@ Outputs are in `build/native-release/packages`:
 
 On Windows, run `./build-aux/windows/ensure-wix.ps1` before CPack. It uses the
 installed WiX binaries, downloading the pinned binary package only if absent.
-The MSI keeps the archived installer's upgrade identity; package versions come
-from the root CMake project. The current development version is 0.1.0, so an
-installed higher-version legacy MSI must be removed before installing it.
+The MSI keeps the archived installer's upgrade identity. Application versions and
+archive names use the exact Git tag, or the nearest tag plus `-g` and a 12-digit
+commit ID (only the commit ID when no tag exists). Numeric installer metadata
+uses the tag's `MAJOR.MINOR.PATCH`, falling back to `0.0.0` for nonnumeric tags.
+An installed MSI with a higher numeric version must be removed before installing
+a lower one; commit IDs do not participate in MSI upgrade ordering.
 No installer is run by the package checks.
 
 The macOS app includes its icon, INP document registration, camera permission
@@ -43,7 +46,7 @@ and models. They target Ubuntu 24.04 x86_64 or a compatible system and use its
 runtime libraries: `libfreetype6`, `libxtst6`, `libx11-6`,
 `libgl1`, `libstdc++6` and their dependencies. File dialogs require a desktop
 portal or the platform dialog support described in the native build guide.
-Launch `bin/nijiexpose-native`; for system integration install the same tree
+Launch `bin/nijiexpose`; for system integration install the same tree
 with `cmake --install <build> --prefix /usr/local`.
 
 CI builds and packages all three platforms, checks the unpacked ZIP's runtime,
@@ -63,7 +66,7 @@ python3 native/tools/verify-package.py <unpacked-package-root>
 ```
 
 Linux Lua 5.1 is statically linked using the distribution archive. Generate the
-AppImage with `python3 build-aux/linux/appimage.py <build-directory> --version <version>`.
+AppImage with `python3 build-aux/linux/appimage.py <build-directory>`.
 Unlike the ZIP, it bundles the runtime libraries selected by linuxdeploy and
 their package notices. The resulting image is extracted and launched for verification.
 File dialogs use the host's XDG Desktop Portal (including its desktop-specific

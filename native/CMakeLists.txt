@@ -21,9 +21,9 @@ endif()
 target_include_directories(nijiexpose_native PRIVATE src)
 target_link_libraries(nijiexpose_native PRIVATE
     nijiexpose_runtime nijiexpose_ui_port nijiexpose_locales SDL3::SDL3)
-target_compile_definitions(nijiexpose_native PRIVATE NIJIEXPOSE_NATIVE_VERSION="${PROJECT_VERSION}")
+target_include_directories(nijiexpose_native PRIVATE "${PROJECT_BINARY_DIR}/generated")
 set_target_properties(nijiexpose_native PROPERTIES
-    OUTPUT_NAME nijiexpose-native
+    OUTPUT_NAME nijiexpose
     BUILD_RPATH_USE_ORIGIN TRUE
     INSTALL_RPATH "$ORIGIN;$ORIGIN/../lib;@executable_path/../Frameworks")
 if(APPLE)
@@ -48,7 +48,7 @@ if(APPLE)
     set_target_properties(nijiexpose_native PROPERTIES MACOSX_BUNDLE TRUE
         MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/build-aux/osx/Info.plist"
         MACOSX_BUNDLE_GUI_IDENTIFIER io.github.nijigenerate.nijiexpose.native
-        MACOSX_BUNDLE_BUNDLE_NAME "nijiexpose Native"
+        MACOSX_BUNDLE_BUNDLE_NAME "nijiexpose"
         MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
         MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}")
 endif()
@@ -86,12 +86,18 @@ if(WIN32)
 endif()
 
 install(TARGETS nijiexpose_native RUNTIME DESTINATION bin BUNDLE DESTINATION .)
+if(APPLE)
+    install(FILES "${PROJECT_BINARY_DIR}/nijiexpose-version.txt"
+        DESTINATION nijiexpose.app/Contents/Resources RENAME version.txt)
+else()
+    install(FILES "${PROJECT_BINARY_DIR}/nijiexpose-version.txt" DESTINATION bin RENAME version.txt)
+endif()
 if(WIN32)
     install(FILES $<TARGET_FILE:SDL3::SDL3-shared> DESTINATION bin)
     install(FILES ${NIJIEXPOSE_GETTEXT_DLLS} $<TARGET_FILE:freetype> DESTINATION bin)
 elseif(APPLE)
     install(FILES $<TARGET_FILE:SDL3::SDL3-shared>
-        DESTINATION nijiexpose-native.app/Contents/Frameworks)
+        DESTINATION nijiexpose.app/Contents/Frameworks)
 else()
     install(FILES $<TARGET_FILE:SDL3::SDL3-shared> $<TARGET_SONAME_FILE:SDL3::SDL3-shared>
         DESTINATION lib)
@@ -255,7 +261,7 @@ if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif()
     add_library(nijiexpose_windows STATIC src/windows/settings.cpp src/windows/spaceedit.cpp)
     target_sources(nijiexpose_windows PRIVATE src/windows/main.cpp src/control.cpp)
-    target_compile_definitions(nijiexpose_windows PRIVATE NIJIEXPOSE_NATIVE_VERSION="${PROJECT_VERSION}")
+    target_include_directories(nijiexpose_windows PRIVATE "${PROJECT_BINARY_DIR}/generated")
     target_link_libraries(nijiexpose_windows PUBLIC nijiexpose_tracker nijiexpose_panels nijiexpose_appwindow nijiexpose_framesend)
     if(MSVC)
         target_compile_options(nijiexpose_windows PRIVATE /utf-8 /W4 /fp:strict)

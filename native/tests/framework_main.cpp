@@ -1,3 +1,4 @@
+#include "version.hpp"
 #include "platform/session.hpp"
 #include "runtime/clock.hpp"
 
@@ -91,11 +92,11 @@ int main(int argc, char** argv) {
     for (int i = 1; i < argc; ++i) {
         const std::string_view option(argv[i]);
         if (option == "--version") {
-            std::puts("nijiexpose-native " NIJIEXPOSE_NATIVE_VERSION " / nicxlive / SDL3 / ImGui " IMGUI_VERSION " (docking) / Boost.JSON / GNU gettext");
+            std::puts("nijiexpose " NIJIEXPOSE_NATIVE_VERSION " / nicxlive / SDL3 / ImGui " IMGUI_VERSION " (docking) / Boost.JSON / GNU gettext");
             return 0;
         }
         if (option == "--help") {
-            std::puts("Usage: nijiexpose-native [--version | --help | --smoke-test]");
+            std::puts("Usage: nijiexpose [--version | --help | --smoke-test]");
             return 0;
         }
         if (option == "--smoke-test") smokeTest = true;
@@ -109,7 +110,7 @@ int main(int argc, char** argv) {
         if (smokeTest) std::puts("SDL3 / ImGui / nicxlive smoke test passed (4 frames, readback, resize, clean shutdown)");
         return result;
     } catch (const std::exception& error) {
-        std::fprintf(stderr, "nijiexpose-native: %s\n", error.what());
+        std::fprintf(stderr, "nijiexpose: %s\n", error.what());
         return 1;
     }
 }

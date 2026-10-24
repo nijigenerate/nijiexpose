@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=nijiexpose
-Exec=nijiexpose-native
+Exec=nijiexpose
 Icon=nijiexpose
 Type=Application
 Terminal=false

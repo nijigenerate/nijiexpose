@@ -1,3 +1,4 @@
+#include "version.hpp"
 #include "application.hpp"
 #include "log.hpp"
 #include "control.hpp"
@@ -22,9 +23,9 @@ static int runApplication(int argc,char** argv){
             controlDirectory=std::string(argv[++i]);continue;
         }
         if(arg=="--version"){
-            std::puts("nijiexpose-native " NIJIEXPOSE_NATIVE_VERSION " / nicxlive / SDL3 / ImGui " IMGUI_VERSION " / Boost.JSON / GNU gettext");return 0;
+            std::puts("nijiexpose " NIJIEXPOSE_NATIVE_VERSION " / nicxlive / SDL3 / ImGui " IMGUI_VERSION " / Boost.JSON / GNU gettext");return 0;
         }
-        if(arg=="--help"){std::puts("Usage: nijiexpose-native [--transparent-window] [--control-dir DIRECTORY] [model.inp | model.inx | image ...]");return 0;}
+        if(arg=="--help"){std::puts("Usage: nijiexpose [--transparent-window] [--control-dir DIRECTORY] [model.inp | model.inx | image ...]");return 0;}
         if(arg.starts_with("--")){std::fprintf(stderr,"Unknown option: %s\n",arg.c_str());return 1;}
         args.push_back(std::move(arg));
     }

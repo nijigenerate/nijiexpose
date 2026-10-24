@@ -1,6 +1,6 @@
 # 実行中のモデルを外部から調整する
 
-Windows版を `nijiexpose-native.exe --control-dir C:\work\control model.inp` で起動する。
+Windows版を `nijiexpose.exe --control-dir C:\work\control model.inp` で起動する。
 指定しない場合、外部操作は無効。ネットワークポートは開かない。
 
 モデルは読み込み後の最初の描画で自動的に中央へfitする（起動引数、ファイル選択、ドロップ共通）。小さなモデルは拡大せず、大きいモデルのみ縮小する。以後のフレームやウィンドウ変更で手動調整を上書きしない。外部の `fit` は明示操作として拡大も行う。Scale下限は既存操作と共通の0.25。

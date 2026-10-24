@@ -37,7 +37,7 @@ cmake -S . -B "$HOME/build-nijiexpose-linux" -G Ninja \
 cmake --build "$HOME/build-nijiexpose-linux" --parallel 6
 ctest --test-dir "$HOME/build-nijiexpose-linux" --output-on-failure
 cmake --install "$HOME/build-nijiexpose-linux" --prefix "$HOME/nijiexpose-linux"
-"$HOME/nijiexpose-linux/bin/nijiexpose-native"
+"$HOME/nijiexpose-linux/bin/nijiexpose"
 ```
 
 Keep Linux build outputs on the WSL Linux filesystem, separate from Windows
@@ -108,7 +108,7 @@ msgfmt can use precompiled catalogs in `out/i18n`; CI supplies them from its
 translation job. All required runtime DLLs and notices are staged. See
 [translation maintenance](../tl/README.md) and [package generation](../build-aux/README.md).
 
-The staged Windows executable is `out/native/bin/nijiexpose-native.exe`.
+The staged Windows executable is `out/native/bin/nijiexpose.exe`.
 Keep all staged DLLs beside it and distribute the staged licenses. `--version`
 reports the linked ImGui version. `--smoke-test` checks four hidden-window
 frames, framebuffer readback, resizing and shutdown without saving a layout.

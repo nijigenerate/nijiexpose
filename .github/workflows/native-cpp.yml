@@ -30,10 +30,10 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       mode: ${{ steps.mode.outputs.mode }}
-      version: ${{ steps.mode.outputs.version }}
     steps:
       - uses: actions/checkout@v4
       - run: python3 build-aux/test_package_mode.py
+      - run: python3 build-aux/test_git_version.py
       - id: mode
         env:
           REQUESTED_MODE: ${{ inputs.mode }}
@@ -57,7 +57,6 @@ jobs:
     runs-on: windows-2022
     env:
       PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
-      PACKAGE_VERSION: ${{ needs.package-mode.outputs.version }}
       SCCACHE_GHA_ENABLED: "true"
       # A cold MediaPipe build can exceed the default server idle timeout.
       # Keep one statistics session for the entire application build.
@@ -69,6 +68,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: false
+          fetch-depth: 0
       - name: Verify D reference sources
         shell: pwsh
         run: ./native/tools/verify-reference.ps1
@@ -119,7 +119,7 @@ jobs:
         shell: pwsh
         run: |
           $boostRoot = Get-Content build/boost/prefix.txt -Raw
-          cmake --preset native-release -DNIJIEXPOSE_VERSION="$env:PACKAGE_VERSION" -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg" -DNIJIEXPOSE_TRACKER_SOURCE_DIR="${{ github.workspace }}/build/nt"
+          cmake --preset native-release -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg" -DNIJIEXPOSE_TRACKER_SOURCE_DIR="${{ github.workspace }}/build/nt"
       - name: Build
         shell: pwsh
         run: |
@@ -171,7 +171,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: nijiexpose-native-windows-test-results
+          name: nijiexpose-windows-test-results
           path: |
             build/native-release/test-results.xml
             build/native-release/build-time.txt
@@ -223,7 +223,7 @@ jobs:
       - name: Upload Windows packages
         uses: actions/upload-artifact@v4
         with:
-          name: nijiexpose-native-windows-packages
+          name: nijiexpose-windows-packages
           path: out/dist/*
           if-no-files-found: error
   unix-native:
@@ -238,7 +238,6 @@ jobs:
       # Official macOS archive digest: https://vulkan.lunarg.com/sdk/files.json
       VULKAN_SDK_SHA256: 571db867d8736e402f6f674f26f17b339495d016f3b2afdbac23a3650475023f
       PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
-      PACKAGE_VERSION: ${{ needs.package-mode.outputs.version }}
       SCCACHE_DIR: ${{ github.workspace }}/build/compiler-cache
       SCCACHE_CACHE_SIZE: 1G
       SCCACHE_IDLE_TIMEOUT: "0"
@@ -246,6 +245,8 @@ jobs:
       CMAKE_CXX_COMPILER_LAUNCHER: sccache
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: mozilla-actions/sccache-action@v0.0.11
         with:
           version: v0.16.0
@@ -348,7 +349,7 @@ jobs:
             )
           fi
           cmake --preset native-release -DNIJIEXPOSE_RENDERER="$renderer" \
-            -DNIJIEXPOSE_VERSION="$PACKAGE_VERSION" -DBUILD_TESTING=OFF \
+            -DBUILD_TESTING=OFF \
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "${vulkan_options[@]}"
       - name: Build
         run: cmake --build --preset native-release --parallel 3
@@ -372,7 +373,7 @@ jobs:
             if [[ "$RUNNER_OS" == macOS ]]; then
               cpack --config build/native-release/CPackConfig.cmake -C Release -G DragNDrop
             else
-              python3 build-aux/linux/appimage.py build/native-release --version "$PACKAGE_VERSION"
+              python3 build-aux/linux/appimage.py build/native-release
             fi
           fi
       - name: Verify unpacked package
@@ -397,7 +398,7 @@ jobs:
             trap 'hdiutil detach "$mountpoint"' EXIT
             python3 native/tools/verify-package.py "$mountpoint" --require-macos-vulkan
             # Exercise the same app-bundle copy used for drag-and-drop installation.
-            ditto "$mountpoint/nijiexpose-native.app" out/dmg-installed/nijiexpose-native.app
+            ditto "$mountpoint/nijiexpose.app" out/dmg-installed/nijiexpose.app
             hdiutil detach "$mountpoint"
             trap - EXIT
             python3 native/tools/verify-package.py out/dmg-installed --require-macos-vulkan
@@ -420,7 +421,7 @@ jobs:
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
-          name: nijiexpose-native-${{ runner.os }}-${{ runner.arch }}-packages
+          name: nijiexpose-${{ runner.os }}-${{ runner.arch }}-packages
           path: out/dist/*
           if-no-files-found: error
   publish:
@@ -432,7 +433,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: nijiexpose-native-*-packages
+          pattern: nijiexpose-*-packages
           merge-multiple: true
           path: dist
       - name: Publish verified packages

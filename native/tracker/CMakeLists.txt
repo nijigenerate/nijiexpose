@@ -26,7 +26,7 @@ if(APPLE)
         "@${tracker_sdk}/mediapipe_tracking_linkopts.txt")
     add_dependencies(nijiexpose_embedded_tracker nijitrack_source_sdk)
     install(TARGETS nijiexpose_embedded_tracker LIBRARY
-        DESTINATION nijiexpose-native.app/Contents/Frameworks)
+        DESTINATION nijiexpose.app/Contents/Frameworks)
     install(FILES LICENSE.nijitrack "${tracker_sdk}/LICENSE.mediapipe"
         "${tracker_sdk}/LICENSE.halide" "${tracker_sdk}/SOURCE.txt"
         DESTINATION ${NIJIEXPOSE_LICENSE_DESTINATION}/nijitrack)
