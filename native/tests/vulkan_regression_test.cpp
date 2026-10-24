@@ -81,6 +81,26 @@ int main() {
      check(abs(int(image[center])-r)<=2 && image[center+1]<=2 &&
            abs(int(image[center+2])-b)<=2 && abs(int(image[center+3])-a)<=2,message);
     };
+    // Match nijimi's OpenGL screen-before-tint formula, independently of
+    // ambient light. Check the retained emission plane as well as final RGB.
+    auto colored=packet;colored.node.reset();colored.emissionStrength=0;
+    colored.clampedTint={.5f,1,1};colored.clampedScreen={.5f,0,0};
+    pixels=frame([&]{backend->drawPartPacket(colored);});
+    requirePixel(pixels,128,0,255,"Albedo screen must precede tint");
+    for(float opacity:{1.f,.5f})for(float tint:{0.f,.5f,1.f})for(float screen:{0.f,.5f}) {
+     auto coloredEmission=luminous;
+     coloredEmission.opacity=opacity;
+     coloredEmission.clampedTint={tint,1,tint};
+     coloredEmission.clampedScreen={screen,0,screen};
+     nijiexpose::render::inSceneAmbientLight={0,0,0};
+     pixels=frame([&]{backend->drawPartPacket(coloredEmission);backend->postProcessScene();});
+     const int expectedR=int(255*screen*tint*opacity);
+     const int expectedB=int((128+(255-128)*screen)*tint*opacity);
+     requirePixel(pixels,expectedR,expectedB,int(255*opacity),"Emission screen/tint/opacity differs from OpenGL");
+     requirePixel(backend->readTexture(backend->mainEmissiveHandle()),expectedR,expectedB,int(255*opacity),
+                  "Retained emission screen/tint differs from OpenGL");
+    }
+    std::cout<<"OpenGL-compatible albedo screen/tint and emission screen/tint/opacity passed\n";
     for(float opacity:{1.f,.5f})for(bool post:{false,true})for(float light:{0.f,.25f,1.f}) {
      luminous.opacity=opacity;nijiexpose::render::inSceneAmbientLight={light,.75f,0.f};
      pixels=frame([&]{backend->drawPartPacket(luminous);if(post)backend->postProcessScene();});
@@ -132,6 +152,13 @@ int main() {
      backend->drawPartPacket(compositePacket);backend->postProcessScene();
     });
     requirePixel(pixels,0,16,64,"Composite tint did not affect its retained emission");
+    compositePacket.clampedScreen={0,0,.5f};
+    pixels=frame([&]{
+     backend->beginDynamicComposite(composite);backend->drawPartPacket(luminous);backend->endDynamicComposite(composite);
+     backend->drawPartPacket(compositePacket);backend->postProcessScene();
+    });
+    requirePixel(pixels,0,28,64,"Composite screen/tint applied coverage twice or changed alpha");
+    compositePacket.clampedScreen={0,0,0};
     backend->destroyDynamicComposite(outer.surface);luminous.opacity=1;
     for(bool offscreen:{false,true})for(bool dodge:{false,true})for(float threshold:{.1f,.5f}) {
      mask.isDodge=dodge;mask.partPacket.maskThreshold=threshold;

@@ -15,7 +15,8 @@ void main() {
         discard;
     }
     float coverage = pc.emission.x > 0.5 ? 1.0 : albedo.a;
-    vec3 outE = emissive.rgb * max(pc.screenEmission.a, 0.0) * coverage;
-    if (pc.emission.x > 0.5) outE *= pc.tintOpacity.rgb;
+    vec3 screened = vec3(1.0) - ((vec3(1.0) - emissive.rgb) *
+                                    (vec3(1.0) - pc.screenEmission.rgb * albedo.a));
+    vec3 outE = screened * pc.tintOpacity.rgb * max(pc.screenEmission.a, 0.0) * coverage;
     outColor = vec4(clamp(outE, 0.0, 1.0), albedo.a) * pc.tintOpacity.a;
 }
