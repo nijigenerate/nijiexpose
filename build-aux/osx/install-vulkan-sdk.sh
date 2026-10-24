@@ -20,4 +20,4 @@ if [[ ${#installers[@]} != 1 || ! -x "${installers[0]}" ]]; then
     exit 1
 fi
 "${installers[0]}" --root "$sdk_root" --accept-licenses \
-    --default-answer --confirm-command copy_only=1 install com.lunarg.vulkan.core
+    --default-answer --confirm-command install com.lunarg.vulkan.core copy_only=1
