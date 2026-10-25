@@ -1,4 +1,4 @@
-// dlang_archive/source/nijiexpose/scene/package.d: SceneItem, in original operation order.
+// legacy D: nijiexpose/scene/package.d: SceneItem, in original operation order.
 #include "item.hpp"
 #include "render/renderer.hpp"
 #include "nijilive/opengl/backend.hpp"

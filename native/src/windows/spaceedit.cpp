@@ -1,4 +1,4 @@
-// Direct translation of dlang_archive/source/nijiexpose/windows/spaceedit.d (win32-full).
+// Direct translation of legacy D: nijiexpose/windows/spaceedit.d (win32-full).
 #include "spaceedit.hpp"
 #include "scene/package.hpp"
 #include "tracking/tracker.hpp"

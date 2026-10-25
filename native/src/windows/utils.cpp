@@ -1,4 +1,4 @@
-// Direct translation of dlang_archive/source/nijiexpose/windows/utils.d.
+// Direct translation of legacy D: nijiexpose/windows/utils.d.
 #include "windows/utils.hpp"
 #include "nijiui/widgets/colors.hpp"
 #include <imgui.h>

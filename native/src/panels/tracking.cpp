@@ -1,4 +1,4 @@
-// Direct translation of dlang_archive/source/nijiexpose/panels/tracking.d.
+// Direct translation of legacy D: nijiexpose/panels/tracking.d.
 #include "factory.hpp"
 #include "tracking_state.hpp"
 #include "scene/package.hpp"

@@ -1,4 +1,4 @@
-// Direct port of dlang_archive/source/nijiexpose/tracking/vspace.d (BSD-2-Clause).
+// Direct port of legacy D: nijiexpose/tracking/vspace.d (BSD-2-Clause).
 #include "vspace.hpp"
 #include "ft/quaternion.hpp"
 #include "log.hpp"

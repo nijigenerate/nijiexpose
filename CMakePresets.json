@@ -10,6 +10,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_TESTING": "ON",
+        "NIJIEXPOSE_D_REFERENCE_TESTS": "OFF",
         "NIJIEXPOSE_RENDERER": "OPENGL"
       }
     },

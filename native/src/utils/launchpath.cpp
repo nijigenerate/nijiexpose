@@ -1,4 +1,4 @@
-// Source: dlang_archive/source/nijiexpose/utils/launchpath.d (see reference-sources.json).
+// Source: legacy D: nijiexpose/utils/launchpath.d.
 #include "utils/launchpath.hpp"
 #include "dcompat/string.hpp"
 #include <filesystem>

@@ -1,4 +1,4 @@
-// Direct Windows translation of dlang_archive/source/nijiexpose/log.d.
+// Direct Windows translation of legacy D: nijiexpose/log.d.
 // Copyright (c) 2022 Inochi2D Project, 2024 nijigenerate Project. BSD-2-Clause.
 #include "log.hpp"
 #include "dcompat/string.hpp"

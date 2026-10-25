@@ -1,5 +1,5 @@
 #pragma once
-// Windows branch of dlang_archive/source/nijiexpose/utils/subprocess.d, in source order.
+// Windows branch of legacy D: nijiexpose/utils/subprocess.d, in source order.
 #include "dcompat/string.hpp"
 #include <array>
 #include <cstdio>

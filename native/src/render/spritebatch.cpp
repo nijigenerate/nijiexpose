@@ -1,4 +1,4 @@
-// Port of dlang_archive/source/nijiexpose/render/spritebatch.d.
+// Port of legacy D: nijiexpose/render/spritebatch.d.
 #include "spritebatch.hpp"
 #ifndef NIJIEXPOSE_VULKAN
 #include "spritebatch_assets.hpp"

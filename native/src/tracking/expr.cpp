@@ -1,4 +1,4 @@
-// dlang_archive/source/nijiexpose/tracking/expr.d, using the same Windows Lua 5.1 runtime.
+// legacy D: nijiexpose/tracking/expr.d, using the same Windows Lua 5.1 runtime.
 #include "expr.hpp"
 #include "context.hpp"
 #include "plugins/lua51.hpp"

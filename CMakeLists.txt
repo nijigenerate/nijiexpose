@@ -31,6 +31,7 @@ if(APPLE)
     set(BUILD_TESTING OFF CACHE BOOL "Build native comparison and test targets")
 endif()
 include(CTest)
+option(NIJIEXPOSE_D_REFERENCE_TESTS "Enable local comparisons against remote origin/dlang-impl" OFF)
 option(NIJIEXPOSE_GPU_TESTS "Register tests requiring a working desktop OpenGL context" OFF)
 set(NIJIEXPOSE_NICXLIVE_SOURCE_DIR "" CACHE PATH "Optional local nicxlive checkout (otherwise use pinned source)")
 

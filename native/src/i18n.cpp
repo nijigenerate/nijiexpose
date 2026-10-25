@@ -1,4 +1,4 @@
-// dlang_archive/source/nijiexpose/i18n.d, with authorized GNU gettext/Boost.JSON backends.
+// legacy D: nijiexpose/i18n.d, with authorized GNU gettext/Boost.JSON backends.
 #include "i18n.hpp"
 #include "i18n/tr.hpp"
 #include "nijiui/core/path.hpp"

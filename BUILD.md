@@ -222,8 +222,13 @@ for extraction commands and installed catalog locations.
 ## Tests and package validation
 
 To enable tests, reconfigure the same preset with `-DBUILD_TESTING=ON`, rebuild,
-and run `ctest --preset native-release`. Windows D-reference comparisons use
-LDC (`ldc2` on PATH); they do not require DMD or a D application build.
+and run `ctest --preset native-release`. Optional local Windows style/path/subprocess/log comparisons use remote
+`origin/dlang-impl` and LDC; enable `NIJIEXPOSE_D_REFERENCE_TESTS=ON`.
+All legacy comparisons, including comparisons with recorded D outputs, are
+disabled by default and excluded from CI. Functional tests remain enabled.
+Run `git fetch origin dlang-impl:refs/remotes/origin/dlang-impl` before configuring
+and put `ldc2` on PATH. Only test modules are extracted into the build directory;
+see [test setup](native/tests/README.md).
 GPU and real-inference tests require additional inputs and a display as described
 in [native/README.md](native/README.md#verification).
 

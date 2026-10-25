@@ -1,4 +1,4 @@
-// dlang_archive/source/app.d startup and shutdown, shared by the executable and app interaction tests.
+// legacy D: app.d startup and shutdown, shared by the executable and app interaction tests.
 #include "application.hpp"
 #include "render/renderer.hpp"
 #include "i18n.hpp"

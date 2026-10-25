@@ -1,6 +1,6 @@
 # Native application packages
 
-These are the active C++ distribution assets moved from `dlang_archive`.
+These are the active C++ distribution assets.
 D-specific resource files, WiX projects, dub scripts and Flatpak recipes remain
 archived and are not used by this build.
 

@@ -69,5 +69,6 @@ The `native-vulkan` branch also provides a [Vulkan model and ImGui renderer](BUI
 Use the `native-opengl-release` and `native-vulkan-release` CMake presets for separate builds with renderer-specific dependencies.
 
 Translations use GNU gettext; see [translation maintenance](tl/README.md).
-The previous D implementation and its build assets are retained in
-[dlang_archive](dlang_archive/README.md).
+Active distribution assets are in `build-aux`, translations in `tl`, and
+application resources in `native/res`. Optional local Windows D comparison tests use the remote
+`origin/dlang-impl` branch; see [test setup](native/tests/README.md).

@@ -85,9 +85,6 @@ jobs:
           submodules: false
           fetch-depth: 0
           ref: ${{ needs.package-mode.outputs.build_ref }}
-      - name: Verify D reference sources
-        shell: pwsh
-        run: ./native/tools/verify-reference.ps1
       - name: Verify vendored dependencies and license notices
         run: python native/tools/verify-vendor.py
       - name: Enable MSVC command line
@@ -101,9 +98,6 @@ jobs:
         with:
           name: native-translations
           path: out/i18n
-      - uses: dlang-community/setup-dlang@v1.4.0
-        with:
-          compiler: ldc-1.41.0
       - name: Cache pinned Boost headers
         id: boost-cache
         uses: actions/cache@v4
@@ -181,7 +175,7 @@ jobs:
           if ($log -notmatch '[1-9][0-9]* disk cache hit') {
             throw 'An exact tracker cache was restored, but Bazel reported no cached compiler results.'
           }
-      - name: Test D comparisons, Boost.JSON settings, gettext and ImGui
+      - name: Test application functionality, Boost.JSON settings, gettext and ImGui
         run: ctest --preset native-release --output-junit "${{ github.workspace }}/build/native-release/test-results.xml"
       - name: Upload test results and available GPU captures
         if: always()

@@ -1,4 +1,4 @@
-// Direct port of dlang_archive/source/nijiexpose/tracking/ext/exvmc.d.
+// Direct port of legacy D: nijiexpose/tracking/ext/exvmc.d.
 #include "exvmc.hpp"
 #include <charconv>
 #include <set>

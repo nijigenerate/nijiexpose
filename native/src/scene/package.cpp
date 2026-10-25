@@ -1,5 +1,5 @@
 #include "render/settings.hpp"
-// dlang_archive/source/nijiexpose/scene/package.d: Scene orchestration and pointer interaction.
+// legacy D: nijiexpose/scene/package.d: Scene orchestration and pointer interaction.
 #include "package.hpp"
 #include "panels/tracking_state.hpp"
 #include "plugins/package.hpp"

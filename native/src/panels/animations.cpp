@@ -1,4 +1,4 @@
-// Direct translation of dlang_archive/source/nijiexpose/panels/animations.d.
+// Direct translation of legacy D: nijiexpose/panels/animations.d.
 #include "factory.hpp"
 #include "scene/package.hpp"
 #include "nijiui/widgets/input.hpp"

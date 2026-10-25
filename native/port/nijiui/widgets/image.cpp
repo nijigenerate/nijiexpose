@@ -1,6 +1,6 @@
 // Port of nijiui/widgets/image.d.
 #include "image.hpp"
-#ifdef NIJIEXPOSE_VULKAN
+#if defined(NIJIEXPOSE_VULKAN) && IMGUI_VERSION_NUM >= 19200
 #include "render/vulkan/backend.hpp"
 #endif
 namespace nijiui {
