@@ -1,0 +1,463 @@
+name: Native application packages
+
+on:
+  pull_request:
+    branches: [main, native-cpp]
+  push:
+    branches: [main, native-cpp]
+    tags: ['v[0-9]*', '[0-9]*', 'nightly']
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: verify = check only; nightly/release = build and publish
+        type: choice
+        options: [verify, nightly, release]
+        default: verify
+      release_tag:
+        description: Existing release tag (required for release mode when running from a branch)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  # Only branch pushes and their PR checks share a group. Scheduled publishing,
+  # tag publishing and manual runs cannot cancel one another. Never cancel
+  # a running publication workflow when another publication is requested.
+  group: native-${{ github.event_name == 'pull_request' && 'push' || github.event_name }}-${{ github.head_ref && format('refs/heads/{0}', github.head_ref) || github.ref }}-${{ inputs.mode || 'auto' }}-${{ inputs.release_tag || 'none' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) }}
+
+jobs:
+  package-mode:
+    runs-on: ubuntu-24.04
+    outputs:
+      mode: ${{ steps.mode.outputs.mode }}
+      build_ref: ${{ steps.mode.outputs.build_ref }}
+      publish: ${{ steps.mode.outputs.publish }}
+      release_tag: ${{ steps.mode.outputs.release_tag }}
+      prerelease: ${{ steps.mode.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 build-aux/test_package_mode.py
+      - run: python3 build-aux/test_git_version.py
+      - id: mode
+        env:
+          REQUESTED_MODE: ${{ inputs.mode }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: python3 build-aux/package-mode.py >> "$GITHUB_OUTPUT"
+  translations:
+    needs: package-mode
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.package-mode.outputs.build_ref }}
+      - name: Compile gettext catalogs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext
+          python3 native/tools/translations.py compile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-translations
+          path: out/i18n/*.mo
+          if-no-files-found: error
+  windows-native:
+    needs: [translations, package-mode]
+    runs-on: windows-2022
+    env:
+      PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
+      SCCACHE_GHA_ENABLED: "true"
+      # A cold MediaPipe build can exceed the default server idle timeout.
+      # Keep one statistics session for the entire application build.
+      SCCACHE_IDLE_TIMEOUT: "0"
+      # Also cover the upstream Halide generator's nested CMake build.
+      CMAKE_C_COMPILER_LAUNCHER: sccache
+      CMAKE_CXX_COMPILER_LAUNCHER: sccache
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 0
+          ref: ${{ needs.package-mode.outputs.build_ref }}
+      - name: Verify vendored dependencies and license notices
+        run: python native/tools/verify-vendor.py
+      - name: Enable MSVC command line
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Enable C and C++ compilation cache
+        id: sccache
+        uses: mozilla-actions/sccache-action@v0.0.11
+        with:
+          version: v0.16.0
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-translations
+          path: out/i18n
+      - name: Cache pinned Boost headers
+        id: boost-cache
+        uses: actions/cache@v4
+        with:
+          path: build/boost
+          key: native-boost-${{ runner.os }}-${{ hashFiles('cmake/dependencies.lock.json', 'cmake/FetchBoostHeaders.cmake') }}
+      - name: Fetch pinned Boost headers
+        if: steps.boost-cache.outputs.cache-hit != 'true'
+        run: cmake -DBOOST_DESTINATION="${{ github.workspace }}/build/boost" -P cmake/FetchBoostHeaders.cmake
+      - name: Fetch verified tracker test portrait
+        run: cmake -DDESTINATION="${{ github.workspace }}/out/tracker-test/portrait.jpg" -P native/tools/fetch-tracker-test-image.cmake
+      - name: Identify tracker build environment
+        id: tracker-environment
+        shell: pwsh
+        run: |
+          $identity = "$env:ImageVersion|$env:VCToolsVersion|$env:WindowsSDKVersion"
+          $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($identity)))
+          "id=$hash" >> $env:GITHUB_OUTPUT
+      - name: Cache nijitrack source compilation
+        id: tracker-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build/native-release/tracker-cache
+          key: nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ steps.tracker-environment.outputs.id }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-${{ needs.package-mode.outputs.build_ref }}
+          restore-keys: |
+            nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-${{ steps.tracker-environment.outputs.id }}-${{ hashFiles('native/tracker/NijitrackSource.cmake', 'native/tracker/WindowsSource.cmake', 'native/tracker/patches/enable-windows-cache.ps1') }}-
+            nijitrack-bazel-${{ runner.os }}-${{ runner.arch }}-
+      - name: Configure Windows application
+        shell: pwsh
+        run: |
+          $boostRoot = Get-Content build/boost/prefix.txt -Raw
+          cmake --preset native-release -DBOOST_ROOT="$boostRoot" -DBoost_NO_SYSTEM_PATHS=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_C_COMPILER_LAUNCHER=sccache -DCMAKE_CXX_COMPILER_LAUNCHER=sccache -DNIJIEXPOSE_TRACKER_TEST_IMAGE="${{ github.workspace }}/out/tracker-test/portrait.jpg" -DNIJIEXPOSE_TRACKER_SOURCE_DIR="${{ github.workspace }}/build/nt"
+      - name: Build
+        shell: pwsh
+        run: |
+          sccache --zero-stats
+          $timer = [Diagnostics.Stopwatch]::StartNew()
+          cmake --build --preset native-release --parallel 3 2>&1 | Tee-Object -FilePath build/native-release/build.log
+          $buildExit = $LASTEXITCODE
+          $timer.Stop()
+          "Build seconds: $([math]::Round($timer.Elapsed.TotalSeconds, 2))" | Tee-Object -FilePath build/native-release/build-time.txt
+          exit $buildExit
+      - name: Report compilation cache statistics
+        if: always() && steps.sccache.outcome == 'success'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force build/native-release | Out-Null
+          sccache --show-stats | Tee-Object -FilePath build/native-release/sccache-stats.txt
+          '### Native compilation cache' >> $env:GITHUB_STEP_SUMMARY
+          '```text' >> $env:GITHUB_STEP_SUMMARY
+          if (Test-Path build/native-release/build-time.txt) {
+            Get-Content build/native-release/build-time.txt >> $env:GITHUB_STEP_SUMMARY
+          }
+          Get-Content build/native-release/sccache-stats.txt >> $env:GITHUB_STEP_SUMMARY
+          '```' >> $env:GITHUB_STEP_SUMMARY
+          '### Tracker Bazel compilation cache' >> $env:GITHUB_STEP_SUMMARY
+          'Restore matched key: ${{ steps.tracker-cache.outputs.cache-matched-key }}' >> $env:GITHUB_STEP_SUMMARY
+          if (Test-Path build/native-release/build.log) {
+            '```text' >> $env:GITHUB_STEP_SUMMARY
+            Select-String -Path build/native-release/build.log -Pattern 'INFO: .*processes:|INFO: Elapsed time:|disk cache hit' |
+              ForEach-Object { $_.Line } >> $env:GITHUB_STEP_SUMMARY
+            '```' >> $env:GITHUB_STEP_SUMMARY
+          }
+      - name: Save nijitrack compiler outputs
+        if: always() && steps.tracker-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/native-release/tracker-cache
+          key: ${{ steps.tracker-cache.outputs.cache-primary-key }}
+      - name: Verify restored tracker cache was used
+        if: success() && steps.tracker-cache.outputs.cache-hit == 'true'
+        shell: pwsh
+        run: |
+          $log = Get-Content build/native-release/build.log -Raw
+          if ($log -notmatch '[1-9][0-9]* disk cache hit') {
+            throw 'An exact tracker cache was restored, but Bazel reported no cached compiler results.'
+          }
+      - name: Test application functionality, Boost.JSON settings, gettext and ImGui
+        run: ctest --preset native-release --output-junit "${{ github.workspace }}/build/native-release/test-results.xml"
+      - name: Upload test results and available GPU captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nijiexpose-windows-test-results
+          path: |
+            build/native-release/test-results.xml
+            build/native-release/build-time.txt
+            build/native-release/build.log
+            build/native-release/sccache-stats.txt
+            build/native-release/visual-results/*.png
+            build/native-release/application-results/*.png
+            build/native-release/application-results/results.json
+            build/native-release/tracker-results/*
+            build/native-release/application-results/*.png
+            build/native-release/application-results/results.json
+          if-no-files-found: warn
+      - name: Locate binary WiX tools
+        if: env.PACKAGE_MODE != 'nightly'
+        shell: pwsh
+        run: ./build-aux/windows/ensure-wix.ps1
+      - name: Package Windows
+        shell: pwsh
+        run: |
+          cpack --config build/native-release/CPackConfig.cmake -C Release -G ZIP
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($env:PACKAGE_MODE -ne 'nightly') {
+            cpack --config build/native-release/CPackConfig.cmake -C Release -G WIX
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+      - name: Verify unpacked Windows package
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem build/native-release/packages/*.zip
+          if ($zip.Count -ne 1) { throw 'Expected one Windows ZIP' }
+          Expand-Archive -LiteralPath $zip.FullName -DestinationPath out/package-check
+          python native/tools/verify-package.py "out/package-check/$($zip.BaseName)"
+      - name: Verify MSI payload
+        if: env.PACKAGE_MODE != 'nightly'
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem build/native-release/packages/*.msi
+          if ($msi.Count -ne 1) { throw 'Expected one Windows MSI' }
+          $destination = Join-Path $PWD 'out/msi-check'
+          $process = Start-Process msiexec.exe -ArgumentList @('/a', ('"' + $msi.FullName + '"'), '/qn', ('TARGETDIR="' + $destination + '"')) -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "MSI extraction failed: $($process.ExitCode)" }
+          python native/tools/verify-package.py "$destination/nijiexpose"
+      - name: Select Windows distribution files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out/dist | Out-Null
+          if ($env:PACKAGE_MODE -ne 'release') { Copy-Item build/native-release/packages/*.zip out/dist }
+          if ($env:PACKAGE_MODE -ne 'nightly') { Copy-Item build/native-release/packages/*.msi out/dist }
+      - name: Upload Windows packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nijiexpose-windows-packages
+          path: out/dist/*
+          if-no-files-found: error
+  unix-native:
+    needs: [translations, package-mode]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-26]
+    runs-on: ${{ matrix.os }}
+    env:
+      VULKAN_SDK_VERSION: '1.4.328.1'
+      # Official macOS archive digest: https://vulkan.lunarg.com/sdk/files.json
+      VULKAN_SDK_SHA256: 571db867d8736e402f6f674f26f17b339495d016f3b2afdbac23a3650475023f
+      PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
+      SCCACHE_DIR: ${{ github.workspace }}/build/compiler-cache
+      SCCACHE_CACHE_SIZE: 1G
+      SCCACHE_IDLE_TIMEOUT: "0"
+      CMAKE_C_COMPILER_LAUNCHER: sccache
+      CMAKE_CXX_COMPILER_LAUNCHER: sccache
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.package-mode.outputs.build_ref }}
+      - uses: mozilla-actions/sccache-action@v0.0.11
+        with:
+          version: v0.16.0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Resolve compiler cache executable
+        shell: bash
+        run: |
+          # The pinned tracker intentionally restricts PATH on macOS.
+          echo "CMAKE_C_COMPILER_LAUNCHER=$(command -v sccache)" >> "$GITHUB_ENV"
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=$(command -v sccache)" >> "$GITHUB_ENV"
+      - name: Install Linux binary dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build clang lld jq pkg-config libboost-json-dev \
+            libfreetype-dev gettext liblua5.1-0-dev libgl-dev libegl-dev libx11-dev \
+            libxi-dev libxtst-dev libxrandr-dev libxcursor-dev libxfixes-dev \
+            libxinerama-dev libwayland-dev wayland-protocols libxkbcommon-dev libasound2-dev \
+            libpulse-dev libudev-dev libxss-dev libxext-dev libxrender-dev libdrm-dev libgbm-dev \
+            libgles2-mesa-dev libdbus-1-dev libibus-1.0-dev libdecor-0-dev libpipewire-0.3-dev
+      - name: Install macOS binary dependencies
+        if: runner.os == 'macOS'
+        run: |
+          test "$(uname -m)" = arm64
+          brew install --force-bottle ninja boost sdl3 freetype gettext jq pkg-config
+          echo "$(brew --prefix gettext)/bin" >> "$GITHUB_PATH"
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix gettext)" >> "$GITHUB_ENV"
+      - name: Restore macOS Vulkan SDK
+        if: runner.os == 'macOS'
+        id: vulkan-sdk-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build/vulkan-sdk/${{ env.VULKAN_SDK_VERSION }}
+          key: vulkan-sdk-${{ runner.os }}-${{ runner.arch }}-${{ env.VULKAN_SDK_VERSION }}-${{ env.VULKAN_SDK_SHA256 }}-${{ hashFiles('build-aux/osx/install-vulkan-sdk.sh') }}
+      - name: Install macOS Vulkan SDK
+        if: runner.os == 'macOS' && steps.vulkan-sdk-cache.outputs.cache-hit != 'true'
+        timeout-minutes: 15
+        run: bash build-aux/osx/install-vulkan-sdk.sh
+      - name: Check and select macOS Vulkan SDK
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          sdk="$PWD/build/vulkan-sdk/$VULKAN_SDK_VERSION/macOS"
+          for file in bin/glslc include/vulkan/vulkan.h lib/libvulkan.dylib lib/libvulkan.1.dylib lib/libMoltenVK.dylib share/vulkan/icd.d/MoltenVK_icd.json; do
+            test -s "$sdk/$file" || { echo "Missing SDK file: $sdk/$file" >&2; exit 1; }
+          done
+          test -s "$sdk/../Licenses/LICENSE.txt"
+          "$sdk/bin/glslc" --version
+          for library in libMoltenVK.dylib libvulkan.1.dylib; do
+            lipo "$sdk/lib/$library" -verify_arch arm64
+          done
+          echo "VULKAN_SDK=$sdk" >> "$GITHUB_ENV"
+          echo "$sdk/bin" >> "$GITHUB_PATH"
+      - name: Save macOS Vulkan SDK
+        if: runner.os == 'macOS' && steps.vulkan-sdk-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/vulkan-sdk/${{ env.VULKAN_SDK_VERSION }}
+          key: ${{ steps.vulkan-sdk-cache.outputs.cache-primary-key }}
+      - name: Identify compiler and SDK
+        id: environment
+        shell: bash
+        run: |
+          {
+            echo "$ImageVersion"
+            clang --version
+            if [[ "$RUNNER_OS" == macOS ]]; then xcrun --sdk macosx --show-sdk-version; fi
+          } > /tmp/nijiexpose-toolchain.txt
+          echo "id=$(shasum -a 256 /tmp/nijiexpose-toolchain.txt | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Restore MediaPipe compiler cache
+        id: tracker-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build/native-release/tracker-cache
+          key: nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-${{ needs.package-mode.outputs.build_ref }}
+          restore-keys: |
+            nijitrack-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ hashFiles('native/tracker/*Source.cmake', 'native/tracker/patches/*') }}-
+      - name: Restore C and C++ compiler cache
+        id: compiler-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: build/compiler-cache
+          key: native-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-${{ needs.package-mode.outputs.build_ref }}
+          restore-keys: |
+            native-unix-${{ runner.os }}-${{ runner.arch }}-${{ steps.environment.outputs.id }}-
+      - name: Configure
+        shell: bash
+        run: |
+          renderer=OPENGL
+          vulkan_options=()
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            renderer=VULKAN
+            vulkan_options=(
+              "-DVulkan_INCLUDE_DIR=$VULKAN_SDK/include"
+              "-DVulkan_LIBRARY=$VULKAN_SDK/lib/libvulkan.dylib"
+              "-DVulkan_GLSLC_EXECUTABLE=$VULKAN_SDK/bin/glslc"
+            )
+          fi
+          cmake --preset native-release -DNIJIEXPOSE_RENDERER="$renderer" \
+            -DBUILD_TESTING=OFF \
+            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "${vulkan_options[@]}"
+      - name: Build
+        run: cmake --build --preset native-release --parallel 3
+      - name: Save MediaPipe compiler cache before packaging
+        if: always() && steps.tracker-cache.outcome == 'success' && steps.tracker-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/native-release/tracker-cache
+          key: ${{ steps.tracker-cache.outputs.cache-primary-key }}
+      - name: Save C and C++ compiler cache before packaging
+        if: always() && steps.compiler-cache.outcome == 'success' && steps.compiler-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: build/compiler-cache
+          key: ${{ steps.compiler-cache.outputs.cache-primary-key }}
+      - name: Package Unix
+        shell: bash
+        run: |
+          cpack --config build/native-release/CPackConfig.cmake -C Release -G ZIP
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            cpack --config build/native-release/CPackConfig.cmake -C Release -G DragNDrop
+          elif [[ "$PACKAGE_MODE" != nightly ]]; then
+            python3 build-aux/linux/appimage.py build/native-release
+          fi
+      - name: Verify unpacked package
+        shell: bash
+        run: |
+          mkdir -p out/package-check
+          verify_options=()
+          if [[ "$RUNNER_OS" == macOS ]]; then verify_options=(--require-macos-vulkan); fi
+          for archive in build/native-release/packages/*.zip; do
+            unzip -q "$archive" -d out/package-check
+            python3 native/tools/verify-package.py "out/package-check/$(basename "$archive" .zip)" "${verify_options[@]}"
+          done
+      - name: Verify mounted macOS DMG
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          mountpoint="$PWD/out/dmg-mount"
+          mkdir -p "$mountpoint" out/dmg-installed
+          for archive in build/native-release/packages/*.dmg; do
+            hdiutil verify "$archive"
+            hdiutil attach "$archive" -readonly -nobrowse -mountpoint "$mountpoint"
+            trap 'hdiutil detach "$mountpoint"' EXIT
+            python3 native/tools/verify-package.py "$mountpoint" --require-macos-vulkan
+            # Exercise the same app-bundle copy used for drag-and-drop installation.
+            ditto "$mountpoint/nijiexpose.app" out/dmg-installed/nijiexpose.app
+            hdiutil detach "$mountpoint"
+            trap - EXIT
+            python3 native/tools/verify-package.py out/dmg-installed --require-macos-vulkan
+          done
+      - name: Compilation cache statistics
+        if: always()
+        run: sccache --show-stats
+      - name: Select Unix distribution files
+        shell: bash
+        run: |
+          mkdir -p out/dist
+          if [[ "$PACKAGE_MODE" != release ]]; then cp build/native-release/packages/*.zip out/dist/; fi
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            cp build/native-release/packages/*.dmg out/dist/
+          elif [[ "$PACKAGE_MODE" != nightly ]]; then
+            cp build/native-release/packages/*.AppImage out/dist/
+          fi
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nijiexpose-${{ runner.os }}-${{ runner.arch }}-packages
+          path: out/dist/*
+          if-no-files-found: error
+  publish:
+    needs: [package-mode, windows-native, unix-native]
+    if: needs.package-mode.outputs.publish == 'true'
+    concurrency:
+      group: publish-${{ needs.package-mode.outputs.release_tag }}
+      cancel-in-progress: false
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: nijiexpose-*-packages
+          merge-multiple: true
+          path: dist
+      - name: Publish verified packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.package-mode.outputs.release_tag }}
+          RELEASE_PRERELEASE: ${{ needs.package-mode.outputs.prerelease }}
+          BUILD_REF: ${{ needs.package-mode.outputs.build_ref }}
+        shell: bash
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" --prerelease="$RELEASE_PRERELEASE"
+          else
+            gh release create "$RELEASE_TAG" --target "$BUILD_REF" --title "$RELEASE_TAG" --generate-notes --prerelease="$RELEASE_PRERELEASE"
+          fi
+          gh release upload "$RELEASE_TAG" dist/* --clobber

@@ -1,0 +1,3 @@
+Spout2 https://github.com/leadedge/Spout2
+Revision: 6b68a5b4fdeca6130b851e5f9366467a844860e5
+Unmodified sender registry, access mutex and frame counter sources.

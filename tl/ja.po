@@ -1,14 +1,18 @@
+#: native/port/i18n/gettext.cpp:223 native/src/i18n.cpp:22
+msgid "LANG_NAME"
+msgstr "日本語"
+
 # Japanese translations for PACKAGE package.
 # Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # Automatically generated, 2026.
 #
-#: source/nijiexpose/animation/package.d:57
+#: native/src/animation/package.cpp:14
 msgid ""
 msgstr ""
 "Project-Id-Version: nijiexpose\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-16 08:33+0900\n"
+"POT-Creation-Date: 2026-10-22 08:17+0900\n"
 "PO-Revision-Date: 2026-06-07 22:32+0900\n"
 "Last-Translator: nijigenerate Project <noreply@example.com>\n"
 "Language-Team: Japanese <noreply@example.com>\n"
@@ -18,647 +22,640 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: source/nijiexpose/plugins/plugin.d:63
-#, c-format
-msgid "Attempted to load invalid module specifier %s"
-msgstr "無効なモジュール指定子 %s を読み込もうとしました"
-
-#: source/nijiexpose/plugins/plugin.d:81
-#, c-format
-msgid "Module %s not found"
-msgstr "モジュール %s が見つかりません"
-
-#: source/nijiexpose/plugins/plugin.d:93
-msgid "Attempted to require a symlink, this is not allowed."
-msgstr ""
-"シンボリックリンクを require しようとしました。これは許可されていません。"
-
-#: source/nijiexpose/plugins/plugin.d:164
-#, c-format
-msgid "Loaded plugin %s %s..."
-msgstr "プラグイン %s %s を読み込みました..."
-
-#. Error display for plugins erroring out
-#: source/nijiexpose/plugins/plugin.d:174 source/nijiexpose/panels/plugin.d:45
-#, c-format
-msgid "%s (plugin): %s"
-msgstr "%s (プラグイン): %s"
-
-#: source/nijiexpose/panels/tracking.d:81
-#: source/nijiexpose/panels/tracking.d:309
-msgid "Ratio Binding"
-msgstr "比率バインディング"
-
-#: source/nijiexpose/panels/tracking.d:83
-#: source/nijiexpose/panels/tracking.d:315
-msgid "Expression Binding"
-msgstr "式バインディング"
-
-#: source/nijiexpose/panels/tracking.d:85
-#: source/nijiexpose/panels/tracking.d:322
-msgid "Event Binding"
-msgstr "イベントバインディング"
-
-#: source/nijiexpose/panels/tracking.d:87
-#: source/nijiexpose/panels/tracking.d:329
-msgid "Compound Binding"
-msgstr "複合バインディング"
-
-#: source/nijiexpose/panels/tracking.d:89
-msgid "External Binding"
-msgstr "外部バインディング"
-
-#: source/nijiexpose/panels/tracking.d:307
-msgid "Type"
-msgstr "種類"
-
-#: source/nijiexpose/panels/tracking.d:357
-#: source/nijiexpose/panels/tracking.d:474
-#: source/nijiexpose/panels/tracking.d:526
-msgid "Dampen"
-msgstr "減衰"
-
-#: source/nijiexpose/panels/tracking.d:371
-#: source/nijiexpose/panels/tracking.d:556
-#: source/nijiexpose/panels/tracking.d:638
-msgid "Value out of range, clamped to 0..1 range."
-msgstr "値が範囲外のため、0..1 の範囲に制限されました。"
-
-#: source/nijiexpose/panels/tracking.d:374
-#: source/nijiexpose/panels/tracking.d:559
-#: source/nijiexpose/panels/tracking.d:641
-#, c-format
-msgid "Output (%s)"
-msgstr "出力 (%s)"
-
-#: source/nijiexpose/panels/tracking.d:394
-#: source/nijiexpose/panels/animations.d:89
-msgid "Not tracked"
-msgstr "未トラッキング"
-
-#: source/nijiexpose/panels/tracking.d:409
-#: source/nijiexpose/panels/animations.d:104
-msgid "X"
-msgstr "X"
-
-#: source/nijiexpose/panels/tracking.d:415
-#: source/nijiexpose/panels/animations.d:110
-msgid "Y"
-msgstr "Y"
-
-#: source/nijiexpose/panels/tracking.d:421
-#: source/nijiexpose/panels/animations.d:116
-msgid "Z"
-msgstr "Z"
-
-#: source/nijiexpose/panels/tracking.d:427
-#: source/nijiexpose/panels/animations.d:122
-msgid "Roll"
-msgstr "ロール"
-
-#: source/nijiexpose/panels/tracking.d:433
-#: source/nijiexpose/panels/animations.d:128
-msgid "Pitch"
-msgstr "ピッチ"
-
-#: source/nijiexpose/panels/tracking.d:439
-#: source/nijiexpose/panels/animations.d:134
-msgid "Yaw"
-msgstr "ヨー"
-
-#: source/nijiexpose/panels/tracking.d:467
-#: source/nijiexpose/panels/tracking.d:540
-#: source/nijiexpose/panels/tracking.d:604 source/nijiexpose/panels/scene.d:154
-msgid ""
-msgstr ""
-
-#: source/nijiexpose/panels/tracking.d:472
-msgid "Inverse"
-msgstr "反転"
-
-#: source/nijiexpose/panels/tracking.d:477
-msgid "Tracking In"
-msgstr "トラッキング入力"
-
-#: source/nijiexpose/panels/tracking.d:506
-msgid "Tracking Out"
-msgstr "トラッキング出力"
-
-#: source/nijiexpose/windows/spaceedit.d:216
-#: source/nijiexpose/windows/spaceedit.d:300
-#: source/nijiexpose/windows/spaceedit.d:362
-#: source/nijiexpose/panels/tracking.d:549
-#: source/nijiexpose/panels/tracking.d:631
-msgid ""
-msgstr ""
-
-#: source/nijiexpose/panels/tracking.d:576
-msgid "Weighted Sum"
-msgstr "重み付き合計"
-
-#: source/nijiexpose/panels/tracking.d:577
-msgid "Weighted Multiply"
-msgstr "重み付き乗算"
-
-#: source/nijiexpose/panels/tracking.d:578
-msgid "Ordered"
-msgstr "順序付き"
-
-#: source/nijiexpose/panels/tracking.d:654
-#: source/nijiexpose/panels/animations.d:425
-msgid ""
-msgstr ""
-
-#: source/nijiexpose/panels/tracking.d:658
-#: source/nijiexpose/panels/animations.d:429
-msgid "Refresh"
-msgstr "更新"
-
-#: source/nijiexpose/windows/spaceedit.d:413
-#: source/nijiexpose/panels/tracking.d:662
-#: source/nijiexpose/panels/animations.d:433
-msgid ""
-msgstr ""
-
-#: source/nijiexpose/windows/spaceedit.d:34
-#: source/nijiexpose/windows/spaceedit.d:282
-#: source/nijiexpose/windows/spaceedit.d:419
-#: source/nijiexpose/windows/settings.d:65
-#: source/nijiexpose/windows/settings.d:75
-#: source/nijiexpose/windows/settings.d:225
-#: source/nijiexpose/windows/main.d:943 source/nijiexpose/windows/main.d:947
-#: source/nijiexpose/panels/tracking.d:666 source/nijiexpose/panels/scene.d:43
-#: source/nijiexpose/panels/scene.d:144
-#: source/nijiexpose/panels/animations.d:437
-msgid "Error"
-msgstr "エラー"
-
-#: source/nijiexpose/panels/tracking.d:669
-#: source/nijiexpose/panels/animations.d:440
-msgid "Save to File"
-msgstr "ファイルに保存"
-
-#: source/nijiexpose/panels/tracking.d:695
-msgid "No settings available."
-msgstr "利用可能な設定はありません。"
-
-#: source/nijiexpose/panels/tracking.d:702
-#: source/nijiexpose/panels/animations.d:495
-msgid "No puppet selected"
-msgstr "パペットが選択されていません"
-
-#: source/nijiexpose/windows/settings.d:281
-#: source/nijiexpose/windows/settings.d:350
-#: source/nijiexpose/animation/package.d:53
-#: source/nijiexpose/panels/tracking.d:707
-msgid "Tracking"
-msgstr "トラッキング"
-
-#: source/nijiexpose/panels/animations.d:88
-msgid "Tracking Parameter"
-msgstr "トラッキングパラメータ"
-
-#: source/nijiexpose/panels/animations.d:156
-msgid "Reset"
-msgstr "リセット"
-
-#: source/nijiexpose/panels/animations.d:164
-msgid "Default Thresholds"
-msgstr "既定のしきい値"
-
-#: source/nijiexpose/panels/animations.d:168
-msgid "Use Hold Delay"
-msgstr "ホールド遅延を使用"
-
-#: source/nijiexpose/panels/animations.d:173
-msgid "Play Threshold"
-msgstr "再生しきい値"
-
-#: source/nijiexpose/panels/animations.d:207
-#: source/nijiexpose/panels/animations.d:255
-#: source/nijiexpose/panels/animations.d:302
-msgid "Hold Delay (ms):"
-msgstr "ホールド遅延 (ms):"
-
-#: source/nijiexpose/panels/animations.d:221
-msgid "Stop Threshold"
-msgstr "停止しきい値"
-
-#: source/nijiexpose/panels/animations.d:268
-msgid "Full Stop Threshold"
-msgstr "完全停止しきい値"
-
-#: source/nijiexpose/animation/package.d:55
-#: source/nijiexpose/panels/animations.d:324
+#: native/src/animation/package.cpp:14
+#: native/src/panels/animations.cpp:308
 msgid "Event"
 msgstr "イベント"
 
-#: source/nijiexpose/panels/animations.d:327
-msgid "Play on"
-msgstr "再生条件"
-
-#: source/nijiexpose/panels/animations.d:329
-msgid "Stop on"
-msgstr "停止条件"
-
-#: source/nijiexpose/panels/animations.d:331
-msgid "Full stop on"
-msgstr "完全停止条件"
-
-#: source/nijiexpose/panels/animations.d:340
-msgid "Load"
-msgstr "ロード"
-
-#: source/nijiexpose/panels/animations.d:346
-#: source/nijiexpose/panels/animations.d:375
-#: source/nijiexpose/panels/animations.d:399
-msgid "Idle"
-msgstr "待機"
-
-#: source/nijiexpose/panels/animations.d:354
-#: source/nijiexpose/panels/animations.d:381
-#: source/nijiexpose/panels/animations.d:405
-msgid "Sleep"
-msgstr "スリープ"
-
-#: source/nijiexpose/panels/animations.d:459
-msgid "Loop"
-msgstr "ループ"
-
-#: source/nijiexpose/panels/animations.d:463
-msgid "Trigger"
-msgstr "トリガー"
-
-#: source/nijiexpose/panels/animations.d:501
-msgid "Animations"
-msgstr "アニメーション"
-
-#: source/nijiexpose/panels/scene.d:43
-#, c-format
-msgid "Could not load %s, %s"
-msgstr "%s を読み込めませんでした: %s"
-
-#: source/nijiexpose/panels/scene.d:57
-msgid "Post Processing"
-msgstr "ポストプロセス"
-
-#: source/nijiexpose/panels/scene.d:60
-msgid "Enabled###POST_PROCESSING"
-msgstr "有効###POST_PROCESSING"
-
-#: source/nijiexpose/panels/scene.d:65
-msgid "Lighting"
-msgstr "ライティング"
-
-#: source/nijiexpose/panels/scene.d:75
-msgid "Background Color"
-msgstr "背景色"
-
-#: source/nijiexpose/panels/scene.d:83
-msgid "Color Swatches"
-msgstr "カラースウォッチ"
-
-#: source/nijiexpose/panels/scene.d:86
-msgid "Full Transparent"
-msgstr "完全透明"
-
-#: source/nijiexpose/panels/scene.d:92
-msgid "Chroma Key Red"
-msgstr "クロマキー赤"
-
-#: source/nijiexpose/panels/scene.d:98
-msgid "Chroma Key Green"
-msgstr "クロマキー緑"
-
-#: source/nijiexpose/panels/scene.d:104
-msgid "Chroma Key Blue"
-msgstr "クロマキー青"
-
-#: source/nijiexpose/panels/scene.d:110
-msgid "Background Image"
-msgstr "背景画像"
-
-#: source/nijiexpose/panels/scene.d:113
-msgid "Select Background"
-msgstr "背景を選択"
-
-#: source/nijiexpose/windows/main.d:741 source/nijiexpose/panels/scene.d:120
-msgid "Open..."
-msgstr "開く..."
-
-#: source/nijiexpose/windows/main.d:947 source/nijiexpose/panels/scene.d:144
-#, c-format
-msgid "Could not load %s, unsupported file format."
-msgstr "%s を読み込めませんでした。対応していないファイル形式です。"
-
-#: source/nijiexpose/windows/main.d:889 source/nijiexpose/panels/scene.d:167
-msgid "Scene Settings"
-msgstr "シーン設定"
-
-#: source/nijiexpose/panels/plugin.d:37
-#, c-format
-msgid "%s has crashed, options are disabled."
-msgstr "%s がクラッシュしたため、オプションは無効です。"
-
-#: source/nijiexpose/panels/plugin.d:49
-msgid "Plugin cannot be configured."
-msgstr "プラグインを設定できません。"
-
-#: source/nijiexpose/panels/plugin.d:61
-msgid "Plugins"
-msgstr "プラグイン"
-
-#: source/nijiexpose/panels/blends.d:35
-msgid "Blendshapes"
-msgstr "ブレンドシェイプ"
-
-#: source/nijiexpose/animation/package.d:51
+#: native/src/animation/package.cpp:14
 msgid "None"
 msgstr "なし"
 
-#: source/nijiexpose/tracking/ratiobinding.d:197
-#: source/nijiexpose/animation/package.d:510
-#, c-format
-msgid "%s (X)"
-msgstr "%s (X)"
+#: native/src/animation/package.cpp:14
+#: native/src/panels/tracking.cpp:649
+#: native/src/windows/settings.cpp:206
+#: native/src/windows/settings.cpp:276
+msgid "Tracking"
+msgstr "トラッキング"
 
-#: source/nijiexpose/tracking/ratiobinding.d:200
-#: source/nijiexpose/animation/package.d:513
-#, c-format
-msgid "%s (Y)"
-msgstr "%s (Y)"
-
-#: source/nijiexpose/tracking/ratiobinding.d:203
-#: source/nijiexpose/animation/package.d:516
-#, c-format
-msgid "%s (Z)"
-msgstr "%s (Z)"
-
-#: source/nijiexpose/tracking/ratiobinding.d:206
-#: source/nijiexpose/animation/package.d:519
-#, c-format
-msgid "%s (Roll)"
-msgstr "%s (ロール)"
-
-#: source/nijiexpose/tracking/ratiobinding.d:209
-#: source/nijiexpose/animation/package.d:522
-#, c-format
-msgid "%s (Pitch)"
-msgstr "%s (ピッチ)"
-
-#: source/nijiexpose/tracking/ratiobinding.d:212
-#: source/nijiexpose/animation/package.d:525
-#, c-format
-msgid "%s (Yaw)"
-msgstr "%s (ヨー)"
-
-#: source/nijiexpose/tracking/ratiobinding.d:215
-#, c-format
-msgid "%s (Key)"
-msgstr "%s (キー)"
-
-#: source/nijiexpose/tracking/expr.d:197
-#, c-format
-msgid "Expected %s, got %s"
-msgstr "%s が必要ですが、%s が渡されました"
-
-#: source/nijiexpose/windows/main.d:880
-msgid "Tracking Settings"
-msgstr "トラッキング設定"
-
-#: source/nijiexpose/windows/spaceedit.d:481
-#: source/nijiexpose/windows/main.d:885
-msgid "Virtual Space"
-msgstr "仮想空間"
-
-#: source/nijiexpose/windows/settings.d:353
-#: source/nijiexpose/windows/main.d:898
-msgid "Rendering"
-msgstr "レンダリング"
-
-#: source/nijiexpose/windows/spaceedit.d:311
-#: source/nijiexpose/windows/settings.d:378
-#: source/nijiexpose/windows/main.d:913
-msgid "Apply"
-msgstr "適用"
-
-#: source/nijiexpose/windows/settings.d:132
-#: source/nijiexpose/windows/settings.d:142
-#: source/nijiexpose/windows/settings.d:146
-msgid "Language"
-msgstr "言語"
-
-#: source/nijiexpose/windows/settings.d:149
-#: source/nijiexpose/windows/settings.d:154
-msgid "English"
-msgstr "英語"
-
-#: source/nijiexpose/windows/settings.d:164
-msgid "Restart may be required for all text to update."
-msgstr "すべてのテキストを更新するには再起動が必要な場合があります。"
-
-#: source/nijiexpose/windows/settings.d:173
-msgid "Enable tracking"
-msgstr "トラッキングを有効化"
-
-#: source/nijiexpose/windows/settings.d:200
-msgid "Python path"
-msgstr "Python パス"
-
-#: source/nijiexpose/windows/settings.d:207
-msgid "Python is not detected. Please install python (<=3.12) first."
-msgstr ""
-"Python が検出されません。先に Python (<=3.12) をインストールしてください。"
-
-#: source/nijiexpose/windows/settings.d:190
-msgid "Tracker executable path"
-msgstr "トラッカー実行ファイルのパス"
-
-#: source/nijiexpose/windows/settings.d:223
-msgid "Install"
-msgstr "インストール"
-
-#: source/nijiexpose/windows/settings.d:238
-msgid "OK"
-msgstr "OK"
-
-#: source/nijiexpose/windows/settings.d:243
-msgid "Camera device"
-msgstr "カメラデバイス"
-
-#: source/nijiexpose/windows/settings.d:250
-msgid "Select device..."
-msgstr "デバイスを選択..."
-
-#: source/nijiexpose/windows/settings.d:261
-msgid "Host name"
-msgstr "ホスト名"
-
-#: source/nijiexpose/windows/settings.d:264
-msgid "Port number"
-msgstr "ポート番号"
-
-#: source/nijiexpose/windows/settings.d:267
-msgid "Flip input"
-msgstr "入力を反転"
-
-#: source/nijiexpose/windows/settings.d:268
-msgid "Show camera tracking window"
-msgstr "カメラトラッキングウィンドウを表示"
-
-#: source/nijiexpose/windows/settings.d:291
-#: source/nijiexpose/windows/settings.d:310
-msgid "V-Sync throttling"
-msgstr "V-Sync 間引き"
-
-#: source/nijiexpose/windows/settings.d:294
-#: source/nijiexpose/windows/settings.d:312
-msgid "Throtting interval"
-msgstr "間引き間隔"
-
-#: source/nijiexpose/windows/settings.d:294
-#: source/nijiexpose/windows/settings.d:312
-msgid "Experimental"
-msgstr "実験的"
-
-#: source/nijiexpose/windows/settings.d:301
-#: source/nijiexpose/windows/settings.d:318
-msgid "Triple buffer fallback"
-msgstr "トリプルバッファフォールバック"
-
-#: source/nijiexpose/windows/settings.d:304
-#: source/nijiexpose/windows/settings.d:320
-msgid "Enable triple buffer fallback"
-msgstr "トリプルバッファフォールバックを有効化"
-
-#: source/nijiexpose/windows/settings.d:305
-#: source/nijiexpose/windows/settings.d:321
-msgid "Use when advanced blend is unavailable or causes issues."
-msgstr "高度なブレンドが利用できない、または問題を起こす場合に使用します。"
-
-#: source/nijiexpose/windows/settings.d:347
-msgid "General"
-msgstr "一般"
-
-#: source/nijiexpose/windows/settings.d:391
-msgid "Settings"
-msgstr "設定"
-
-#: source/nijiexpose/windows/spaceedit.d:78
-#: source/nijiexpose/windows/spaceedit.d:88
-#: source/nijiexpose/windows/spaceedit.d:287
-msgid "Delete"
-msgstr "削除"
-
-#: source/nijiexpose/windows/spaceedit.d:101
-msgid "iFacialMocap Adpator would listen on udp port 49983"
-msgstr "iFacialMocap アダプターは UDP ポート 49983 で待ち受けます"
-
-#: source/nijiexpose/windows/spaceedit.d:104
-msgid "Make sure the port is not blocked by firewall."
-msgstr "ファイアウォールでポートがブロックされていないことを確認してください。"
-
-#: source/nijiexpose/windows/spaceedit.d:224
-#: source/nijiexpose/windows/spaceedit.d:368
-msgid "No zone selected for editing..."
-msgstr "編集するゾーンが選択されていません..."
-
-#: source/nijiexpose/windows/spaceedit.d:243
-#: source/nijiexpose/windows/spaceedit.d:380
-msgid "Unset"
-msgstr "未設定"
-
-#: source/nijiexpose/windows/spaceedit.d:276
-msgid "Save Changes"
-msgstr "変更を保存"
-
-#: source/nijiexpose/windows/spaceedit.d:321
-msgid "Zone"
-msgstr "ゾーン"
-
-#: source/nijiexpose/windows/spaceedit.d:332
-#: source/nijiexpose/windows/spaceedit.d:392
-#: source/nijiexpose/windows/spaceedit.d:423
-msgid ""
-msgstr ""
-
-#: source/nijiexpose/windows/spaceedit.d:454
-msgid "Add Source"
-msgstr "ソースを追加"
-
-#: source/nijiexpose/framesend.d:50
+#: native/src/framesend.cpp:25
 msgid ""
 "Could not start texture sharing, it will be disabled. Is the library missing?"
 msgstr ""
 "テクスチャ共有を開始できなかったため、無効化されます。ライブラリが見つからな"
 "い可能性があります。"
 
-#: source/nijiexpose/framesend.d:51
+#: native/src/framesend.cpp:26
 msgid "Frame-sending started successfully!"
 msgstr "フレーム送信を開始しました。"
 
-#: source/nijiexpose/i18n.d:18
-msgid "LANG_NAME"
-msgstr "日本語"
-
-#: source/nijiexpose/windows/settings.d:182
-msgid "Tracker launch mode"
-msgstr "トラッカーの起動方式"
-
-#: source/nijiexpose/windows/settings.d:184
-#: source/nijiexpose/windows/settings.d:186
-msgid "Executable"
-msgstr "実行ファイル"
-
-#: source/nijiexpose/windows/settings.d:184
-#: source/nijiexpose/windows/settings.d:185
-msgid "Python"
-msgstr "Python"
-
-#: source/nijiexpose/windows/settings.d:194
-msgid "Python executable path (empty: auto-detect)"
-msgstr "Python実行ファイルのパス（空欄で自動検出）"
-
-#: source/nijiexpose/windows/settings.d:211
-msgid "Tracker script directory"
-msgstr "トラッカースクリプトのフォルダー"
-
-#: source/nijiexpose/windows/settings.d:297
-#: source/nijiexpose/windows/settings.d:315
-#, c-format
-msgid "Frame rate: %.2f fps"
+#: native/src/framesend_stub.cpp:6
+msgid "Frame sharing is unavailable on this platform."
 msgstr ""
 
-#: source/nijiexpose/tracking/tracker.d:89
-msgid "Tracker executable is missing or cannot be executed."
-msgstr "トラッカー実行ファイルが見つからないか、実行できません。"
+#: native/src/panels/animations.cpp:72
+msgid "Tracking Parameter"
+msgstr "トラッキングパラメータ"
 
-#: source/nijiexpose/tracking/tracker.d:92
-msgid "Python executable is missing or cannot be executed."
-msgstr "Python実行ファイルが見つからないか、実行できません。"
+#: native/src/panels/animations.cpp:73
+#: native/src/panels/tracking.cpp:337
+msgid "Not tracked"
+msgstr "未トラッキング"
 
-#: source/nijiexpose/tracking/tracker.d:95
-#: source/nijiexpose/tracking/tracker.d:97
-msgid "Tracker script was not found."
-msgstr "トラッカースクリプトが見つかりません。"
+#: native/src/panels/animations.cpp:88
+#: native/src/panels/tracking.cpp:352
+msgid "X"
+msgstr "X"
 
-#: source/nijiexpose/tracking/tracker.d:194
-#: source/nijiexpose/tracking/tracker.d:230
-msgid "Could not start the tracker."
-msgstr "トラッカーを起動できませんでした。"
+#: native/src/panels/animations.cpp:94
+#: native/src/panels/tracking.cpp:358
+msgid "Y"
+msgstr "Y"
 
-#: source/nijiexpose/tracking/tracker.d:203
-msgid "Could not list tracker cameras."
-msgstr "トラッカーのカメラ一覧を取得できませんでした。"
+#: native/src/panels/animations.cpp:100
+#: native/src/panels/tracking.cpp:364
+msgid "Z"
+msgstr "Z"
 
-#: source/nijiexpose/tracking/tracker.d:246
-msgid "Python executable was not found."
-msgstr "Python実行ファイルが見つかりません。"
+#: native/src/panels/animations.cpp:106
+#: native/src/panels/tracking.cpp:370
+msgid "Roll"
+msgstr "ロール"
+
+#: native/src/panels/animations.cpp:112
+#: native/src/panels/tracking.cpp:376
+msgid "Pitch"
+msgstr "ピッチ"
+
+#: native/src/panels/animations.cpp:118
+#: native/src/panels/tracking.cpp:382
+msgid "Yaw"
+msgstr "ヨー"
+
+#: native/src/panels/animations.cpp:140
+msgid "Reset"
+msgstr "リセット"
+
+#: native/src/panels/animations.cpp:148
+msgid "Default Thresholds"
+msgstr "既定のしきい値"
+
+#: native/src/panels/animations.cpp:152
+msgid "Use Hold Delay"
+msgstr "ホールド遅延を使用"
+
+#: native/src/panels/animations.cpp:157
+msgid "Play Threshold"
+msgstr "再生しきい値"
+
+#: native/src/panels/animations.cpp:191
+#: native/src/panels/animations.cpp:239
+#: native/src/panels/animations.cpp:286
+msgid "Hold Delay (ms):"
+msgstr "ホールド遅延 (ms):"
+
+#: native/src/panels/animations.cpp:205
+msgid "Stop Threshold"
+msgstr "停止しきい値"
+
+#: native/src/panels/animations.cpp:252
+msgid "Full Stop Threshold"
+msgstr "完全停止しきい値"
+
+#: native/src/panels/animations.cpp:311
+msgid "Play on"
+msgstr "再生条件"
+
+#: native/src/panels/animations.cpp:313
+msgid "Stop on"
+msgstr "停止条件"
+
+#: native/src/panels/animations.cpp:315
+msgid "Full stop on"
+msgstr "完全停止条件"
+
+#: native/src/panels/animations.cpp:324
+msgid "Load"
+msgstr "ロード"
+
+#: native/src/panels/animations.cpp:330
+#: native/src/panels/animations.cpp:359
+#: native/src/panels/animations.cpp:383
+msgid "Idle"
+msgstr "待機"
+
+#: native/src/panels/animations.cpp:338
+#: native/src/panels/animations.cpp:365
+#: native/src/panels/animations.cpp:389
+msgid "Sleep"
+msgstr "スリープ"
+
+#: native/src/panels/animations.cpp:408
+#: native/src/panels/tracking.cpp:597
+msgid ""
+msgstr ""
+
+#: native/src/panels/animations.cpp:412
+#: native/src/panels/tracking.cpp:601
+msgid "Refresh"
+msgstr "更新"
+
+#: native/src/panels/animations.cpp:416
+#: native/src/panels/tracking.cpp:605
+#: native/src/windows/spaceedit.cpp:386
+msgid ""
+msgstr ""
+
+#: native/src/panels/animations.cpp:420
+#: native/src/panels/scene.cpp:17
+#: native/src/panels/scene.cpp:24
+#: native/src/panels/tracking.cpp:609
+#: native/src/windows/main.cpp:890
+#: native/src/windows/main.cpp:894
+#: native/src/windows/main.cpp:898
+#: native/src/windows/settings.cpp:55
+#: native/src/windows/settings.cpp:65
+#: native/src/windows/spaceedit.cpp:23
+#: native/src/windows/spaceedit.cpp:253
+#: native/src/windows/spaceedit.cpp:392
+msgid "Error"
+msgstr "エラー"
+
+#: native/src/panels/animations.cpp:423
+#: native/src/panels/tracking.cpp:612
+msgid "Save to File"
+msgstr "ファイルに保存"
+
+#: native/src/panels/animations.cpp:442
+msgid "Loop"
+msgstr "ループ"
+
+#: native/src/panels/animations.cpp:446
+msgid "Trigger"
+msgstr "トリガー"
+
+#: native/src/panels/animations.cpp:478
+#: native/src/panels/tracking.cpp:645
+msgid "No puppet selected"
+msgstr "パペットが選択されていません"
+
+#: native/src/panels/animations.cpp:483
+msgid "Animations"
+msgstr "アニメーション"
+
+#: native/src/panels/blends.cpp:23
+msgid "Blendshapes"
+msgstr "ブレンドシェイプ"
+
+#: native/src/panels/plugin.cpp:7
+msgid "Plugins"
+msgstr "プラグイン"
+
+#: native/src/panels/plugin.cpp:10
+#, c-format
+msgid "%s has crashed, options are disabled."
+msgstr "%s がクラッシュしたため、オプションは無効です。"
+
+#: native/src/panels/plugin.cpp:11
+#: native/src/plugins/package.cpp:59
+#, c-format
+msgid "%s (plugin): %s"
+msgstr "%s (プラグイン): %s"
+
+#: native/src/panels/plugin.cpp:12
+msgid "Plugin cannot be configured."
+msgstr "プラグインを設定できません。"
+
+#: native/src/panels/scene.cpp:14
+#: native/src/windows/main.cpp:845
+msgid "Scene Settings"
+msgstr "シーン設定"
+
+#: native/src/panels/scene.cpp:17
+#, c-format
+msgid "Could not load %s, %s"
+msgstr "%s を読み込めませんでした: %s"
+
+#: native/src/panels/scene.cpp:19
+msgid "Enabled###POST_PROCESSING"
+msgstr "有効###POST_PROCESSING"
+
+#: native/src/panels/scene.cpp:19
+msgid "Post Processing"
+msgstr "ポストプロセス"
+
+#: native/src/panels/scene.cpp:20
+msgid "Lighting"
+msgstr "ライティング"
+
+#: native/src/panels/scene.cpp:21
+msgid "Background Color"
+msgstr "背景色"
+
+#: native/src/panels/scene.cpp:22
+msgid "Chroma Key Blue"
+msgstr "クロマキー青"
+
+#: native/src/panels/scene.cpp:22
+msgid "Chroma Key Green"
+msgstr "クロマキー緑"
+
+#: native/src/panels/scene.cpp:22
+msgid "Chroma Key Red"
+msgstr "クロマキー赤"
+
+#: native/src/panels/scene.cpp:22
+msgid "Color Swatches"
+msgstr "カラースウォッチ"
+
+#: native/src/panels/scene.cpp:22
+msgid "Full Transparent"
+msgstr "完全透明"
+
+#: native/src/panels/scene.cpp:23
+msgid "Background Image"
+msgstr "背景画像"
+
+#: native/src/panels/scene.cpp:23
+#: native/src/windows/main.cpp:700
+msgid "Open..."
+msgstr "開く..."
+
+#: native/src/panels/scene.cpp:23
+msgid "Select Background"
+msgstr "背景を選択"
+
+#: native/src/panels/scene.cpp:24
+#: native/src/windows/main.cpp:896
+#, c-format
+msgid "Could not load %s, unsupported file format."
+msgstr "%s を読み込めませんでした。対応していないファイル形式です。"
+
+#: native/src/panels/scene.cpp:26
+#: native/src/panels/tracking.cpp:411
+#: native/src/panels/tracking.cpp:484
+#: native/src/panels/tracking.cpp:548
+msgid ""
+msgstr ""
+
+#: native/src/panels/tracking.cpp:18
+#, c-format
+msgid "Output (%s)"
+msgstr "出力 (%s)"
+
+#: native/src/panels/tracking.cpp:42
+#: native/src/panels/tracking.cpp:252
+msgid "Ratio Binding"
+msgstr "比率バインディング"
+
+#: native/src/panels/tracking.cpp:44
+#: native/src/panels/tracking.cpp:258
+msgid "Expression Binding"
+msgstr "式バインディング"
+
+#: native/src/panels/tracking.cpp:46
+#: native/src/panels/tracking.cpp:265
+msgid "Event Binding"
+msgstr "イベントバインディング"
+
+#: native/src/panels/tracking.cpp:48
+#: native/src/panels/tracking.cpp:272
+msgid "Compound Binding"
+msgstr "複合バインディング"
+
+#: native/src/panels/tracking.cpp:50
+msgid "External Binding"
+msgstr "外部バインディング"
+
+#: native/src/panels/tracking.cpp:250
+msgid "Type"
+msgstr "種類"
+
+#: native/src/panels/tracking.cpp:300
+#: native/src/panels/tracking.cpp:418
+#: native/src/panels/tracking.cpp:470
+msgid "Dampen"
+msgstr "減衰"
+
+#: native/src/panels/tracking.cpp:314
+#: native/src/panels/tracking.cpp:500
+#: native/src/panels/tracking.cpp:582
+msgid "Value out of range, clamped to 0..1 range."
+msgstr "値が範囲外のため、0..1 の範囲に制限されました。"
+
+#: native/src/panels/tracking.cpp:416
+msgid "Inverse"
+msgstr "反転"
+
+#: native/src/panels/tracking.cpp:421
+msgid "Tracking In"
+msgstr "トラッキング入力"
+
+#: native/src/panels/tracking.cpp:450
+msgid "Tracking Out"
+msgstr "トラッキング出力"
+
+#: native/src/panels/tracking.cpp:493
+#: native/src/panels/tracking.cpp:575
+#: native/src/windows/spaceedit.cpp:186
+#: native/src/windows/spaceedit.cpp:271
+#: native/src/windows/spaceedit.cpp:334
+msgid ""
+msgstr ""
+
+#: native/src/panels/tracking.cpp:520
+msgid "Weighted Sum"
+msgstr "重み付き合計"
+
+#: native/src/panels/tracking.cpp:521
+msgid "Weighted Multiply"
+msgstr "重み付き乗算"
+
+#: native/src/panels/tracking.cpp:522
+msgid "Ordered"
+msgstr "順序付き"
+
+#: native/src/panels/tracking.cpp:638
+msgid "No settings available."
+msgstr "利用可能な設定はありません。"
+
+#: native/src/plugins/package.cpp:58
+#, c-format
+msgid "Loaded plugin %s %s..."
+msgstr "プラグイン %s %s を読み込みました..."
+
+#: native/src/plugins/package.cpp:74
+#, c-format
+msgid "Attempted to load invalid module specifier %s"
+msgstr "無効なモジュール指定子 %s を読み込もうとしました"
+
+#: native/src/plugins/package.cpp:77
+#, c-format
+msgid "Module %s not found"
+msgstr "モジュール %s が見つかりません"
+
+#: native/src/plugins/package.cpp:78
+msgid "Attempted to require a symlink, this is not allowed."
+msgstr ""
+"シンボリックリンクを require しようとしました。これは許可されていません。"
+
+#: native/src/tracking/expr.cpp:98
+#, c-format
+msgid "Expected %s, got %s"
+msgstr "%s が必要ですが、%s が渡されました"
+
+#: native/src/tracking/package.cpp:79
+#, c-format
+msgid "%s (Key)"
+msgstr "%s (キー)"
+
+#: native/src/tracking/package.cpp:79
+#, c-format
+msgid "%s (Pitch)"
+msgstr "%s (ピッチ)"
+
+#: native/src/tracking/package.cpp:79
+#, c-format
+msgid "%s (Roll)"
+msgstr "%s (ロール)"
+
+#: native/src/tracking/package.cpp:79
+#, c-format
+msgid "%s (X)"
+msgstr "%s (X)"
+
+#: native/src/tracking/package.cpp:79
+#, c-format
+msgid "%s (Y)"
+msgstr "%s (Y)"
+
+#: native/src/tracking/package.cpp:79
+#, c-format
+msgid "%s (Yaw)"
+msgstr "%s (ヨー)"
+
+#: native/src/tracking/package.cpp:79
+#, c-format
+msgid "%s (Z)"
+msgstr "%s (Z)"
+
+#: native/src/windows/main.cpp:836
+msgid "Tracking Settings"
+msgstr "トラッキング設定"
+
+#: native/src/windows/main.cpp:841
+#: native/src/windows/spaceedit.cpp:451
+msgid "Virtual Space"
+msgstr "仮想空間"
+
+#: native/src/windows/main.cpp:854
+#: native/src/windows/settings.cpp:279
+msgid "Rendering"
+msgstr "レンダリング"
+
+#: native/src/windows/main.cpp:869
+#: native/src/windows/settings.cpp:304
+#: native/src/windows/spaceedit.cpp:282
+msgid "Apply"
+msgstr "適用"
+
+#: native/src/windows/settings.cpp:111
+#: native/src/windows/settings.cpp:121
+#: native/src/windows/settings.cpp:125
+msgid "Language"
+msgstr "言語"
+
+#: native/src/windows/settings.cpp:128
+#: native/src/windows/settings.cpp:133
+msgid "English"
+msgstr "英語"
+
+#: native/src/windows/settings.cpp:143
+msgid "Restart may be required for all text to update."
+msgstr "すべてのテキストを更新するには再起動が必要な場合があります。"
+
+#: native/src/windows/settings.cpp:152
+msgid "Enable tracking"
+msgstr "トラッキングを有効化"
+
+#: native/src/windows/settings.cpp:160
+msgid "Embedded nijitrack"
+msgstr ""
+
+#: native/src/windows/settings.cpp:167
+msgid "Camera device"
+msgstr "カメラデバイス"
+
+#: native/src/windows/settings.cpp:172
+msgid "Retry camera detection"
+msgstr "カメラ検出を再試行"
+
+#: native/src/windows/settings.cpp:178
+msgid "Select device..."
+msgstr "デバイスを選択..."
+
+#: native/src/windows/settings.cpp:192
+msgid "Flip input"
+msgstr "入力を反転"
+
+#: native/src/windows/settings.cpp:193
+msgid "Show camera tracking window"
+msgstr "カメラトラッキングウィンドウを表示"
+
+#: native/src/windows/settings.cpp:194
+#, fuzzy
+msgid "Keyboard tracking"
+msgstr "トラッキングを有効化"
+
+#: native/src/windows/settings.cpp:218
+#: native/src/windows/settings.cpp:237
+msgid "V-Sync throttling"
+msgstr "V-Sync 間引き"
+
+#: native/src/windows/settings.cpp:221
+#: native/src/windows/settings.cpp:239
+msgid "Experimental"
+msgstr "実験的"
+
+#: native/src/windows/settings.cpp:221
+#: native/src/windows/settings.cpp:239
+msgid "Throtting interval"
+msgstr "間引き間隔"
+
+#: native/src/windows/settings.cpp:228
+#: native/src/windows/settings.cpp:245
+msgid "Triple buffer fallback"
+msgstr "トリプルバッファフォールバック"
+
+#: native/src/windows/settings.cpp:231
+#: native/src/windows/settings.cpp:247
+msgid "Enable triple buffer fallback"
+msgstr "トリプルバッファフォールバックを有効化"
+
+#: native/src/windows/settings.cpp:232
+#: native/src/windows/settings.cpp:248
+msgid "Use when advanced blend is unavailable or causes issues."
+msgstr "高度なブレンドが利用できない、または問題を起こす場合に使用します。"
+
+#: native/src/windows/settings.cpp:273
+msgid "General"
+msgstr "一般"
+
+#: native/src/windows/settings.cpp:315
+msgid "Settings"
+msgstr "設定"
+
+#: native/src/windows/spaceedit.cpp:67
+#: native/src/windows/spaceedit.cpp:77
+#: native/src/windows/spaceedit.cpp:258
+msgid "Delete"
+msgstr "削除"
+
+#: native/src/windows/spaceedit.cpp:90
+msgid "iFacialMocap Adpator would listen on udp port 49983"
+msgstr "iFacialMocap アダプターは UDP ポート 49983 で待ち受けます"
+
+#: native/src/windows/spaceedit.cpp:93
+msgid "Make sure the port is not blocked by firewall."
+msgstr "ファイアウォールでポートがブロックされていないことを確認してください。"
+
+#: native/src/windows/spaceedit.cpp:194
+#: native/src/windows/spaceedit.cpp:340
+msgid "No zone selected for editing..."
+msgstr "編集するゾーンが選択されていません..."
+
+#: native/src/windows/spaceedit.cpp:213
+#: native/src/windows/spaceedit.cpp:352
+msgid "Unset"
+msgstr "未設定"
+
+#: native/src/windows/spaceedit.cpp:247
+msgid "Save Changes"
+msgstr "変更を保存"
+
+#: native/src/windows/spaceedit.cpp:292
+msgid "Zone"
+msgstr "ゾーン"
+
+#: native/src/windows/spaceedit.cpp:304
+#: native/src/windows/spaceedit.cpp:365
+#: native/src/windows/spaceedit.cpp:396
+msgid ""
+msgstr ""
+
+#: native/src/windows/spaceedit.cpp:427
+msgid "Add Source"
+msgstr "ソースを追加"
+
+#: native/port/nijiui/widgets/dialog.cpp:74
+msgid "Cancel"
+msgstr ""
+
+#: native/port/nijiui/widgets/dialog.cpp:78
+msgid "OK"
+msgstr "OK"
+
+#: native/port/nijiui/widgets/dialog.cpp:82
+#, fuzzy
+msgid "No"
+msgstr "なし"
+
+#: native/port/nijiui/widgets/dialog.cpp:86
+msgid "Yes"
+msgstr ""
+
+#~ msgid "Python path"
+#~ msgstr "Python パス"
+
+#~ msgid "Python is not detected. Please install python (<=3.12) first."
+#~ msgstr ""
+#~ "Python が検出されません。先に Python (<=3.12) をインストールしてください。"
+
+#~ msgid "Tracker executable path"
+#~ msgstr "トラッカー実行ファイルのパス"
+
+#~ msgid "Install"
+#~ msgstr "インストール"
+
+#~ msgid "Host name"
+#~ msgstr "ホスト名"
+
+#~ msgid "Port number"
+#~ msgstr "ポート番号"
+
+#~ msgid "Tracker launch mode"
+#~ msgstr "トラッカーの起動方式"
+
+#~ msgid "Executable"
+#~ msgstr "実行ファイル"
+
+#~ msgid "Python"
+#~ msgstr "Python"
+
+#~ msgid "Python executable path (empty: auto-detect)"
+#~ msgstr "Python実行ファイルのパス（空欄で自動検出）"
+
+#~ msgid "Tracker script directory"
+#~ msgstr "トラッカースクリプトのフォルダー"
+
+#~ msgid "Tracker executable is missing or cannot be executed."
+#~ msgstr "トラッカー実行ファイルが見つからないか、実行できません。"
+
+#~ msgid "Python executable is missing or cannot be executed."
+#~ msgstr "Python実行ファイルが見つからないか、実行できません。"
+
+#~ msgid "Tracker script was not found."
+#~ msgstr "トラッカースクリプトが見つかりません。"
+
+#~ msgid "Could not start the tracker."
+#~ msgstr "トラッカーを起動できませんでした。"
+
+#~ msgid "Could not list tracker cameras."
+#~ msgstr "トラッカーのカメラ一覧を取得できませんでした。"
+
+#~ msgid "Python executable was not found."
+#~ msgstr "Python実行ファイルが見つかりません。"
 
 #, c-format, d-format
 #~ msgid "Specified path doesn't contain %s"
 #~ msgstr "指定されたパスに %s が含まれていません"
-
-#: source/nijiexpose/windows/settings.d
-msgid "Retry camera detection"
-msgstr "カメラ検出を再試行"

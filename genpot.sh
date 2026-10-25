@@ -1,2 +1,3 @@
 #!/bin/sh
-find . -iname "*.d" | xargs xgettext --from-code=UTF-8 -o tl/template.pot -c --keyword=_ --keyword=__
+set -eu
+exec python3 "$(dirname "$0")/native/tools/translations.py" extract "$@"

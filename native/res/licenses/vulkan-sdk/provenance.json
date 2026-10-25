@@ -1,0 +1,76 @@
+{
+  "sdk_version": "1.4.328.1",
+  "files": [
+    {
+      "file": "MoltenVK/LICENSE",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/MoltenVK/458870543b9bcf6b0edd6f90aaa776707b310d96/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "file": "Vulkan-Loader/LICENSE.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Loader/0a278cc725089cb67bf6027076e5d72f97c04d86/LICENSE.txt",
+      "sha256": "43c0a37e6a0fa7ff3c843b3ec5a4fac84b712558ddac103fbd4c1649662a9ece"
+    },
+    {
+      "file": "Vulkan-Loader/LICENSE-cJSON.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Loader/0a278cc725089cb67bf6027076e5d72f97c04d86/loader/cJSON.c",
+      "extract": "Leading license comment",
+      "sha256": "3384d75264549cd04a5c00538a15871785f3f6ba60a779781df747d591655892"
+    },
+    {
+      "file": "SPIRV-Cross/LICENSE",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Cross/0a88b2d5c08708d45692b7096a0a84e7bfae366c/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "file": "SPIRV-Cross/LICENSES/Apache-2.0.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Cross/0a88b2d5c08708d45692b7096a0a84e7bfae366c/LICENSES/Apache-2.0.txt",
+      "sha256": "44b0a56e80b41a1b0a6bd1292515e806539fd97b30be54c2719e6c763190ab57"
+    },
+    {
+      "file": "SPIRV-Cross/LICENSES/CC-BY-4.0.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Cross/0a88b2d5c08708d45692b7096a0a84e7bfae366c/LICENSES/CC-BY-4.0.txt",
+      "sha256": "b89aeb7c2a164a0576786dd2a8b57f2fb628b23981f0a06bd77e2f99a9befa0f"
+    },
+    {
+      "file": "SPIRV-Cross/LICENSES/LicenseRef-KhronosFreeUse.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Cross/0a88b2d5c08708d45692b7096a0a84e7bfae366c/LICENSES/LicenseRef-KhronosFreeUse.txt",
+      "sha256": "fbeaca472f4f70e276dd1106ca5097435967a22ad6c1d8200aef7ad9f70aaf3f"
+    },
+    {
+      "file": "SPIRV-Cross/LICENSES/MIT.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Cross/0a88b2d5c08708d45692b7096a0a84e7bfae366c/LICENSES/MIT.txt",
+      "sha256": "8f25018489d6fe0dec34a352314c38dc146247b7de65735790f4398a92afa84b"
+    },
+    {
+      "file": "SPIRV-Tools/LICENSE",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Tools/783d7033613cedaa7147d0700b517abc5c32312d/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "file": "SPIRV-Headers/LICENSE",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/SPIRV-Headers/bab63ff679c41eb75fc67dac76e1dc44426101e1/LICENSE",
+      "sha256": "ff04ae7e6a468587fe59434fee2e67c0e2a749b592c794b764ff80f30b94a084"
+    },
+    {
+      "file": "Vulkan-Headers/LICENSE.md",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/19725e4d48082fe78e26622b15d3080ccd54112b/LICENSE.md",
+      "sha256": "ac24e5ea920e4318e4d02c4086ae51f53cfb03feed06c18df1019e7ada1ec7bc"
+    },
+    {
+      "file": "Vulkan-Headers/LICENSES/Apache-2.0.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/19725e4d48082fe78e26622b15d3080ccd54112b/LICENSES/Apache-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "file": "Vulkan-Headers/LICENSES/MIT.txt",
+      "url": "https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/19725e4d48082fe78e26622b15d3080ccd54112b/LICENSES/MIT.txt",
+      "sha256": "1ca3502222d967f3be5751c55f6b7ee735b5383909c3b501495f54b216dbf227"
+    },
+    {
+      "file": "cereal/LICENSE",
+      "url": "https://raw.githubusercontent.com/USCiLab/cereal/51cbda5f30e56c801c07fe3d3aba5d7fb9e6cca4/LICENSE",
+      "sha256": "18fd7618c44c9fe28b5f54cd19747df3c0472ed33e8507fea571e2acf6e72f34"
+    }
+  ]
+}

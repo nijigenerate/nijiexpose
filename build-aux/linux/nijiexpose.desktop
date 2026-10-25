@@ -3,4 +3,5 @@ Name=nijiexpose
 Exec=nijiexpose
 Icon=nijiexpose
 Type=Application
-Categories=Utility
+Terminal=false
+Categories=Graphics;

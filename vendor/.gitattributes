@@ -1,0 +1,2 @@
+# Preserve exact bytes: manifest checks apply to sources, notices and binaries.
+* -text -whitespace

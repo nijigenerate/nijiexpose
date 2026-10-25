@@ -1,0 +1,21 @@
+nijitrack ac76c322aedd62740eee01c3ea1c528f7de51f6c
+https://github.com/nijigenerate/nijitrack
+Source archive SHA256: bb5f1f25f8d1849f9bee94d9858fdc96bbe84249bcc8d1c7b06762824cea916d
+
+Windows and macOS build the MediaPipe/Halide SDK from this pinned source.
+Windows: native/scripts/setup_tracking_toolchain.ps1,
+prepare_mediapipe_halide.ps1 and build_mediapipe_halide.ps1.
+macOS: native/build.sh setup, prepare and sdk.
+
+MediaPipe 6d31f1ebc3284db74d211d62bdc4f0a0c29ea120
+https://github.com/google-ai-edge/mediapipe
+Face/hand C API, static build with OpenCV disabled.
+Windows uses clang-cl and the static MSVC CRT (/MT).
+Halide 15.0.1 provides the upstream arbitrary-angle ROI implementation.
+Pinned tools and sources are verified by the upstream toolchain locks and recipe.
+
+Local Windows script patch initializes bundled Java on first use and enables the Bazel compiler action cache.
+Local macOS script patch selects the installed SDK and enables analysis preflight.
+No prebuilt tracker SDK is vendored or downloaded.
+Generated SDK provenance and transitive licenses are installed from build outputs.
+Task bundles retain their own models/models.lock.json.
