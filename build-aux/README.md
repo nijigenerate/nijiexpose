@@ -77,6 +77,7 @@ by the launcher. On WSLg, the application temporarily prefers system Zenity
 when installed, unless the user explicitly selects another SDL dialog driver.
 CPack can still produce a tar.gz locally, but CI release distribution uses AppImage.
 
-Nightly publishes ZIP files and a macOS DMG; version tags publish MSI/DMG/AppImage
+Nightly publishes ZIP files; version tags publish MSI/DMG/AppImage
 after all platform checks pass. Beta and RC tags create prereleases. Manual
-`nightly` and `release` modes also publish; `verify` only saves Actions artifacts. See [release triggers](../BUILD.md#nightly-and-tagged-releases).
+`nightly` and `release` modes also publish. Branch/PR and manual `verify` runs
+perform build and functional checks only; distribution packaging and uploads are skipped. See [release triggers](../BUILD.md#nightly-and-tagged-releases).

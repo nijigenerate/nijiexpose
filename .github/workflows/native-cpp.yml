@@ -195,10 +195,11 @@ jobs:
             build/native-release/application-results/results.json
           if-no-files-found: warn
       - name: Locate binary WiX tools
-        if: env.PACKAGE_MODE != 'nightly'
+        if: env.PACKAGE_MODE == 'release'
         shell: pwsh
         run: ./build-aux/windows/ensure-wix.ps1
       - name: Package Windows
+        if: needs.package-mode.outputs.publish == 'true'
         shell: pwsh
         run: |
           cpack --config build/native-release/CPackConfig.cmake -C Release -G ZIP
@@ -208,6 +209,7 @@ jobs:
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
       - name: Verify unpacked Windows package
+        if: needs.package-mode.outputs.publish == 'true'
         shell: pwsh
         run: |
           $zip = Get-ChildItem build/native-release/packages/*.zip
@@ -215,7 +217,7 @@ jobs:
           Expand-Archive -LiteralPath $zip.FullName -DestinationPath out/package-check
           python native/tools/verify-package.py "out/package-check/$($zip.BaseName)"
       - name: Verify MSI payload
-        if: env.PACKAGE_MODE != 'nightly'
+        if: env.PACKAGE_MODE == 'release'
         shell: pwsh
         run: |
           $msi = Get-ChildItem build/native-release/packages/*.msi
@@ -225,12 +227,14 @@ jobs:
           if ($process.ExitCode -ne 0) { throw "MSI extraction failed: $($process.ExitCode)" }
           python native/tools/verify-package.py "$destination/nijiexpose"
       - name: Select Windows distribution files
+        if: needs.package-mode.outputs.publish == 'true'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force out/dist | Out-Null
           if ($env:PACKAGE_MODE -ne 'release') { Copy-Item build/native-release/packages/*.zip out/dist }
           if ($env:PACKAGE_MODE -ne 'nightly') { Copy-Item build/native-release/packages/*.msi out/dist }
       - name: Upload Windows packages
+        if: needs.package-mode.outputs.publish == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: nijiexpose-windows-packages
@@ -377,15 +381,17 @@ jobs:
           path: build/compiler-cache
           key: ${{ steps.compiler-cache.outputs.cache-primary-key }}
       - name: Package Unix
+        if: needs.package-mode.outputs.publish == 'true'
         shell: bash
         run: |
           cpack --config build/native-release/CPackConfig.cmake -C Release -G ZIP
-          if [[ "$RUNNER_OS" == macOS ]]; then
+          if [[ "$RUNNER_OS" == macOS && "$PACKAGE_MODE" == release ]]; then
             cpack --config build/native-release/CPackConfig.cmake -C Release -G DragNDrop
-          elif [[ "$PACKAGE_MODE" != nightly ]]; then
+          elif [[ "$RUNNER_OS" == Linux && "$PACKAGE_MODE" == release ]]; then
             python3 build-aux/linux/appimage.py build/native-release
           fi
       - name: Verify unpacked package
+        if: needs.package-mode.outputs.publish == 'true'
         shell: bash
         run: |
           mkdir -p out/package-check
@@ -396,7 +402,7 @@ jobs:
             python3 native/tools/verify-package.py "out/package-check/$(basename "$archive" .zip)" "${verify_options[@]}"
           done
       - name: Verify mounted macOS DMG
-        if: runner.os == 'macOS'
+        if: runner.os == 'macOS' && env.PACKAGE_MODE == 'release'
         shell: bash
         run: |
           mountpoint="$PWD/out/dmg-mount"
@@ -416,16 +422,18 @@ jobs:
         if: always()
         run: sccache --show-stats
       - name: Select Unix distribution files
+        if: needs.package-mode.outputs.publish == 'true'
         shell: bash
         run: |
           mkdir -p out/dist
           if [[ "$PACKAGE_MODE" != release ]]; then cp build/native-release/packages/*.zip out/dist/; fi
-          if [[ "$RUNNER_OS" == macOS ]]; then
+          if [[ "$RUNNER_OS" == macOS && "$PACKAGE_MODE" == release ]]; then
             cp build/native-release/packages/*.dmg out/dist/
-          elif [[ "$PACKAGE_MODE" != nightly ]]; then
+          elif [[ "$RUNNER_OS" == Linux && "$PACKAGE_MODE" == release ]]; then
             cp build/native-release/packages/*.AppImage out/dist/
           fi
       - name: Upload packages
+        if: needs.package-mode.outputs.publish == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: nijiexpose-${{ runner.os }}-${{ runner.arch }}-packages

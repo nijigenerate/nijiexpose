@@ -258,8 +258,8 @@ details, including MSI upgrade-version behavior, are in
 ## Nightly and tagged releases
 
 The native workflow runs daily at 00:00 UTC once it is on the default branch.
-Scheduled builds and the `nightly` tag publish ZIP files for all platforms and
-a macOS DMG to the nightly prerelease.
+Scheduled builds and the `nightly` tag publish ZIP files for all platforms
+to the nightly prerelease.
 Push `[v]MAJOR.MINOR.PATCH` to build and publish MSI (Windows), DMG (macOS) and
 AppImage (Linux). A `-betaN` or `-rcN` suffix marks a prerelease. Application versions are derived from Git:
 an exact tag uses its name; later commits use `<nearest-tag>-g<12-digit-commit>`;
@@ -270,9 +270,10 @@ Existing builds reconfigure when Git HEAD or refs change. Numeric-only metadata
 `MAJOR.MINOR.PATCH`, or `0.0.0` if the tag has no numeric version.
 Tags are not created automatically for testing.
 
-Branch/PR builds validate both ZIP and installer/AppImage packaging without
-publishing releases. Manual runs offer `verify`, `nightly` and `release` modes;
-`verify` only uploads Actions artifacts, while `nightly` and `release` publish
+Branch/PR builds compile the application and run configured functional tests.
+They do not create, validate or upload distribution packages. Manual runs offer
+`verify`, `nightly` and `release` modes; `verify` performs the same build/test
+checks (with test results and build logs), while `nightly` and `release` publish
 once all platform jobs and package checks succeed. Manual `release` runs require
 an existing version tag: supply `release_tag` when running from a branch, or
 select the tag as the workflow ref. All jobs build that tag's pinned commit,

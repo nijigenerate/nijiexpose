@@ -75,6 +75,21 @@ class PackageModeTests(unittest.TestCase):
             self.assertEqual(result["mode"], "verify")
             self.assertEqual(result["publish"], "false")
 
+    def test_distribution_steps_require_publication(self):
+        # Branch/PR and manual verify must not create, verify or upload packages.
+        gated = ["Package Windows", "Verify unpacked Windows package",
+                 "Select Windows distribution files", "Upload Windows packages",
+                 "Package Unix", "Verify unpacked package",
+                 "Select Unix distribution files", "Upload packages"]
+        for name in gated:
+            self.assertIn(f"- name: {name}\n        if: needs.package-mode.outputs.publish == 'true'\n", WORKFLOW)
+        for name in ["Locate binary WiX tools", "Verify MSI payload"]:
+            self.assertIn(f"- name: {name}\n        if: env.PACKAGE_MODE == 'release'\n", WORKFLOW)
+        for event in ("push", "pull_request", "workflow_dispatch"):
+            result = mode.plan(event, "refs/heads/main", "verify" if event == "workflow_dispatch" else "")
+            self.assertEqual(result["publish"], "false")
+        self.assertIn('run: ctest --preset native-release', WORKFLOW)
+
     def test_invalid_tag(self):
         for tag in ("v1.2.3-invalid", "bad\noutput=true", "v1.2.3;echo"):
             with self.assertRaises(ValueError):
@@ -85,7 +100,7 @@ class PackageModeTests(unittest.TestCase):
         self.assertIn("if: needs.package-mode.outputs.publish == 'true'", WORKFLOW)
         self.assertIn("group: publish-${{ needs.package-mode.outputs.release_tag }}", WORKFLOW)
         self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && !startsWith(github.ref, 'refs/tags/')) }}", WORKFLOW)
-        self.assertIn("- name: Verify mounted macOS DMG\n        if: runner.os == 'macOS'\n", WORKFLOW)
+        self.assertIn("- name: Verify mounted macOS DMG\n        if: runner.os == 'macOS' && env.PACKAGE_MODE == 'release'\n", WORKFLOW)
         self.assertIn("needs: [package-mode, windows-native, unix-native]", WORKFLOW)
 
 
@@ -121,7 +136,7 @@ generator=sys.argv[sys.argv.index("-G")+1]
 Path("build/native-release/packages/fixture.AppImage").touch()
 ''')
         for system in ("macOS", "Linux"):
-            for selected in ("verify", "nightly", "release"):
+            for selected in ("nightly", "release"):
                 with self.subTest(system=system, mode=selected):
                     shutil.rmtree(self.root / "build", ignore_errors=True)
                     shutil.rmtree(self.root / "out", ignore_errors=True)
@@ -130,9 +145,9 @@ Path("build/native-release/packages/fixture.AppImage").touch()
                     self.run_command("bash", "-euo", "pipefail", "-c", shell_step("Select Unix distribution files"), env=env)
                     extensions = {p.suffix for p in (self.root / "out/dist").iterdir()}
                     expected = {".zip"} if selected != "release" else set()
-                    if system == "macOS":
+                    if system == "macOS" and selected == "release":
                         expected.add(".dmg")
-                    elif selected != "nightly":
+                    elif system == "Linux" and selected == "release":
                         expected.add(".AppImage")
                     self.assertEqual(extensions, expected)
 
