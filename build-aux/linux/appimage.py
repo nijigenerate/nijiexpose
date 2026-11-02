@@ -10,6 +10,15 @@ import sys
 import tempfile
 
 
+# Dated official release: unlike the rolling continuous release, its assets are
+# not routinely replaced. Keep a fixed digest even if the upstream URL changes.
+LINUXDEPLOY_URL = (
+    "https://github.com/linuxdeploy/linuxdeploy/releases/download/"
+    "1-alpha-20251107-1/linuxdeploy-x86_64.AppImage"
+)
+LINUXDEPLOY_SHA256 = "c20cd71e3a4e3b80c3483cef793cda3f4e990aca14014d23c544ca3ce1270b4d"
+
+
 def run(*args, **kwargs):
     return subprocess.run(args, check=True, **kwargs)
 
@@ -40,13 +49,11 @@ def main():
     tools = build / "packaging-tools"
     tools.mkdir(exist_ok=True)
     deploy = tools / "linuxdeploy-x86_64.AppImage"
-    digest = "8aea8da0f7f7039d2a2cecb14657d752a222a5e1d3825caeef186c82f751cdd1"
     if not deploy.exists():
-        # Immutable official release asset ID; continuous tag itself can move.
         run("curl", "--fail", "--location", "--retry", "3", "--header",
             "Accept: application/octet-stream", "--output", str(deploy),
-            "https://api.github.com/repos/linuxdeploy/linuxdeploy/releases/assets/602438599")
-    if hashlib.sha256(deploy.read_bytes()).hexdigest() != digest:
+            LINUXDEPLOY_URL)
+    if hashlib.sha256(deploy.read_bytes()).hexdigest() != LINUXDEPLOY_SHA256:
         raise RuntimeError("linuxdeploy checksum mismatch")
     deploy.chmod(0o755)
     output = build / "packages" / f"nijiexpose-{version}-Linux-x86_64.AppImage"

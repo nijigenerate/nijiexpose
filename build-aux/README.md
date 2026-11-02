@@ -67,6 +67,15 @@ python3 native/tools/verify-package.py <unpacked-package-root>
 
 Linux Lua 5.1 is statically linked using the distribution archive. Generate the
 AppImage with `python3 build-aux/linux/appimage.py <build-directory>`.
+The packaging tool is pinned to the official linuxdeploy
+[`1-alpha-20251107-1` release](https://github.com/linuxdeploy/linuxdeploy/releases/tag/1-alpha-20251107-1),
+asset `313839329` (`linuxdeploy-x86_64.AppImage`, 19,421,688 bytes).
+SHA-256: `c20cd71e3a4e3b80c3483cef793cda3f4e990aca14014d23c544ca3ce1270b4d`.
+The downloaded bytes matched GitHub's asset digest on 2026-11-02. The previous
+rolling-release asset `602438599` returned HTTP 404. A dated release avoids
+routine replacement of `continuous` assets; the checksum remains mandatory
+for both newly downloaded and cached files, with no unverified fallback.
+Run `python3 build-aux/test_appimage.py` for the network-free acquisition guards.
 Unlike the ZIP, it bundles the runtime libraries selected by linuxdeploy and
 their package notices. The resulting image is extracted and launched for verification.
 File dialogs use the host's XDG Desktop Portal (including its desktop-specific

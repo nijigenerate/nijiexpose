@@ -45,6 +45,7 @@ jobs:
           fetch-depth: 0
       - run: python3 build-aux/test_package_mode.py
       - run: python3 build-aux/test_git_version.py
+      - run: python3 build-aux/test_appimage.py
       - id: mode
         env:
           REQUESTED_MODE: ${{ inputs.mode }}
