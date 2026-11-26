@@ -145,6 +145,11 @@ Context::Context(SDL_Window *window) : window_(window) {
         VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     sc.maxLod = VK_LOD_CLAMP_NONE;
     check(vkCreateSampler(device, &sc, nullptr, &sampler));
+    // Match the OpenGL renderer's default wrapping for part textures.
+    sc.addressModeU = sc.addressModeV = sc.addressModeW =
+        VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    sc.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+    check(vkCreateSampler(device, &sc, nullptr, &textureSampler));
     VkCommandPoolCreateInfo pc{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
     pc.queueFamilyIndex = family;
     pc.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
@@ -178,6 +183,7 @@ void Context::release() {
     vkDestroyPipeline(device, opaqueAlphaPipeline_, nullptr);
     vkDestroyPipelineLayout(device, opaqueAlphaLayout_, nullptr);
     destroy(pointerPixel_);
+    vkDestroySampler(device, textureSampler, nullptr);
     vkDestroySampler(device, sampler, nullptr);
     vkDestroyCommandPool(device, uploadPool_, nullptr);
     vkDestroyDescriptorPool(device, descriptors, nullptr);

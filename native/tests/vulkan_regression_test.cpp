@@ -28,6 +28,8 @@ int main() {
     std::vector<uint8_t> red(16*16*4);
     for(size_t i=0;i<red.size();i+=4){red[i]=255;red[i+3]=255;}
     auto texture=std::make_shared<core::Texture>(red,16,16,4,4,false,false);
+    // Keep the opacity and lighting checks independent of border filtering.
+    texture->setWrapping(core::Wrapping::Repeat);
     auto part=core::nodes::Part::createSimple(texture,"Regression quad");
     auto puppet=std::make_shared<core::Puppet>(part); puppet->update();
     core::nodes::PartDrawPacket packet; part->fillDrawPacket(*part,packet,false);
@@ -40,6 +42,29 @@ int main() {
      context.present(ImGui::GetDrawData(),backend->sceneImage());context.idle();
      return backend->readTexture(read?read:backend->renderImageHandle());
     };
+    {
+     auto edgeTexture=std::make_shared<core::Texture>(red,16,16,4,4,false,false);
+     auto edgeMesh=part->mesh->copy();
+     for(auto& uv:edgeMesh.uvs) uv.x=2*uv.x-.5f;
+     auto edgePart=std::make_shared<core::nodes::Part>(edgeMesh,
+         std::array<std::shared_ptr<core::Texture>,3>{edgeTexture,nullptr,nullptr},0);
+     auto edgePuppet=std::make_shared<core::Puppet>(edgePart); edgePuppet->update();
+     auto edgePacket=packet;
+     edgePart->fillDrawPacket(*edgePart,edgePacket,false);
+     edgePacket.modelMatrix=packet.modelMatrix;
+     edgePacket.renderMatrix=packet.renderMatrix;
+     auto checkEdges=[&](uint8_t expected,const char* message) {
+      auto image=frame([&]{backend->drawPartPacket(edgePacket);});
+      auto alpha=[&](size_t x){return image[(32*64+x)*4+3];};
+      check(alpha(32)==255,"UV border test quad center is not opaque");
+      check(alpha(12)==expected && alpha(51)==expected,message);
+     };
+     checkEdges(0,"Default sampler stretches opaque texels outside the UV range");
+     edgeTexture->setWrapping(core::Wrapping::Clamp);
+     checkEdges(0,"Clamp sampler stretches opaque texels outside the UV range");
+     edgeTexture->setWrapping(core::Wrapping::Repeat);
+     checkEdges(255,"Repeat sampler clips UVs outside the texture");
+    }
     packet.opacity=.5f;
     auto pixels=frame([&]{backend->drawPartPacket(packet);});
     bool visible=false;
@@ -124,6 +149,7 @@ int main() {
     std::cout<<"Emission survives black/tinted ambient light, postprocessing toggle and opacity; occlusion passed\n";
     auto maskData=red;for(size_t i=0;i<maskData.size();i+=4) maskData[i+3]=64;
     auto maskTexture=std::make_shared<core::Texture>(maskData,16,16,4,4,false,false);
+    maskTexture->setWrapping(core::Wrapping::Repeat);
     core::RenderBackend::MaskApplyPacket mask;mask.kind=core::RenderBackend::MaskDrawableKind::Part;mask.partPacket=packet;
     mask.partPacket.node.reset();mask.partPacket.textureBackendIds[0]=maskTexture->backendId();mask.partPacket.isMask=true;
     core::DynamicCompositePass composite;composite.surface=std::make_shared<core::DynamicCompositeSurface>();composite.surface->textureCount=3;

@@ -61,6 +61,7 @@ public:
   uint32_t family{};
   VkDescriptorPool descriptors{};
   VkSampler sampler{};
+  VkSampler textureSampler{};
   VkCommandBuffer command{};
   bool advancedBlendSupported = false;
   bool advancedBlendCoherent = false;

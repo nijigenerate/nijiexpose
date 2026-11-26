@@ -223,6 +223,7 @@ struct Backend::Impl {
     uint32_t first{}, count{};
     int32_t base{};
     std::array<uint32_t, 3> textures{};
+    VkSampler textureSampler{};
     Material material;
     BlendMode blend = BlendMode::Normal;
     int mask = 0;
@@ -617,10 +618,13 @@ struct Backend::Impl {
         VkWriteDescriptorSet writes[3]{};
         for (int i = 0; i < 3; ++i) {
           auto id = b.textures[i];
-          if (!id || !textures.contains(id))
+          VkSampler sampler = b.textureSampler ? b.textureSampler : c.sampler;
+          if (!id || !textures.contains(id)) {
             id = i == 0 ? white : black;
+            sampler = c.sampler;
+          }
           auto &tex = textures.at(id);
-          images[i] = {tex.sampler ? tex.sampler : c.sampler, tex.image.view,
+          images[i] = {tex.sampler ? tex.sampler : sampler, tex.image.view,
                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
           writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
           writes[i].dstSet = set;
@@ -764,8 +768,9 @@ void Backend::setTextureParams(uint32_t id, core::Filtering filtering,
                                   : VK_FILTER_NEAREST;
   s.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
   s.addressModeU = s.addressModeV = s.addressModeW =
-      wrapping == core::Wrapping::Clamp ? VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE
+      wrapping == core::Wrapping::Clamp ? VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
                                         : VK_SAMPLER_ADDRESS_MODE_REPEAT;
+  s.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
   check(vkCreateSampler(p->c.device, &s, nullptr, &t.sampler));
 }
 void Backend::disposeTexture(uint32_t id) {
@@ -1011,6 +1016,7 @@ void Backend::drawPartPacket(const PartDrawPacket &packet) {
   p->elements.insert(p->elements.end(), ix->second.begin(),
                      ix->second.begin() + b.count);
   std::copy_n(packet.textureBackendIds, 3, b.textures.begin());
+  b.textureSampler = p->c.textureSampler;
   if (auto node = packet.node.lock())
     for (int i = 0; i < 3; ++i)
       if (node->textures[i])
@@ -1135,6 +1141,7 @@ void Backend::drawSprites(uint32_t texture, const float *data, size_t count,
   b.first = uint32_t(p->elements.size());
   b.count = uint32_t(count);
   b.textures[0] = texture;
+  b.textureSampler = p->c.textureSampler;
   auto &image = p->textures.at(texture).image;
   for (size_t i = 0; i < count; ++i) {
     auto v = matrix.transformPoint({data[i * 8], data[i * 8 + 1], 0});
