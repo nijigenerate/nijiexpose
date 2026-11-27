@@ -31,6 +31,9 @@ namespace {
 
     void uiImApplyDarkColorScheme(ImGuiStyle& style) {
         style.Colors[ImGuiCol_Text]                 = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+#if IMGUI_VERSION_NUM >= 19200
+        style.Colors[ImGuiCol_InputTextCursor]      = style.Colors[ImGuiCol_Text];
+#endif
         style.Colors[ImGuiCol_TextDisabled]         = ImVec4(0.50f, 0.50f, 0.50f, 1.00f);
         style.Colors[ImGuiCol_WindowBg]             = ImVec4(0.17f, 0.17f, 0.17f, 1.00f);
         style.Colors[ImGuiCol_ChildBg]              = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
@@ -56,6 +59,9 @@ namespace {
 
     void uiImApplyLightColorScheme(ImGuiStyle& style) {
         style.Colors[ImGuiCol_Text]                 = ImVec4(0.10f, 0.10f, 0.10f, 1.00f);
+#if IMGUI_VERSION_NUM >= 19200
+        style.Colors[ImGuiCol_InputTextCursor]      = style.Colors[ImGuiCol_Text];
+#endif
         style.Colors[ImGuiCol_TextDisabled]         = ImVec4(0.45f, 0.45f, 0.45f, 1.00f);
         style.Colors[ImGuiCol_WindowBg]             = ImVec4(0.96f, 0.96f, 0.96f, 1.00f);
         style.Colors[ImGuiCol_ChildBg]              = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);

@@ -9,6 +9,9 @@ void neSetStyle() {
     auto* style = &ImGui::GetStyle();
     // 文字色を黒に変更
     style->Colors[ImGuiCol_Text] = ImVec4(0.00f, 0.00f, 0.00f, 1.00f);
+#if IMGUI_VERSION_NUM >= 19200
+    style->Colors[ImGuiCol_InputTextCursor] = style->Colors[ImGuiCol_Text];
+#endif
 
     // 背景色の設定
     style->Colors[ImGuiCol_WindowBg] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
