@@ -5,7 +5,7 @@ For the current platform setup, packaging and translation commands, start with
 
 The C++ application uses nicxlive, SDL 3, and official Dear ImGui
 1.93.0-docking (commit 4e02e84cbb85d48881388e7090c2dfa1708c02a1). Source archives
-are fixed by commit and SHA256. SDL3/OpenGL3 backends come from the same
+are fixed by commit and SHA256. The SDL3, Vulkan and OpenGL3 backends come from the same
 ImGui release; FreeType support is enabled. Translation uses GNU gettext
 libintl 1.0, and JSON uses Boost.JSON from Boost 1.90.0. These backend
 differences are explicitly authorized; their internals are not reimplemented.
@@ -27,7 +27,7 @@ Install distribution binaries for the development dependencies:
 sudo apt-get update
 sudo apt-get install -y build-essential cmake ninja-build clang lld git jq curl \
   pkg-config python3 openjdk-21-jdk-headless libboost-json-dev libfreetype-dev \
-  gettext liblua5.1-0-dev libgl-dev libegl-dev libx11-dev libxi-dev libxtst-dev \
+  gettext liblua5.1-0-dev libvulkan-dev glslc libgl-dev libegl-dev libx11-dev libxi-dev libxtst-dev \
   libxrandr-dev libxcursor-dev libxfixes-dev libxinerama-dev libwayland-dev \
   libxkbcommon-dev libasound2-dev libpulse-dev libudev-dev libxss-dev libxext-dev \
   libxrender-dev libdrm-dev libgbm-dev libgles2-mesa-dev libdbus-1-dev \
@@ -54,8 +54,9 @@ Fonts/icons install in `share/nijiexpose`, tracker models in `bin/models`,
 and shared libraries in `lib`. Linux settings default to
 `$XDG_CONFIG_HOME/nijiexpose` or `$HOME/.config/nijiexpose`, preferring an
 existing `.nijiexpose` directory at the same location just like the D version.
-`IN_CONFIG_PATH` still overrides this location. Enable `NIJIEXPOSE_GPU_TESTS` for desktop
-OpenGL tests and set `NIJIEXPOSE_TRACKER_TEST_IMAGE` to a local portrait to
+`IN_CONFIG_PATH` still overrides this location. Select OpenGL with
+`-DNIJIEXPOSE_RENDERER=OPENGL` and enable `NIJIEXPOSE_GPU_TESTS` for desktop OpenGL tests.
+Set `NIJIEXPOSE_TRACKER_TEST_IMAGE` to a local portrait to
 enable the real MediaPipe inference test. WSLg supplies the test display.
 For headless desktop tests install `xvfb xauth` and run
 `LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a -s "-screen 0 1280x1024x24" ctest --test-dir "$HOME/build-nijiexpose-linux" --output-on-failure`.
@@ -68,7 +69,9 @@ capture is not supported. Spout output is Windows-only.
 ### Windows
 
 On Windows, use a Visual Studio 2022 developer shell, PowerShell 7, Git, CMake 3.24+, Ninja, Python,
-Boost headers and a graphics driver for the selected renderer. Optional local D comparison
+Boost headers and a graphics driver for the selected renderer. The default build
+also requires the Vulkan SDK and `VULKAN_SDK` set to its installation directory.
+Optional local D comparison
 tests require LDC, a fetched remote `origin/dlang-impl`, and
 `NIJIEXPOSE_D_REFERENCE_TESTS=ON`; see `tests/README.md`.
 

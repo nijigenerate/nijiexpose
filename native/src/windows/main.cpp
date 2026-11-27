@@ -970,13 +970,15 @@ protected:
 #ifndef NIJIEXPOSE_VULKAN
         insSendFrame();
         ogl::glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        ogl::oglPresentSceneToBackbuffer(width(),height(),
+        auto mode=ogl::PresentationMode::Opaque;
+        if(transparentMode) {
 #ifdef _WIN32
-            transparentMode
+            mode=ogl::PresentationMode::ColorKey;
 #else
-            false
+            mode=ogl::PresentationMode::Transparent;
 #endif
-        );
+        }
+        ogl::oglPresentSceneToBackbuffer(width(),height(),mode);
 #endif
 #ifndef NIJIEXPOSE_VULKAN
         updateOverlayBlurTexture();

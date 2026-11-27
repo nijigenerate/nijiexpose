@@ -687,6 +687,8 @@ endif()
 if(NIJIEXPOSE_RENDERER STREQUAL "OPENGL")
     add_executable(nijiexpose_opengl_mipmap_test EXCLUDE_FROM_ALL tests/opengl_mipmap_test.cpp)
     target_link_libraries(nijiexpose_opengl_mipmap_test PRIVATE nijiexpose_gl_resources)
+    add_executable(nijiexpose_opengl_presentation_test EXCLUDE_FROM_ALL tests/opengl_presentation_test.cpp)
+    target_link_libraries(nijiexpose_opengl_presentation_test PRIVATE nijiexpose_gl_resources)
 endif()
 
 if(NIJIEXPOSE_RENDERER STREQUAL "VULKAN")

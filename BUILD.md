@@ -4,7 +4,7 @@ Build the native C++20 application from the repository root. CMake 3.24+,
 Python 3 and Git are required. The commands below build the application without
 the optional comparison tests. Do not build the archived D application.
 
-## Vulkan renderer (`native-vulkan`)
+## Vulkan renderer
 
 The model renderer is a C++ port of `nijimi/source/render/vulkan/vulkan_backend.d`.
 The model shaders originate from nijimi, with the part-opacity correction documented alongside original source hashes in
@@ -12,17 +12,14 @@ The model shaders originate from nijimi, with the part-opacity correction docume
 Dear ImGui Vulkan backend renders the existing UI. No nicxlive API extension is
 required.
 
-Install the Vulkan SDK (including `glslc`) and set `VULKAN_SDK`, then add
-`-DNIJIEXPOSE_RENDERER=VULKAN` to the configure command below. The executable name
-and install layout stay the same. `-DNIJIEXPOSE_RENDERER=OPENGL` selects the existing
-renderer and remains the default preset. macOS CI explicitly selects Vulkan;
-Windows and Linux CI select OpenGL.
+`native-release` and the official Windows, macOS and Linux builds use Vulkan.
+Install the Vulkan development tools for your platform, including `glslc`.
+The `native-opengl-release` preset selects the OpenGL renderer.
 
 Use `native-opengl-release` or `native-vulkan-release` in place of
 `native-release` in the configure/build/test commands below to keep separate
 build directories. Install and package from the corresponding
 `build/native-opengl-release` or `build/native-vulkan-release` directory.
-The original `native-release` preset remains available and selects OpenGL.
 
 Each configuration compiles only its selected model renderer and ImGui renderer.
 OpenGL builds do not require the Vulkan SDK; Vulkan builds do not find or link
@@ -79,9 +76,11 @@ slower path is limited to devices without coherent advanced blending.
 ## Windows x64
 
 Use PowerShell 7 in a Visual Studio 2022 x64 developer environment with the C++
-workload and Windows SDK installed. Install CMake, Ninja and GNU gettext tools
+workload and Windows SDK installed. For the default build, install the Vulkan SDK
+and set `VULKAN_SDK` to its installation directory. Install CMake, Ninja and GNU gettext tools
 (`msgfmt`; also `xgettext` and `msgmerge` for translation maintenance) on PATH.
-An OpenGL 3.3 driver is required to run the application.
+A Vulkan-capable graphics driver provides the runtime loader. The optional
+OpenGL build requires an OpenGL 3.3 driver.
 
 ```powershell
 cmake -DBOOST_DESTINATION="$PWD/build/boost" -P cmake/FetchBoostHeaders.cmake
@@ -129,8 +128,8 @@ their notices, fixes library paths and ad-hoc signs the app. Developer ID signin
 and notarization are not configured. The pinned tracker recipe targets arm64;
 these commands do not produce an Intel or universal package.
 
-For Vulkan, install the macOS Vulkan SDK and select `native-vulkan-release`
-with `VULKAN_SDK` pointing to its `macOS` directory. The installed app bundles
+Install the macOS Vulkan SDK and set `VULKAN_SDK` to its `macOS` directory
+before configuring the default preset. The installed app bundles
 the Vulkan loader, MoltenVK, its driver manifest and component license notices.
 The manifest uses a bundle-relative library path, so the installed app does not
 require the SDK environment variables to locate MoltenVK.
@@ -139,9 +138,8 @@ The macOS CI job uses Vulkan SDK **1.4.328.1**, with the official archive SHA-25
 checked before installation. It caches the SDK separately by version, digest,
 OS, architecture and installer-script revision. Installation uses `copy_only=1`
 and the core component, without copying runtime libraries to system directories.
-CI overrides `native-release` with `-DNIJIEXPOSE_RENDERER=VULKAN` and explicit SDK
-paths, retaining `build/native-release` and the existing MediaPipe cache paths.
-Linux and Windows continue to use OpenGL.
+CI supplies explicit SDK paths to the default preset and retains the existing
+`build/native-release` and MediaPipe cache paths.
 
 macOS ZIP and DMG verification passes `--require-macos-vulkan` to
 `native/tools/verify-package.py`. This checks the loader, MoltenVK, the relative
@@ -159,7 +157,7 @@ Install binary development dependencies:
 sudo apt-get update
 sudo apt-get install -y build-essential cmake ninja-build clang lld git jq curl \
   pkg-config python3 openjdk-21-jdk-headless libboost-json-dev libfreetype-dev \
-  gettext liblua5.1-0-dev libgl-dev libegl-dev libx11-dev libxi-dev libxtst-dev \
+  gettext liblua5.1-0-dev libvulkan-dev glslc libgl-dev libegl-dev libx11-dev libxi-dev libxtst-dev \
   libxrandr-dev libxcursor-dev libxfixes-dev libxinerama-dev libwayland-dev \
   wayland-protocols libxkbcommon-dev libasound2-dev libpulse-dev libudev-dev \
   libxss-dev libxext-dev libxrender-dev libdrm-dev libgbm-dev libgles2-mesa-dev \
@@ -177,9 +175,8 @@ so CMake builds the pinned official SDL3 source when no suitable installed SDL3
 is available. Lua links statically from the distribution-provided `liblua5.1.a`; its shared
 library is not required at runtime. MediaPipe also builds from source using the
 pinned nijitrack recipe.
-For the Vulkan configuration, also install the Ubuntu binary packages
-`libvulkan-dev` and `glslc`, then select `native-vulkan-release` instead of
-`native-release`. The OpenGL configuration does not require these packages.
+The optional OpenGL build uses `native-opengl-release` and can omit
+`libvulkan-dev` and `glslc`.
 Linux packages require compatible system runtime libraries; see the
 [package guide](build-aux/README.md). File dialogs need an XDG desktop portal
 or Zenity. Global keyboard capture uses X11; Spout is unavailable.

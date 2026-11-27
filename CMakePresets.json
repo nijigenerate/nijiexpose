@@ -4,27 +4,27 @@
   "configurePresets": [
     {
       "name": "native-release",
-      "displayName": "Native C++ / SDL3 / OpenGL (Release)",
+      "displayName": "Native C++ / SDL3 / Vulkan (Release)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/native-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_TESTING": "ON",
         "NIJIEXPOSE_D_REFERENCE_TESTS": "OFF",
-        "NIJIEXPOSE_RENDERER": "OPENGL"
+        "NIJIEXPOSE_RENDERER": "VULKAN"
       }
     },
     {
       "name": "native-opengl-release",
       "inherits": "native-release",
-      "binaryDir": "${sourceDir}/build/native-opengl-release"
+      "binaryDir": "${sourceDir}/build/native-opengl-release",
+      "cacheVariables": { "NIJIEXPOSE_RENDERER": "OPENGL" }
     },
     {
       "name": "native-vulkan-release",
       "displayName": "Native C++ / SDL3 / Vulkan (Release)",
       "inherits": "native-release",
-      "binaryDir": "${sourceDir}/build/native-vulkan-release",
-      "cacheVariables": { "NIJIEXPOSE_RENDERER": "VULKAN" }
+      "binaryDir": "${sourceDir}/build/native-vulkan-release"
     }
   ],
   "buildPresets": [

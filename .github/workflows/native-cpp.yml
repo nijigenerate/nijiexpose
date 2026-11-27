@@ -73,6 +73,9 @@ jobs:
     runs-on: windows-2022
     env:
       PACKAGE_MODE: ${{ needs.package-mode.outputs.mode }}
+      VULKAN_SDK_VERSION: '1.4.328.1'
+      VULKAN_SDK_SHA256: a8675df6d538079c2a719a9373994948091db785b48f142e024254e76348d16c
+      VULKAN_RUNTIME_SHA256: 293efbb2c11e60429df7770f40e3c5c811a7fa42af81de0cc41e8718ddb2b373
       SCCACHE_GHA_ENABLED: "true"
       # A cold MediaPipe build can exceed the default server idle timeout.
       # Keep one statistics session for the entire application build.
@@ -90,6 +93,34 @@ jobs:
         run: python native/tools/verify-vendor.py
       - name: Enable MSVC command line
         uses: ilammy/msvc-dev-cmd@v1
+      - name: Install Windows Vulkan SDK and stage the CI loader
+        shell: pwsh
+        run: |
+          $version = $env:VULKAN_SDK_VERSION
+          $baseUrl = "https://sdk.lunarg.com/sdk/download/$version/windows"
+          function Get-VerifiedVulkanFile($name, $sha256) {
+            $path = Join-Path $env:RUNNER_TEMP $name
+            curl.exe --fail --location --retry 3 --output "$path" "$baseUrl/$name"
+            if ($LASTEXITCODE -ne 0 -or (Get-FileHash -Algorithm SHA256 -LiteralPath $path).Hash -ne $sha256) {
+              throw "Vulkan download failed verification: $name"
+            }
+            return $path
+          }
+          $sdk = Join-Path $env:RUNNER_TEMP "VulkanSDK/$version"
+          $installer = Get-VerifiedVulkanFile "vulkansdk-windows-X64-$version.exe" $env:VULKAN_SDK_SHA256
+          $process = Start-Process -FilePath $installer -ArgumentList @('--root', ('"' + $sdk + '"'), '--accept-licenses', '--default-answer', '--confirm-command', 'install', 'copy_only=1') -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Vulkan SDK install failed: $($process.ExitCode)" }
+          & "$sdk/Bin/glslc.exe" --version
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # Hosted runners can lack the driver-provided Vulkan loader.
+          $runtimeName = "VulkanRT-X64-$version-Components"
+          $runtime = Get-VerifiedVulkanFile "$runtimeName.zip" $env:VULKAN_RUNTIME_SHA256
+          Expand-Archive -LiteralPath $runtime -DestinationPath $env:RUNNER_TEMP
+          $runtimeBin = Join-Path $env:RUNNER_TEMP "$runtimeName/x64"
+          if (!(Test-Path -LiteralPath "$runtimeBin/vulkan-1.dll")) { throw 'Missing x64 Vulkan loader' }
+          "VULKAN_SDK=$sdk" >> $env:GITHUB_ENV
+          "$sdk/Bin" >> $env:GITHUB_PATH
+          $runtimeBin >> $env:GITHUB_PATH
       - name: Enable C and C++ compilation cache
         id: sccache
         uses: mozilla-actions/sccache-action@v0.0.11
@@ -281,7 +312,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y ninja-build clang lld jq pkg-config libboost-json-dev \
-            libfreetype-dev gettext liblua5.1-0-dev libgl-dev libegl-dev libx11-dev \
+            libfreetype-dev gettext liblua5.1-0-dev libvulkan-dev glslc libgl-dev libegl-dev libx11-dev \
             libxi-dev libxtst-dev libxrandr-dev libxcursor-dev libxfixes-dev \
             libxinerama-dev libwayland-dev wayland-protocols libxkbcommon-dev libasound2-dev \
             libpulse-dev libudev-dev libxss-dev libxext-dev libxrender-dev libdrm-dev libgbm-dev \
@@ -354,17 +385,15 @@ jobs:
       - name: Configure
         shell: bash
         run: |
-          renderer=OPENGL
           vulkan_options=()
           if [[ "$RUNNER_OS" == macOS ]]; then
-            renderer=VULKAN
             vulkan_options=(
               "-DVulkan_INCLUDE_DIR=$VULKAN_SDK/include"
               "-DVulkan_LIBRARY=$VULKAN_SDK/lib/libvulkan.dylib"
               "-DVulkan_GLSLC_EXECUTABLE=$VULKAN_SDK/bin/glslc"
             )
           fi
-          cmake --preset native-release -DNIJIEXPOSE_RENDERER="$renderer" \
+          cmake --preset native-release \
             -DBUILD_TESTING=OFF \
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "${vulkan_options[@]}"
       - name: Build

@@ -79,11 +79,15 @@ def main():
     parser.add_argument("directory", type=Path)
     parser.add_argument("--require-macos-vulkan", action="store_true",
                         help="Require a self-contained macOS Vulkan package and component licenses")
+    parser.add_argument("--windows-opengl", action="store_true",
+                        help="Verify an OpenGL Windows package instead of the default Vulkan package")
     args = parser.parse_args()
     root = args.directory.resolve()
     system = platform.system()
     if args.require_macos_vulkan and system != "Darwin":
         parser.error("--require-macos-vulkan requires macOS")
+    if args.windows_opengl and system != "Windows":
+        parser.error("--windows-opengl requires Windows")
     binary_dir = root / "bin"
     resources = binary_dir
     licenses = root / "share/licenses/nijiexpose"
@@ -93,7 +97,9 @@ def main():
         executable = executable.with_suffix(".exe")
         required += [binary_dir / name for name in (
             "SDL3.dll", "intl-8.dll", "iconv-2.dll", "charset-1.dll", "freetype.dll",
-            "lua51.dll", "SpoutLibrary.dll", "nijiexpose_embedded_tracker.dll", "vcruntime140.dll")]
+            "lua51.dll", "nijiexpose_embedded_tracker.dll", "vcruntime140.dll")]
+        if args.windows_opengl:
+            required.append(binary_dir / "SpoutLibrary.dll")
     elif system == "Darwin":
         bundle = root / "nijiexpose.app/Contents"
         executable = bundle / "MacOS/nijiexpose"
@@ -120,6 +126,11 @@ def main():
     for path in required:
         if not path.is_file() or not path.stat().st_size:
             raise RuntimeError(f"Missing package file: {path}")
+    if system == "Windows" and not args.windows_opengl:
+        dependencies = subprocess.run(["dumpbin", "/DEPENDENTS", str(executable)], text=True,
+                                      capture_output=True, check=True).stdout.lower()
+        if "vulkan-1.dll" not in dependencies or (binary_dir / "SpoutLibrary.dll").exists():
+            raise RuntimeError("Unexpected renderer or Spout runtime in the Windows Vulkan package")
     if system == "Linux":
         dependencies = subprocess.run(["ldd", str(executable)], text=True,
                                       capture_output=True, check=True).stdout

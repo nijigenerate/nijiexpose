@@ -1,10 +1,11 @@
-// Entire nijimi ensurePresentProgram/presentSceneToBackbuffer implementation.
+// OpenGL scene presentation based on nijimi's presentSceneToBackbuffer.
+#include "present.hpp"
 #include "runtime.hpp"
 #include "probes.hpp"
 #include <array>
 namespace nijiexpose::ogl {
 static GLuint presentVao{},presentVbo{},presentProgram{};
-static GLint presentTexUniform=-1,presentUseColorKeyUniform=-1;
+static GLint presentTexUniform=-1,presentModeUniform=-1;
     static void ensurePresentProgram() {
         if (presentProgram != 0 && presentVao != 0 && presentVbo != 0) return;
 
@@ -23,10 +24,10 @@ void main() {
 in vec2 texUVs;
 out vec4 outColor;
 uniform sampler2D srcTex;
-uniform int useColorKey;
+uniform int presentationMode;
 void main() {
     vec4 c = texture(srcTex, texUVs);
-    if (useColorKey != 0) {
+    if (presentationMode == 2) {
         if (c.a <= 0.001) {
             outColor = vec4(1.0, 0.0, 1.0, 1.0);
         } else {
@@ -34,7 +35,7 @@ void main() {
             outColor = vec4(straight, 1.0);
         }
     } else {
-        outColor = c;
+        outColor = vec4(c.rgb, presentationMode == 0 ? 1.0 : c.a);
     }
 })NIJIGLSL";
 
@@ -45,7 +46,7 @@ void main() {
         glDeleteShader(handle.frag);
 
         presentTexUniform = glGetUniformLocation(presentProgram, "srcTex");
-        presentUseColorKeyUniform = glGetUniformLocation(presentProgram, "useColorKey");
+        presentModeUniform = glGetUniformLocation(presentProgram, "presentationMode");
 
         glGenVertexArrays(1, &presentVao);
         glGenBuffers(1, &presentVbo);
@@ -68,7 +69,7 @@ void main() {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    void oglPresentSceneToBackbuffer(int width, int height, bool useColorKeyTransparency) {
+    void oglPresentSceneToBackbuffer(int width, int height, PresentationMode mode) {
         ensurePresentProgram();
 
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
@@ -77,16 +78,16 @@ void main() {
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
         glDisable(GL_BLEND);
-        if (useColorKeyTransparency) {
+        if (mode == PresentationMode::ColorKey) {
             glClearColor(1, 0, 1, 1);
         } else {
-            glClearColor(0, 0, 0, 0);
+            glClearColor(0, 0, 0, mode == PresentationMode::Opaque ? 1 : 0);
         }
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(presentProgram);
         if (presentTexUniform != -1) glUniform1i(presentTexUniform, 0);
-        if (presentUseColorKeyUniform != -1) glUniform1i(presentUseColorKeyUniform, useColorKeyTransparency ? 1 : 0);
+        if (presentModeUniform != -1) glUniform1i(presentModeUniform, static_cast<GLint>(mode));
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, oglGetMainAlbedo());
         glBindVertexArray(presentVao);
