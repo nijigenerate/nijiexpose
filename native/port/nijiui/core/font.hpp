@@ -5,6 +5,7 @@ void inInitFonts();
 void inSetUIScale(float scale);
 float inGetUIScaleFont();
 float inGetUIScale();
+float inGetUILayoutScale();
 std::string inGetUIScaleText();
 void inFontsBeginLarge();
 void inFontsEndLarge();

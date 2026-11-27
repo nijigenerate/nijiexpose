@@ -16,6 +16,7 @@
 #include "render/renderer.hpp"
 #include "nijilive/opengl/runtime.hpp"
 #include "nijiui/core/core.hpp"
+#include "nijiui/core/font.hpp"
 #include "nijiui/core/resource.hpp"
 #include "nijiui/core/settings.hpp"
 #include "nijiui/widgets/input.hpp"
@@ -25,6 +26,7 @@
 #include <core/runtime_state.hpp>
 #include <core/timing.hpp>
 #include <imgui_internal.h>
+#include <cmath>
 #include <filesystem>
 #include <functional>
 #include "render/window_mode.hpp"
@@ -198,7 +200,8 @@ private:
     }
 
     NavSurfaceMode navSurfaceMode() {
-        if (width() <= 1100 || height() <= 760) return NavSurfaceMode::CompactBar;
+        const float scale=inGetUILayoutScale();
+        if (width() <= 1100*scale || height() <= 760*scale) return NavSurfaceMode::CompactBar;
         return NavSurfaceMode::DesktopRail;
     }
 
@@ -464,8 +467,8 @@ private:
     void updateOverlayBlurTexture() {
         if (!showUI || !overlayOpen || width() <= 0 || height() <= 0) return;
 
-        const int blurW = std::max(1, width() / 4);
-        const int blurH = std::max(1, height() / 4);
+        const int blurW = std::max(1, pixelWidth() / 4);
+        const int blurH = std::max(1, pixelHeight() / 4);
         ensureOverlayBlurResources(blurW, blurH);
 
         GLint previousReadFbo = 0;
@@ -496,7 +499,7 @@ private:
 
         ogl::glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
         ogl::glBindFramebuffer(GL_DRAW_FRAMEBUFFER, overlayBlurFboA);
-        ogl::glBlitFramebuffer(0, 0, width(), height(), 0, 0, blurW, blurH, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+        ogl::glBlitFramebuffer(0, 0, pixelWidth(), pixelHeight(), 0, 0, blurW, blurH, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
         const float texelX = 1.0f / static_cast<float>(blurW);
         const float texelY = 1.0f / static_cast<float>(blurH);
@@ -546,14 +549,14 @@ private:
             rounding
         );
 
-        const float inset = 2.0f;
+        const float inset = 2.0f*inGetUILayoutScale();
         bgDrawList->AddImageRounded(textureId,
             ImVec2(x + inset, y + inset),
             ImVec2(x + w - inset, y + h - inset),
             ImVec2(u0, v0),
             ImVec2(u1, v1),
             ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.45f)),
-            std::max(0.0f, rounding - 2.0f)
+            std::max(0.0f, rounding - inset)
         );
     }
 
@@ -563,9 +566,10 @@ private:
         auto bgDrawList = ImGui::GetBackgroundDrawList();
         const float spreads[] = {24.0f, 18.0f, 13.0f, 9.0f, 6.0f, 3.0f};
         const float weights[] = {0.005f, 0.008f, 0.011f, 0.016f, 0.023f, 0.032f};
+        const float scale=inGetUILayoutScale();
 
         for (size_t index=0; index<std::size(spreads); ++index) {
-            float spread=spreads[index];
+            float spread=spreads[index]*scale;
             float layerAlpha = weights[index] * alphaScale;
             bgDrawList->AddRectFilled(ImVec2(x - spread, y - spread),
                 ImVec2(x + w + spread, y + h + spread),
@@ -598,8 +602,9 @@ private:
         ImVec2 pos;
         pos = ImGui::GetCursorScreenPos();
 
-        float width = compact ? 44.0f : (navExpanded ? 172.0f : 44.0f);
-        float height = 44.0f;
+        const float scale=inGetUILayoutScale();
+        const float width = (!compact && navExpanded ? 172.0f : 44.0f)*scale;
+        const float height = 44.0f*scale;
         bool clicked = ImGui::InvisibleButton(id.c_str(), ImVec2(width, height));
         bool hovered = ImGui::IsItemHovered();
 
@@ -610,7 +615,7 @@ private:
         if (selected || hovered) {
             vec4 bg = selected ? ACCENT_SOFT : vec4(0.12f, 0.16f, 0.23f, 0.05f);
             bg = withAlpha(bg, visualAlpha);
-            drawList->AddRectFilled(minPos, maxPos, ImGui::ColorConvertFloat4ToU32(ImVec4(bg.x, bg.y, bg.z, bg.w)), 16.0f);
+            drawList->AddRectFilled(minPos, maxPos, ImGui::ColorConvertFloat4ToU32(ImVec4(bg.x, bg.y, bg.z, bg.w)), 16.0f*scale);
         }
 
         vec4 iconColor = selected ? ACCENT : vec4(0.70f, 0.25f, 0.00f, 0.90f);
@@ -622,7 +627,7 @@ private:
         iconSize = ImGui::CalcTextSize(icon.c_str());
         iconSize.x *= NAV_ICON_SCALE;
         iconSize.y *= NAV_ICON_SCALE;
-        ImVec2 iconPos = ImVec2(minPos.x + 22.0f - (iconSize.x * 0.5f), minPos.y + ((height - iconSize.y) * 0.5f));
+        ImVec2 iconPos = ImVec2(minPos.x + 22.0f*scale - (iconSize.x * 0.5f), minPos.y + ((height - iconSize.y) * 0.5f));
         drawList->AddText(font, iconFontSize, iconPos, ImGui::ColorConvertFloat4ToU32(ImVec4(iconColor.x, iconColor.y, iconColor.z, iconColor.w)), icon.c_str());
 
         if (!compact && navExpanded) {
@@ -634,7 +639,7 @@ private:
             labelSize = ImGui::CalcTextSize(translated.c_str());
             labelSize.x *= NAV_LABEL_SCALE;
             labelSize.y *= NAV_LABEL_SCALE;
-            ImVec2 labelPos = ImVec2(minPos.x + 48.0f, minPos.y + ((height - labelSize.y) * 0.5f));
+            ImVec2 labelPos = ImVec2(minPos.x + 48.0f*scale, minPos.y + ((height - labelSize.y) * 0.5f));
             drawList->AddText(font, labelFontSize, labelPos, ImGui::ColorConvertFloat4ToU32(ImVec4(labelColor.x, labelColor.y, labelColor.z, labelColor.w)), translated.c_str());
         }
 
@@ -655,7 +660,7 @@ private:
             drawList->AddRectFilled(pos,
                 ImVec2(pos.x + size, pos.y + size),
                 ImGui::ColorConvertFloat4ToU32(ImVec4(bgColor.x, bgColor.y, bgColor.z, bgColor.w)),
-                10.0f
+                10.0f*inGetUILayoutScale()
             );
         }
         iconColor = withAlpha(iconColor, visualAlpha);
@@ -684,19 +689,20 @@ private:
 
     void drawTrashButton(bool compact) {
         bool clicked;
+        const float scale=inGetUILayoutScale();
+        const float slotSize=44.0f*scale;
         if (!compact) {
             ImVec2 winPos;
             winPos = ImGui::GetWindowPos();
             ImVec2 winSize;
             winSize = ImGui::GetWindowSize();
-            const float slotSize = 44.0f;
             const float slotX = winPos.x + ((winSize.x - slotSize) * 0.5f);
-            const float slotY = winPos.y + winSize.y - slotSize - 10.0f;
+            const float slotY = winPos.y + winSize.y - slotSize - 10.0f*scale;
             clicked = drawIconOnlyEntry("trash_button", "\ue872", ImVec2(slotX, slotY), slotSize, vec4(0.70f, 0.25f, 0.00f, 0.90f), true);
         } else {
             ImVec2 pos;
             pos = ImGui::GetCursorScreenPos();
-            clicked = drawIconOnlyEntry("trash_button", "\ue872", pos, 44.0f, vec4(0.70f, 0.25f, 0.00f, 0.90f), true);
+            clicked = drawIconOnlyEntry("trash_button", "\ue872", pos, slotSize, vec4(0.70f, 0.25f, 0.00f, 0.90f), true);
         }
 
         if (clicked) {
@@ -722,20 +728,21 @@ private:
         float shadowNearAlpha = SHADOW_NEAR.w * visualAlpha;
         float shadowFarAlpha = SHADOW_FAR.w * visualAlpha;
 
-        float railX = OUTER_GAP;
-        float railY = RAIL_TOP;
-        float railW = compact ? 0.0f : (navExpanded ? RAIL_EXPANDED_WIDTH : RAIL_COLLAPSED_WIDTH);
-        float railH = compact ? 0.0f : static_cast<float>(height()) - (RAIL_TOP + RAIL_BOTTOM);
+        const float scale=inGetUILayoutScale();
+        float railX = OUTER_GAP*scale;
+        float railY = RAIL_TOP*scale;
+        float railW = compact ? 0.0f : (navExpanded ? RAIL_EXPANDED_WIDTH : RAIL_COLLAPSED_WIDTH)*scale;
+        float railH = compact ? 0.0f : static_cast<float>(height()) - (RAIL_TOP + RAIL_BOTTOM)*scale;
 
         if (!compact) {
-            drawSoftWindowShadow(railX, railY, railW, railH, 24.0f, visualAlpha);
+            drawSoftWindowShadow(railX, railY, railW, railH, 24.0f*scale, visualAlpha);
         }
 
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(RAIL_BG.x, RAIL_BG.y, RAIL_BG.z, railAlpha));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(RAIL_BORDER.x, RAIL_BORDER.y, RAIL_BORDER.z, borderAlpha));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, compact ? ImVec2(10, 10) : ImVec2(10, 10));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 24.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10*scale, 10*scale));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 24.0f*scale);
         ScopeExit cleanup1{[&] {
             ImGui::PopStyleVar(3);
             ImGui::PopStyleColor(2);}};
@@ -795,44 +802,47 @@ private:
             | ImGuiWindowFlags_NoNavFocus;
 
         bool parameterOverlay = usesParameterOverlay(activePanel);
-        const float compactBarHeight = 64.0f;
-        const float compactOverlayGap = 10.0f;
+        const float scale=inGetUILayoutScale();
+        const float compactBarHeight = 64.0f*scale;
+        const float compactOverlayGap = 10.0f*scale;
         float overlayW;
         float overlayH;
         float overlayX;
         float overlayY;
         if (parameterOverlay && !compact) {
-            overlayW = std::min(std::max(static_cast<float>(width()) * 0.22f, 280.0f), 360.0f);
-            overlayH = static_cast<float>(height()) - (RAIL_TOP + RAIL_BOTTOM);
-            overlayX = OUTER_GAP + (navExpanded ? RAIL_EXPANDED_WIDTH : RAIL_COLLAPSED_WIDTH) + 10.0f;
-            overlayY = RAIL_TOP;
+            overlayW = std::clamp(static_cast<float>(width()) * 0.22f, 280.0f*scale, 360.0f*scale);
+            overlayH = static_cast<float>(height()) - (RAIL_TOP + RAIL_BOTTOM)*scale;
+            overlayX = (OUTER_GAP + (navExpanded ? RAIL_EXPANDED_WIDTH : RAIL_COLLAPSED_WIDTH) + 10.0f)*scale;
+            overlayY = RAIL_TOP*scale;
         } else if (parameterOverlay && compact) {
-            overlayW = std::min(static_cast<float>(width()) - 28.0f, 320.0f);
-            overlayX = OUTER_GAP;
-            overlayY = RAIL_TOP + compactBarHeight + compactOverlayGap;
-            overlayH = static_cast<float>(height()) - overlayY - OUTER_GAP;
+            overlayW = std::min(static_cast<float>(width()) - 28.0f*scale, 320.0f*scale);
+            overlayX = OUTER_GAP*scale;
+            overlayY = RAIL_TOP*scale + compactBarHeight + compactOverlayGap;
+            overlayH = static_cast<float>(height()) - overlayY - OUTER_GAP*scale;
         } else {
             overlayW = compact
-                ? std::min(static_cast<float>(width()) - 32.0f, 520.0f)
-                : std::min(static_cast<float>(width()) * 0.62f, 760.0f);
+                ? std::min(static_cast<float>(width()) - 32.0f*scale, 520.0f*scale)
+                : std::min(static_cast<float>(width()) * 0.62f, 760.0f*scale);
             overlayH = compact
-                ? std::min(static_cast<float>(height()) - 120.0f, 620.0f)
-                : std::min(static_cast<float>(height()) * 0.76f, 760.0f);
+                ? std::min(static_cast<float>(height()) - 120.0f*scale, 620.0f*scale)
+                : std::min(static_cast<float>(height()) * 0.76f, 760.0f*scale);
             overlayX = (static_cast<float>(width()) - overlayW) * 0.5f;
             overlayY = (static_cast<float>(height()) - overlayH) * 0.5f;
         }
+        overlayW=std::max(1.0f,overlayW);
+        overlayH=std::max(1.0f,overlayH);
 
         {
             drawOverlayBackdrop(1.0f);
-            drawBlurBackdrop(overlayX, overlayY, overlayW, overlayH, 13.0f);
-            drawSoftWindowShadow(overlayX, overlayY, overlayW, overlayH, 13.0f);
+            drawBlurBackdrop(overlayX, overlayY, overlayW, overlayH, 13.0f*scale);
+            drawSoftWindowShadow(overlayX, overlayY, overlayW, overlayH, 13.0f*scale);
         }
 
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(OVERLAY_BG.x, OVERLAY_BG.y, OVERLAY_BG.z, OVERLAY_BG.w));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(OVERLAY_BORDER.x, OVERLAY_BORDER.y, OVERLAY_BORDER.z, OVERLAY_BORDER.w));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, parameterOverlay ? ImVec2(0, 0) : ImVec2(18, 16));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 13.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, parameterOverlay ? ImVec2(0, 0) : ImVec2(18*scale, 16*scale));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 13.0f*scale);
         ScopeExit cleanup2{[&] {
             ImGui::PopStyleVar(3);
             ImGui::PopStyleColor(2);}};
@@ -856,9 +866,9 @@ private:
 
         if (ImGui::Begin(windowTitle.c_str(), nullptr, flags)) {
             if (parameterOverlay) {
-                ImGui::SetCursorPos(ImVec2(16, 14));
+                ImGui::SetCursorPos(ImVec2(16*scale, 14*scale));
             }
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 6));
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8*scale, 6*scale));
             ScopeExit framePadding{[]{ImGui::PopStyleVar();}};
 
             ImVec2 headerStart;
@@ -871,42 +881,42 @@ private:
             iconSize = ImGui::CalcTextSize(headerIcon.c_str());
             iconSize.x *= NAV_ICON_SCALE;
             iconSize.y *= NAV_ICON_SCALE;
-            ImVec2 iconPos = ImVec2(headerStart.x, headerStart.y + std::max(0.0f, (20.0f - iconSize.y) * 0.5f));
+            ImVec2 iconPos = ImVec2(headerStart.x, headerStart.y + std::max(0.0f, (20.0f*scale - iconSize.y) * 0.5f));
             drawList->AddText(font, headerIconSize, iconPos, ImGui::ColorConvertFloat4ToU32(ImVec4(ACCENT.x, ACCENT.y, ACCENT.z, ACCENT.w)), headerIcon.c_str());
-            ImGui::SetCursorScreenPos(ImVec2(headerStart.x + 30.0f, headerStart.y));
+            ImGui::SetCursorScreenPos(ImVec2(headerStart.x + 30.0f*scale, headerStart.y));
             uiImLabel(title);
-            ImVec2 closePos = ImVec2(overlayX + overlayW - 42.0f, headerStart.y - 2.0f);
-            if (drawIconOnlyEntry("overlay_close", "\ue5cd", closePos, 28.0f, vec4(0.12f, 0.16f, 0.23f, 0.90f), false)) {
+            ImVec2 closePos = ImVec2(overlayX + overlayW - 42.0f*scale, headerStart.y - 2.0f*scale);
+            if (drawIconOnlyEntry("overlay_close", "\ue5cd", closePos, 28.0f*scale, vec4(0.12f, 0.16f, 0.23f, 0.90f), false)) {
                 overlayOpen = false;
                 inSettingsSet("ui.overlayOpen", overlayOpen);
             }
-            ImGui::SetCursorScreenPos(ImVec2(headerStart.x, headerStart.y + 32.0f));
+            ImGui::SetCursorScreenPos(ImVec2(headerStart.x, headerStart.y + 32.0f*scale));
 
             if (parameterOverlay) {
                 ImGui::SetCursorPosX(0);
             }
             ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
             ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, parameterOverlay ? ImVec2(8, 6) : ImVec2(8, 8));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8*scale, (parameterOverlay ? 6 : 8)*scale));
             ScopeExit cleanup3{[&] {
                 ImGui::PopStyleVar();
                 ImGui::PopStyleVar();
                 ImGui::PopStyleColor();}};
             const bool hasOverlayFooter = customTracking || customView || customLanguage;
-            const float overlayFooterHeight = hasOverlayFooter ? 48.0f : 0.0f;
+            const float overlayFooterHeight = hasOverlayFooter ? 48.0f*scale : 0.0f;
             if (uiImBeginChild("nijikan_overlay_body###nijikan_overlay_body", vec2(0, -overlayFooterHeight), false)) {
                 if (customTracking) {
                     uiImLabel(_("Tracking Settings"));
-                    ImGui::Dummy(ImVec2(0, 4));
+                    ImGui::Dummy(ImVec2(0, 4*scale));
                     settingWindow->renderTrackingSettingsContent(true);
                     uiImSeperator();
                     uiImNewLine();
                     uiImLabel(_("Virtual Space"));
-                    ImGui::Dummy(ImVec2(0, 4));
+                    ImGui::Dummy(ImVec2(0, 4*scale));
                     spaceEditor->renderEmbeddedSection();
                 } else if (customView) {
                     uiImLabel(_("Scene Settings"));
-                    ImGui::Dummy(ImVec2(0, 4));
+                    ImGui::Dummy(ImVec2(0, 4*scale));
                     if (auto scenePanel = std::dynamic_pointer_cast<ScenePanel>(active)) {
                         scenePanel->renderSceneSettingsContent();
                     } else if (active != nullptr) {
@@ -915,7 +925,7 @@ private:
                     uiImSeperator();
                     uiImNewLine();
                     uiImLabel(_("Rendering"));
-                    ImGui::Dummy(ImVec2(0, 4));
+                    ImGui::Dummy(ImVec2(0, 4*scale));
                     settingWindow->renderRenderingSettingsContent(true);
                 } else if (customLanguage) {
                     settingWindow->renderLanguageSettingsContent(true);
@@ -927,9 +937,9 @@ private:
             }
             uiImEndChild();
             if (hasOverlayFooter) {
-                ImGui::Dummy(ImVec2(0, 4));
-                ImGui::SetCursorPosX(std::max(0.0f, uiImAvailableSpace().x - 72.0f));
-                if (uiImButton(__("Apply"), vec2(64, 0))) {
+                ImGui::Dummy(ImVec2(0, 4*scale));
+                ImGui::SetCursorPosX(std::max(0.0f, uiImAvailableSpace().x - 72.0f*scale));
+                if (uiImButton(__("Apply"), vec2(64*scale, 0))) {
                     if (customTracking) {
                         settingWindow->applyTrackingSettings();
                         spaceEditor->applyChanges();
@@ -978,7 +988,7 @@ protected:
             mode=ogl::PresentationMode::Transparent;
 #endif
         }
-        ogl::oglPresentSceneToBackbuffer(width(),height(),mode);
+        ogl::oglPresentSceneToBackbuffer(pixelWidth(),pixelHeight(),mode);
 #endif
 #ifdef NIJIEXPOSE_OPENGL
         updateOverlayBlurTexture();
@@ -1021,9 +1031,27 @@ protected:
         
     }
 
-    void onResized(int w, int h) {
+    void updateSceneViewport(int w, int h) {
         core::inSetViewport(w,h);
-        inSettingsSetJson("window", json::Object{{"width",width()},{"height",height()}});
+        // The scene target is in pixels, but one model unit occupies the
+        // same on-screen size as the window moves between displays.
+        const float zoom=0.5f*displayScale();
+        core::inGetCamera().scale={zoom,zoom};
+    }
+
+    void onResized(int w, int h) override {
+        updateSceneViewport(w,h);
+        const auto flags=SDL_GetWindowFlags(nativeWindow());
+        if (!(flags & (SDL_WINDOW_BORDERLESS | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MINIMIZED))) {
+#ifdef _WIN32
+            const int savedWidth=static_cast<int>(std::lround(width()/contentScale()));
+            const int savedHeight=static_cast<int>(std::lround(height()/contentScale()));
+#else
+            const int savedWidth=width();
+            const int savedHeight=height();
+#endif
+            inSettingsSetJson("window", json::Object{{"width",savedWidth},{"height",savedHeight}});
+        }
         InApplicationWindow::onResized(w,h);
     }
 
@@ -1048,7 +1076,7 @@ public:
         uiImInitDialogs();
         neSetStyle();
         inSetPanelsSuspended(true);
-        core::inSetViewport(ws.width,ws.height);
+        updateSceneViewport(pixelWidth(),pixelHeight());
         settingWindow=std::make_shared<SettingWindow>(neWindowSetThrottlingRate);
         spaceEditor=std::make_shared<SpaceEditor>();
         lastPointerPos=inInputMousePosition();
@@ -1056,7 +1084,6 @@ public:
         activePanel=sanitizeActivePanel(inSettingsGet<int>("ui.activePanel",static_cast<int>(ActivePanelId::Parameters)));
         overlayOpen=inSettingsGet<bool>("ui.overlayOpen",true);
         loadModels(args);
-        core::inGetCamera().scale={0.5f,0.5f};
         auto logoBytes=embeddedResource(4301);
         logo=std::make_shared<core::Texture>(core::ShallowTexture(std::vector<uint8_t>(logoBytes.begin(),logoBytes.end())));
         auto iconBytes=embeddedResource(4302);

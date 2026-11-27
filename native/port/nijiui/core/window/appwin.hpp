@@ -2,6 +2,7 @@
 #include "window.hpp"
 #include <SDL3/SDL.h>
 #include <imgui.h>
+#include <optional>
 #include <string>
 namespace nicxlive::core { class ShallowTexture; }
 namespace nijiexpose::vulkan { class Context; }
@@ -21,6 +22,13 @@ class InApplicationWindow : public InWindow {
 #endif
     bool done=false,show=true;
     int width_=0,height_=0;
+    int pixelWidth_=0,pixelHeight_=0;
+    float displayScale_=1.0f,contentScale_=1.0f;
+    float layoutScale_=1.0f;
+    std::optional<ImGuiStyle> baseStyle;
+    void initializeWindowSize();
+    bool updateWindowMetrics();
+    void updateUIScale();
     std::vector<std::string> draggedFiles;
     std::string iniPath;
     int throttlingRate=1;
@@ -32,6 +40,10 @@ class InApplicationWindow : public InWindow {
     int normalWindowX=0, normalWindowY=0, normalWindowWidth=0, normalWindowHeight=0;
 protected:
     SDL_Window* nativeWindow() const { return window; }
+    int pixelWidth() const { return pixelWidth_; }
+    int pixelHeight() const { return pixelHeight_; }
+    float displayScale() const { return displayScale_; }
+    float contentScale() const { return contentScale_; }
     SDL_Surface* nativeIcon() const { return windowIcon; }
     void setBorderlessTransparency(bool enabled);
     std::vector<std::string>& getDraggedFiles() { return draggedFiles; }

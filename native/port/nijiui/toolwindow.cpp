@@ -1,5 +1,6 @@
 // nijiui/toolwindow.d. Copyright 2022 Inochi2D, 2024 nijigenerate. BSD-2-Clause.
 #include "nijiui/toolwindow.hpp"
+#include "nijiui/core/font.hpp"
 #include "dcompat/scope.hpp"
 #include "dcompat/errors.hpp"
 #include <imgui_internal.h>
@@ -17,8 +18,11 @@ thread_local std::vector<std::shared_ptr<ToolWindow>> windowStack, windowList;
 void ToolWindow::onBeginUpdate() {
     if (!hasImName) setTitle(name());
     ImGui::SetNextWindowClass(windowClass.get());
-    ImGui::SetNextWindowSizeConstraints(ImVec2(minWidth, minHeight),
-        allowResize ? ImVec2(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()) : ImVec2(minWidth, minHeight));
+    const float scale=inGetUILayoutScale();
+    const auto available=ImGui::GetMainViewport()->Size;
+    const ImVec2 minimum(std::min(minWidth*scale,available.x),std::min(minHeight*scale,available.y));
+    ImGui::SetNextWindowSizeConstraints(minimum,
+        allowResize ? ImVec2(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()) : minimum);
     drewWindow = ImGui::Begin(imName.c_str(), &visible, flags);
 }
 void ToolWindow::onEndUpdate() { ImGui::End(); }

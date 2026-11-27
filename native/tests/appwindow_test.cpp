@@ -6,6 +6,7 @@
 #include "nijilive/opengl/backend.hpp"
 #include <core/runtime_state.hpp>
 #include <imgui_internal.h>
+#include <cmath>
 #include <iostream>
 #include <stdexcept>
 #include "capture_frame.hpp"
@@ -13,6 +14,7 @@ namespace ui=nijiui;
 void require(bool value,const char* message) { if(!value) throw std::runtime_error(message); }
 class Window final:public ui::InApplicationWindow {
 public:
+    using InApplicationWindow::nativeWindow;
     std::vector<char> order;
     std::vector<std::string> files;
     int closes=0,resizes=0;
@@ -51,14 +53,30 @@ int main(int argc,char** argv) {
             window.update();
             require(window.order==std::vector<char>{'U','e','u','E'},"Window callback order differs from D");
             require(window.shouldProcess() && window.isAlive(),"Window state invalid");
-            require(window.width()==640 && window.height()==480,"Window size differs");
+            int width=0,height=0,pixelWidth=0,pixelHeight=0;
+            require(SDL_GetWindowFlags(window.nativeWindow())&SDL_WINDOW_HIGH_PIXEL_DENSITY,"High pixel density was not requested");
+            require(SDL_GetWindowSize(window.nativeWindow(),&width,&height) &&
+                    SDL_GetWindowSizeInPixels(window.nativeWindow(),&pixelWidth,&pixelHeight) &&
+                    window.width()==width && window.height()==height,"Window size differs from SDL coordinates");
+            const auto& io=ImGui::GetIO();
+            require(io.DisplaySize.x==width && io.DisplaySize.y==height &&
+                    io.DisplayFramebufferScale.x==static_cast<float>(pixelWidth)/width &&
+                    io.DisplayFramebufferScale.y==static_cast<float>(pixelHeight)/height,"ImGui framebuffer scale differs");
+            const auto& style=ImGui::GetStyle();
+            require(std::abs(style.FontScaleDpi*SDL_GetWindowPixelDensity(window.nativeWindow())-
+                             SDL_GetWindowDisplayScale(window.nativeWindow()))<0.001f,"ImGui font DPI differs");
             require(ImGui::GetIO().Fonts->Fonts.Size>0,"Embedded fonts missing");
+            const float originalPadding=style.FramePadding.x;
             ui::inSetUIScale(1.5f);
             require(ui::inGetUIScaleText()=="150%" && ImGui::GetStyle().FontScaleMain==.75f,"UI scale differs");
             ui::inFontsBeginLarge();
             require(ImGui::GetStyle().FontScaleMain==1.5f,"Large font scale differs");
             ui::inFontsEndLarge();
+            window.update();
+            require(style.FramePadding.x>originalPadding,"UI scale did not resize frame padding");
             ui::inSetUIScale(1);
+            window.update();
+            require(style.FramePadding.x==originalPadding,"Frame padding did not return to its original size");
             SDL_Event drop{}; drop.type=SDL_EVENT_DROP_FILE; drop.drop.data="test-image.png";
             require(SDL_PushEvent(&drop),SDL_GetError());
             window.update();
@@ -73,7 +91,7 @@ int main(int argc,char** argv) {
             require(ui::uiImDialogButtonUserData(tag)==&userdata,"Dialog userdata lost");
             require(ui::uiImDialogButtonSelected(tag)==ui::DialogButtons::NONE,"Dialog selected without input");
             require(ImGui::GetDrawData()->TotalVtxCount>0,"UI produced no rendered geometry");
-            if(argc>1)captureFrontBuffer(argv[1],window.width(),window.height());
+            if(argc>1)captureFrontBuffer(argv[1],pixelWidth,pixelHeight);
             window.setThrottlingRate(2);
             int interval=0;require(SDL_GL_GetSwapInterval(&interval)&&interval==1,"SafeThrottling must use one-vblank swaps");
             window.order.clear();window.update();window.update();

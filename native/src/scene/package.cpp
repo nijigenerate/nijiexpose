@@ -66,14 +66,31 @@ bool Scene::removeSceneItem(const std::shared_ptr<SceneItem>& target) {
 bool Scene::deleteSelectedSceneItem(){if(selectedPuppet<0||static_cast<size_t>(selectedPuppet)>=sceneItems.size())return false;removeSceneItem(sceneItems[static_cast<size_t>(selectedPuppet)]);selectedPuppet=-1;draggingItem={};movingTarget.reset();hasDonePuppetSelect=false;isDragDown=false;panels::insTrackingPanelRefresh();return true;}
 void Scene::interact(){
     using namespace nijiui;using core::nodes::inSetUpdateBounds;constexpr auto left=MouseButton::Left;
-    if(inInputMouseDownBegannijiui(left))return;int width,height;core::inGetViewport(width,height);inCamera=core::inGetCamera();auto mouse=inInputMousePosition();auto center=inCamera.getCenterOffset();mouse={(mouse.x-width/2+inCamera.position.x)/inCamera.scale.x,(mouse.y-height/2+inCamera.position.y)/inCamera.scale.y};
+    if(inInputMouseDownBegannijiui(left))return;
+    int width,height;
+    core::inGetViewport(width,height);
+    inCamera=core::inGetCamera();
+    const auto framebufferScale=ImGui::GetIO().DisplayFramebufferScale;
+    const auto pointer=inInputMousePosition();
+    const auto center=inCamera.getCenterOffset();
+    const vec2 mouse{
+        (pointer.x*framebufferScale.x-width/2+inCamera.position.x)/inCamera.scale.x,
+        (pointer.y*framebufferScale.y-height/2+inCamera.position.y)/inCamera.scale.y
+    };
     auto hitTest=[&](const std::shared_ptr<Puppet>& stop){ItemHitTest result;auto& items=insScene()->sceneItems;for(size_t i=0;i<items.size();++i){auto item=items[i];if(item->puppet==stop)break;if(item->intersects(mouse)){result={item,static_cast<ptrdiff_t>(i)};item->updateTransform();}}return result;};
     if(!inInputWasMouseDown(left)&&inInputMouseDown(left)){
         if(!hasDonePuppetSelect){hasDonePuppetSelect=true;inSetUpdateBounds(true);draggingItem=hitTest(nullptr);if(draggingItem){selectedPuppet=draggingItem.index;panels::insTrackingPanelRefresh();movingTarget=draggingItem.item;while(auto parent=movingTarget->attachedParent.lock()){movingTarget=parent;movingTarget->updateTransform();}}else{selectedPuppet=-1;panels::insTrackingPanelRefresh();movingTarget.reset();}inSetUpdateBounds(false);}
     }else if(!inInputMouseDown(left)&&hasDonePuppetSelect)hasDonePuppetSelect=false;
     auto scaleItem=[&]{auto& item=*draggingItem.item;float delta=static_cast<float>((inInputMouseScrollDelta()*0.05)*(1-std::clamp(double(item.targetScale),0.0,0.45)));item.targetScale=std::clamp(item.targetScale+delta,.25f,5.f);};
     if(hasDonePuppetSelect&&draggingItem){ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);float prev=draggingItem.item->targetScale;scaleItem();if(prev!=draggingItem.item->targetScale){inSetUpdateBounds(true);auto item=draggingItem.item;auto b=item->puppet->root->getCombinedBounds(true,true);auto m=item->puppet->transform.matrix();float v[4]{};for(int r=0;r<4;++r)for(int c=0;c<4;++c)v[r]+=m[r][c]*b[c];item->targetSize={std::abs(v[2]-v[0]),std::abs(v[3]-v[1])};inSetUpdateBounds(false);}}
-    if(inInputMouseDragging(left)&&hasDonePuppetSelect&&draggingItem){auto delta=inInputMouseDragDelta(left);auto item=draggingItem.item;item->targetPos={item->startPos.x+delta.x/inCamera.scale.x,item->startPos.y+delta.y/inCamera.scale.y};if(movingTarget)movingTarget->targetPos={movingTarget->startPos.x+delta.x/inCamera.scale.x,movingTarget->startPos.y+delta.y/inCamera.scale.y};}
+    if(inInputMouseDragging(left)&&hasDonePuppetSelect&&draggingItem){
+        const auto delta=inInputMouseDragDelta(left);
+        const vec2 movement{delta.x*framebufferScale.x/inCamera.scale.x,
+                            delta.y*framebufferScale.y/inCamera.scale.y};
+        auto item=draggingItem.item;
+        item->targetPos={item->startPos.x+movement.x,item->startPos.y+movement.y};
+        if(movingTarget)movingTarget->targetPos={movingTarget->startPos.x+movement.x,movingTarget->startPos.y+movement.y};
+    }
     if(draggingItem){auto item=draggingItem.item;float cx=(center.x*2)+(item->targetSize.x/3),cy=static_cast<float>((center.y*2)+(item->targetSize.y/1.5));item->targetPos.x=std::clamp(item->targetPos.x,(inCamera.position.x-cx)*inCamera.scale.x,(inCamera.position.x+cx)*inCamera.scale.x);item->targetPos.y=std::clamp(item->targetPos.y,(inCamera.position.y-cy)*inCamera.scale.y,(inCamera.position.y+cy)*inCamera.scale.y);
         bool control=ImGui::IsKeyDown(ImGuiKey_LeftCtrl)||ImGui::IsKeyDown(ImGuiKey_RightCtrl);
         if(control){if(!item->attachedParent.expired()&&isDragDown){auto parent=item->attachedParent.lock();item->detach();insertAfter(insScene()->sceneItems,parent,item);movingTarget=item;item->updateTransform();}if(draggingItem&&isDragDown&&!inInputMouseDown(left)){auto hit=hitTest(item->puppet);if(hit.item&&item->attachTo(hit.item))selectedPuppet=insertAfter(insScene()->sceneItems,hit.item,item);}else if(draggingItem&&isDragDown){auto hit=hitTest(item->puppet);}}

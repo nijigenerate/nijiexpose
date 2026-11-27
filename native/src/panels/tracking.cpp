@@ -2,6 +2,7 @@
 #include "factory.hpp"
 #include "tracking_state.hpp"
 #include "scene/package.hpp"
+#include "nijiui/core/font.hpp"
 #include "nijiui/widgets/input.hpp"
 #include "nijiui/widgets/category.hpp"
 #include "nijiui/widgets/dialog.hpp"
@@ -323,6 +324,7 @@ private:
 
     // Configuration panel for ratio bindings
     void ratioBinding(size_t i, const std::shared_ptr<ITrackingBinding>& binding) {
+        const float scale=inGetUILayoutScale();
         auto rBinding = std::dynamic_pointer_cast<RatioTrackingBinding>(binding);
         if (!rBinding) return;
 
@@ -395,13 +397,13 @@ private:
                         rBinding->createSourceDisplayName();
                     }
                     uiImSameLine();
-                    uiImDummy(vec2(source.dummyWidth + 1, 1));
+                    uiImDummy(vec2(source.dummyWidth + scale, scale));
                     uiImSameLine();
                     auto zone = insScene()->space->currentZone();
                     float value = zone ? zone->getBlendshapeFor(source.name) : 0.0f;
                     if (value < minValues[ix]) minValues[ix] = value;
                     if (value > maxValues[ix]) maxValues[ix] = value;
-                    ImGui::ProgressBar((value - minValues[ix]) / (maxValues[ix] - minValues[ix]), ImVec2(0, 10), "");
+                    ImGui::ProgressBar((value - minValues[ix]) / (maxValues[ix] - minValues[ix]), ImVec2(0, 10*scale), "");
                 }
             }
             uiImEndComboBox();
@@ -421,7 +423,7 @@ private:
             uiImLabel(_("Tracking In"));
             uiImPush(0);
                 uiImIndent();
-                    ImGui::SetNextItemWidth (96);
+                    ImGui::SetNextItemWidth(96*scale);
                     switch(rBinding->sourceType) {
                         case SourceType::Blendshape:
                             // TODO: Make all blendshapes in facetrack-d 0->1
@@ -450,7 +452,7 @@ private:
             uiImLabel(_("Tracking Out"));
             uiImPush(1);
                 uiImIndent();
-                    ImGui::SetNextItemWidth (96);
+                    ImGui::SetNextItemWidth(96*scale);
                     uiImRange(rBinding->outRange.x, rBinding->outRange.y, -std::numeric_limits<float>::max(), std::numeric_limits<float>::max());
                     ImGui::SameLine();
                     uiImProgress(mapAxis(*rBinding->binding->param,rBinding->binding->axis,rBinding->outVal), vec2(-std::numeric_limits<float>::min(), 0), "");
@@ -461,6 +463,7 @@ private:
 
     // Configuration panel for event bindings
     void eventBinding(size_t i, const std::shared_ptr<ITrackingBinding>& binding) {
+        const float scale=inGetUILayoutScale();
         auto eBinding = std::dynamic_pointer_cast<EventTrackingBinding>(binding);
         if (eBinding) {
             if (eBinding->binding && eBinding->binding->delegated == eBinding)
@@ -474,11 +477,11 @@ private:
             for(size_t idx=0;idx<eBinding->valueMap.size();++idx){auto item=eBinding->valueMap[idx];
                 uiImPush(static_cast<int>(idx) + 1);
                 std::string idHold = item.id;
-                if (uiImInputText("###EVENTID", 64, idHold)) {
+                if (uiImInputText("###EVENTID", 64*scale, idHold)) {
                     eBinding->valueMap[idx].id = dcompat::toUpper(dcompat::fromStringz(idHold));
                 }
                 ImGui::SameLine();
-                ImGui::SetNextItemWidth(128);
+                ImGui::SetNextItemWidth(128*scale);
                 ImGui::DragFloat("", &(eBinding->valueMap[idx].value), 0.01, axis(eBinding->binding->param->min,eBinding->binding->axis), axis(eBinding->binding->param->max,eBinding->binding->axis));
                 ImGui::SameLine();
                 if (uiImButton(__("\ue5cd"))) {

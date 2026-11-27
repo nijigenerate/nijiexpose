@@ -47,7 +47,7 @@ void uiImRenderDialogs() {
     if(!ImGui::IsPopupOpen(entry->title.c_str())) ImGui::OpenPopup(entry->title.c_str());
     auto flags=ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize;
     if(ImGui::BeginPopupModal(entry->title.c_str(),nullptr,flags)) {
-        float uiScale=inGetUIScale(),errImgScale=112*uiScale,msgEndPadding=4*uiScale;
+        float uiScale=inGetUILayoutScale(),errImgScale=112*uiScale,msgEndPadding=4*uiScale;
         ImGui::BeginGroup();
         if(ImGui::BeginChild("ErrorMainBoxLogo",{errImgScale,errImgScale}))
             uiImImage(adaTextures.at(static_cast<size_t>(entry->level))->backendId(),{errImgScale,errImgScale});

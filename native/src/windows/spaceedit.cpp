@@ -3,6 +3,7 @@
 #include "scene/package.hpp"
 #include "tracking/tracker.hpp"
 #include "panels/tracking_state.hpp"
+#include "nijiui/core/font.hpp"
 #include "nijiui/widgets/input.hpp"
 #include "nijiui/widgets/category.hpp"
 #include "nijiui/widgets/dialog.hpp"
@@ -152,9 +153,10 @@ void SpaceEditor::applyChanges() {
 
 void SpaceEditor::renderEditorSection(bool showApplyButton) {
         vec2 avail = uiImAvailableSpace();
-        float lhs = 196;
+        const float scale=inGetUILayoutScale();
+        float lhs = std::min(196*scale,avail.x*0.4f);
         float rhs = avail.x - lhs;
-        const float footerHeight = showApplyButton ? 38.0f : 0.0f;
+        const float footerHeight = showApplyButton ? 38.0f*scale : 0.0f;
 
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
@@ -183,7 +185,7 @@ void SpaceEditor::renderEditorSection(bool showApplyButton) {
                 } catch (const std::exception&) {}
             }
             uiImSameLine(0, 0);
-            if (uiImButton(__("\ue145"), vec2(24, 24))) addZone();
+            if (uiImButton(__("\ue145"), vec2(24*scale, 24*scale))) addZone();
         }
         uiImEndChild();
 
@@ -268,7 +270,7 @@ void SpaceEditor::renderEditorSection(bool showApplyButton) {
                     uiImUnindent();
 
                     avail = uiImAvailableSpace();
-                    if (uiImButton(__("\ue145"), vec2(avail.x, 24))) {
+                    if (uiImButton(__("\ue145"), vec2(avail.x, 24*scale))) {
                         editingZone->sources.resize(editingZone->sources.size()+1);
                         refreshOptionsList();
                     }
@@ -278,8 +280,8 @@ void SpaceEditor::renderEditorSection(bool showApplyButton) {
         uiImEndChild();
 
         if (showApplyButton) {
-            ImGui::SetCursorPosX(std::max(0.0f, uiImAvailableSpace().x - 72.0f));
-            if (uiImButton(__("Apply"), vec2(64, 0))) {
+            ImGui::SetCursorPosX(std::max(0.0f, uiImAvailableSpace().x - 72.0f*scale));
+            if (uiImButton(__("Apply"), vec2(64*scale, 0))) {
                 applyChanges();
             }
         }
@@ -424,7 +426,8 @@ void SpaceEditor::renderEmbeddedSection() {
         }
 
         vec2 avail = uiImAvailableSpace();
-        if (uiImButton(__("Add Source"), vec2(std::min(avail.x, 220.0f), 28))) {
+        const float scale=inGetUILayoutScale();
+        if (uiImButton(__("Add Source"), vec2(std::min(avail.x, 220.0f*scale), 28*scale))) {
             editingZone->sources.resize(editingZone->sources.size()+1);
             refreshOptionsList();
         }
@@ -436,7 +439,9 @@ void SpaceEditor::onBeginUpdate() {
             ImGui::GetMainViewport()->Pos.y + (ImGui::GetMainViewport()->Size.y / 2)
         );
 
-        ImVec2 uiSize = ImVec2(800, 600);
+        const float scale=inGetUILayoutScale();
+        const auto viewport=ImGui::GetMainViewport()->Size;
+        ImVec2 uiSize(std::min(800*scale,viewport.x),std::min(600*scale,viewport.y));
 
         ImGui::SetNextWindowPos(wpos, ImGuiCond_Appearing, ImVec2(0.5, 0.5));
         ImGui::SetNextWindowSize(uiSize, ImGuiCond_Appearing);

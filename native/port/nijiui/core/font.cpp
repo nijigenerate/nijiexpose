@@ -92,6 +92,13 @@ void inInitFonts() {
 void inSetUIScale(float scale) { inSettingsSet("UIScale",scale); fontScale(inGetUIScaleFont()); }
 float inGetUIScaleFont() { return inGetUIScale()/2; }
 float inGetUIScale() { return inSettingsGet<float>("UIScale",1.0f); }
+float inGetUILayoutScale() {
+#if IMGUI_VERSION_NUM >= 19200
+    return ImGui::GetStyle().FontScaleDpi*inGetUIScale();
+#else
+    return inGetUIScale();
+#endif
+}
 std::string inGetUIScaleText() { return std::to_string(static_cast<int>(inGetUIScale()*100))+"%"; }
 void inFontsBeginLarge() { fontScale(inGetUIScaleFont()*2); }
 void inFontsEndLarge() { fontScale(inGetUIScaleFont()); }

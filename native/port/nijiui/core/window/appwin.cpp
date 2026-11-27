@@ -16,6 +16,7 @@
 #include <core/texture.hpp>
 #include <filesystem>
 #include <algorithm>
+#include <cmath>
 #include <stdexcept>
 #include "render/window_mode.hpp"
 #ifndef NIJIEXPOSE_OPENGL
@@ -43,6 +44,10 @@ void fitDecoratedWindowToDisplay(SDL_Window* window) {
     const int fittedY=std::clamp(y, area.y+top, area.y+std::max(top, area.h-fittedH-bottom));
     if (x!=fittedX || y!=fittedY) SDL_SetWindowPosition(window, fittedX, fittedY);
 }
+
+float positiveScale(float scale) {
+    return std::isfinite(scale) && scale > 0.0f ? scale : 1.0f;
+}
 }
 InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsigned height,int rate)
     : width_(static_cast<int>(width)),height_(static_cast<int>(height)) {
@@ -55,13 +60,13 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     constexpr auto rendererFlag=SDL_WINDOW_VULKAN;
     using GpuContext=nijiexpose::vulkan::Context;
 #endif
-    window=SDL_CreateWindow(title.c_str(),width_,height_,rendererFlag|SDL_WINDOW_RESIZABLE
+    window=SDL_CreateWindow(title.c_str(),width_,height_,rendererFlag|SDL_WINDOW_RESIZABLE|SDL_WINDOW_HIGH_PIXEL_DENSITY
 #ifndef _WIN32
         |SDL_WINDOW_TRANSPARENT
 #endif
     );
     if(!window)throw std::runtime_error(SDL_GetError());
-    fitDecoratedWindowToDisplay(window);
+    initializeWindowSize();
     try {
         gpuContext=std::make_unique<GpuContext>(window);
     } catch(...) {
@@ -79,13 +84,13 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE,8);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,8);
     SDL_SetHint(SDL_HINT_APP_NAME,inGetApplication().humanName.c_str());
-    window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE
+    window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE|SDL_WINDOW_HIGH_PIXEL_DENSITY
 #ifndef _WIN32
         |SDL_WINDOW_TRANSPARENT
 #endif
     );
     if(!window)throw std::runtime_error(SDL_GetError());
-    fitDecoratedWindowToDisplay(window);
+    initializeWindowSize();
     glctx=SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window,glctx);
     setThrottlingRate(rate);
@@ -114,6 +119,66 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     inInitFonts();
     inInitPanels();
 }
+
+void InApplicationWindow::initializeWindowSize() {
+#ifdef _WIN32
+    // SDL uses pixels for window sizes on Windows. Settings are in 96-DPI units.
+    const float scale=positiveScale(SDL_GetWindowDisplayScale(window));
+    if (scale!=1.0f)
+        SDL_SetWindowSize(window,static_cast<int>(std::lround(width_*scale)),
+                              static_cast<int>(std::lround(height_*scale)));
+#endif
+    fitDecoratedWindowToDisplay(window);
+    updateWindowMetrics();
+}
+
+bool InApplicationWindow::updateWindowMetrics() {
+    const float displayScale=positiveScale(SDL_GetWindowDisplayScale(window));
+    const float contentScale=displayScale/positiveScale(SDL_GetWindowPixelDensity(window));
+#ifdef _WIN32
+    const auto flags=SDL_GetWindowFlags(window);
+    // SDL preserves the client area in pixels when crossing monitors on Windows.
+    // Preserve its size in 96-DPI units for an ordinary decorated window.
+    if (pixelWidth_>0 && contentScale!=contentScale_ &&
+        !(flags & (SDL_WINDOW_BORDERLESS | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MINIMIZED))) {
+        const float ratio=contentScale/contentScale_;
+        SDL_SetWindowSize(window,std::max(1,static_cast<int>(std::lround(width_*ratio))),
+                                std::max(1,static_cast<int>(std::lround(height_*ratio))));
+    }
+#endif
+    int width=0,height=0,pixelsWide=0,pixelsHigh=0;
+    if (!SDL_GetWindowSize(window,&width,&height) || !SDL_GetWindowSizeInPixels(window,&pixelsWide,&pixelsHigh) ||
+        width<=0 || height<=0 || pixelsWide<=0 || pixelsHigh<=0) return false;
+    const bool changed=width!=width_ || height!=height_ || pixelsWide!=pixelWidth_ ||
+                       pixelsHigh!=pixelHeight_ || displayScale!=displayScale_;
+    width_=width;
+    height_=height;
+    pixelWidth_=pixelsWide;
+    pixelHeight_=pixelsHigh;
+    displayScale_=displayScale;
+    contentScale_=contentScale;
+    return changed;
+}
+
+void InApplicationWindow::updateUIScale() {
+    auto& style=ImGui::GetStyle();
+    if (!baseStyle) baseStyle=style; // Includes styling applied by the derived window.
+    const float scale=positiveScale(inGetUIScale())*contentScale_;
+    if (scale!=layoutScale_) {
+        // Scale from the original metrics so moving between monitors cannot accumulate rounding.
+        const float fontSize=style.FontSizeBase;
+        const float fontScale=style.FontScaleMain;
+        style=*baseStyle;
+        style.FontSizeBase=fontSize;
+        style.FontScaleMain=fontScale;
+        if (scale!=1.0f) style.ScaleAllSizes(scale);
+        if (baseStyle->InputTextCursorSize>0.0f)
+            style.InputTextCursorSize=std::max(1.0f,style.InputTextCursorSize);
+        layoutScale_=scale;
+    }
+    style.FontScaleDpi=contentScale_;
+}
+
 InApplicationWindow::~InApplicationWindow() { cleanup(); }
 void InApplicationWindow::cleanup() {
 #ifdef _WIN32
@@ -189,18 +254,19 @@ void InApplicationWindow::setBorderlessTransparency(bool enabled) {
 }
 void InApplicationWindow::setThrottlingRate(int rate) {
     throttlingRate=rate;
-    if(rate>1 && ctx && io)onResized(static_cast<int>(io->DisplaySize.x),static_cast<int>(io->DisplaySize.y));
 #ifndef NIJIEXPOSE_OPENGL
     gpuContext->setThrottle(rate);
 #else
+    if (ctx) {
+        SDL_GL_MakeCurrent(window,glctx);
+        InApplicationWindow::onResized(pixelWidth_,pixelHeight_);
+    }
     SDL_GL_SetSwapInterval(rate>0?1:0);
 #endif
 }
 void InApplicationWindow::onResized(int width,int height) {
     transparencyRetryPending=nijiexpose::render::transparentWindow;
-#ifndef NIJIEXPOSE_OPENGL
-    gpuContext->resize();
-#else
+#ifdef NIJIEXPOSE_OPENGL
     using namespace nijiexpose::ogl;
     if(fboTexture){nijiexpose::ogl::glDeleteTextures(1,&fboTexture);fboTexture=0;}
     if(fbo){nijiexpose::ogl::glDeleteFramebuffers(1,&fbo);fbo=0;}
@@ -234,11 +300,10 @@ void InApplicationWindow::update() {
         SDL_DelayNS(static_cast<Uint64>(1e9/(mode&&mode->refresh_rate>0?mode->refresh_rate:60)));
 #else
         using namespace nijiexpose::ogl;
-        auto size=io->DisplaySize;
-        if(!fbo)onResized(static_cast<int>(size.x),static_cast<int>(size.y));
+        if(!fbo)InApplicationWindow::onResized(pixelWidth_,pixelHeight_);
         nijiexpose::ogl::glBindFramebuffer(GL_READ_FRAMEBUFFER,fbo);
         nijiexpose::ogl::glBindFramebuffer(GL_DRAW_FRAMEBUFFER,0);
-        nijiexpose::ogl::glBlitFramebuffer(0,0,static_cast<int>(size.x),static_cast<int>(size.y),0,0,static_cast<int>(size.x),static_cast<int>(size.y),GL_COLOR_BUFFER_BIT,GL_NEAREST);
+        nijiexpose::ogl::glBlitFramebuffer(0,0,pixelWidth_,pixelHeight_,0,0,pixelWidth_,pixelHeight_,GL_COLOR_BUFFER_BIT,GL_NEAREST);
         SDL_GL_SwapWindow(window);
 #endif
         return;
@@ -258,24 +323,26 @@ void InApplicationWindow::update() {
         default:
             ImGui_ImplSDL3_ProcessEvent(&event);
             if(event.type==SDL_EVENT_WINDOW_CLOSE_REQUESTED && event.window.windowID==SDL_GetWindowID(window)) close();
-            if(event.type==SDL_EVENT_WINDOW_RESIZED && event.window.windowID==SDL_GetWindowID(window)) {
-                SDL_GetWindowSizeInPixels(window,&width_,&height_);
-                onResized(width_,height_);
-            }
             break;
         }
     }
     onPlatformUpdate();
+#ifdef NIJIEXPOSE_OPENGL
+    SDL_GL_MakeCurrent(window,glctx);
+#endif
+    if (updateWindowMetrics()) onResized(pixelWidth_,pixelHeight_);
 #ifndef NIJIEXPOSE_OPENGL
     if(!gpuContext->beginFrame())return;
 #ifdef NIJIEXPOSE_VULKAN
     ImGui_ImplVulkan_NewFrame();
 #endif
 #else
-    SDL_GL_MakeCurrent(window,glctx);
     ImGui_ImplOpenGL3_NewFrame();
 #endif
     ImGui_ImplSDL3_NewFrame();
+    if (io->DisplaySize.x>0 && io->DisplaySize.y>0)
+        io->DisplayFramebufferScale=ImVec2(pixelWidth_/io->DisplaySize.x,pixelHeight_/io->DisplaySize.y);
+    updateUIScale();
     ImGui::NewFrame();
 #ifndef NIJIEXPOSE_OPENGL
     auto& renderer=nijiexpose::applicationRenderBackend();
@@ -308,18 +375,17 @@ void InApplicationWindow::update() {
 #else
     // Settings can create/destroy a tracker preview renderer during this frame.
     SDL_GL_MakeCurrent(window,glctx);
-    nijiexpose::ogl::glViewport(0,0,static_cast<int>(io->DisplaySize.x),static_cast<int>(io->DisplaySize.y));
+    nijiexpose::ogl::glViewport(0,0,pixelWidth_,pixelHeight_);
     nijiexpose::ogl::glClearColor(0,0,0,0);
     nijiexpose::ogl::glClear(GL_COLOR_BUFFER_BIT);
     onEarlyUpdate();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     if(throttlingRate>1) {
         using namespace nijiexpose::ogl;
-        auto size=io->DisplaySize;
-        if(!fbo)onResized(static_cast<int>(size.x),static_cast<int>(size.y));
+        if(!fbo)InApplicationWindow::onResized(pixelWidth_,pixelHeight_);
         nijiexpose::ogl::glBindFramebuffer(GL_READ_FRAMEBUFFER,0);
         nijiexpose::ogl::glBindFramebuffer(GL_DRAW_FRAMEBUFFER,fbo);
-        nijiexpose::ogl::glBlitFramebuffer(0,0,static_cast<int>(size.x),static_cast<int>(size.y),0,0,static_cast<int>(size.x),static_cast<int>(size.y),GL_COLOR_BUFFER_BIT,GL_NEAREST);
+        nijiexpose::ogl::glBlitFramebuffer(0,0,pixelWidth_,pixelHeight_,0,0,pixelWidth_,pixelHeight_,GL_COLOR_BUFFER_BIT,GL_NEAREST);
     }
 #ifdef NIJIEXPOSE_DYNAMIC_MOUSE_PASSTHROUGH
     if (nijiexpose::render::transparentWindow) {

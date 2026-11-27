@@ -4,6 +4,7 @@
 #ifdef NIJIEXPOSE_OPENGL
 #include "nijilive/opengl/blending.hpp"
 #endif
+#include "nijiui/core/font.hpp"
 #include "nijiui/core/settings.hpp"
 #include "nijiui/widgets/input.hpp"
 #include "nijiui/widgets/category.hpp"
@@ -106,10 +107,9 @@ void SettingWindow::onBeginUpdate() {
             ImGui::GetMainViewport()->Pos.y+(ImGui::GetMainViewport()->Size.y/2)
         );
 
-        ImVec2 uiSize = ImVec2(
-            800, 
-            600
-        );
+        const float scale=inGetUILayoutScale();
+        const auto viewport=ImGui::GetMainViewport()->Size;
+        ImVec2 uiSize(std::min(800*scale,viewport.x),std::min(600*scale,viewport.y));
 
         ImGui::SetNextWindowPos(wpos, ImGuiCond_Appearing, ImVec2(0.5, 0.5));
         ImGui::SetNextWindowSize(uiSize, ImGuiCond_Appearing);
@@ -267,9 +267,10 @@ void SettingWindow::renderRenderingSettingsSection() {
 void SettingWindow::onUpdate() {
         ensureDraftLoaded();
         vec2 avail = uiImAvailableSpace();
-        float lhs = 196;
+        const float scale=inGetUILayoutScale();
+        float lhs = std::min(196*scale,avail.x*0.4f);
         float rhs = avail.x-lhs;
-        const float footerHeight = 38.0f;
+        const float footerHeight = 38.0f*scale;
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(1, 1, 1, 0));
         ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 0.0f);
         ScopeExit cleanup{[&] {
@@ -310,8 +311,8 @@ void SettingWindow::onUpdate() {
         }
         uiImEndChild();
 
-        ImGui::SetCursorPosX(std::max(0.0f, uiImAvailableSpace().x - 72.0f));
-        if (uiImButton(__("Apply"), vec2(64, 0))) {
+        ImGui::SetCursorPosX(std::max(0.0f, uiImAvailableSpace().x - 72.0f*scale));
+        if (uiImButton(__("Apply"), vec2(64*scale, 0))) {
             applySettings();
         }
     }

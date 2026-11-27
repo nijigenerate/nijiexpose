@@ -1,6 +1,7 @@
 // nijiui/widgets/input.d, translated in source order (color storage is colors.cpp).
 // Copyright (c) 2022 Inochi2D Project, 2024 nijigenerate Project. BSD-2-Clause.
 #include "nijiui/widgets/input.hpp"
+#include "nijiui/core/font.hpp"
 #include "dcompat/scope.hpp"
 #include "dcompat/string.hpp"
 #include <imgui_internal.h>
@@ -78,7 +79,8 @@ bool uiImInputText(std::string_view wId, std::string_view label, float width, st
     return false;
 }
 bool uiImCheckbox(const char* text, bool& val) {
-    const float height = 22.0f, width = 38.0f, knobSize = 18.0f;
+    const float scale=inGetUILayoutScale();
+    const float height = 22.0f*scale, width = 38.0f*scale, knobSize = 18.0f*scale;
     const float knobPadding = (height - knobSize) * 0.5f;
     const std::string_view label = text ? text : "";
     const auto idIndex = label.find("###");
@@ -98,7 +100,7 @@ bool uiImCheckbox(const char* text, bool& val) {
     drawList->AddCircleFilled(ImVec2(knobX + (knobSize * 0.5f), startPos.y + (height * 0.5f)),
         knobSize * 0.5f, ImGui::ColorConvertFloat4ToU32(ImVec4(1, 1, 1, 1)));
     if (!visibleLabel.empty()) {
-        ImGui::SameLine(0, 10.0f);
+        ImGui::SameLine(0, 10.0f*scale);
         ImGui::AlignTextToFramePadding();
         const std::string terminated(visibleLabel);
         ImGui::TextUnformatted(terminated.c_str(), nullptr);
