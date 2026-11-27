@@ -4,14 +4,14 @@
   "configurePresets": [
     {
       "name": "native-release",
-      "displayName": "Native C++ / SDL3 / Vulkan (Release)",
+      "displayName": "Native C++ / SDL3 / Platform default renderer (Release)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/native-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_TESTING": "ON",
         "NIJIEXPOSE_D_REFERENCE_TESTS": "OFF",
-        "NIJIEXPOSE_RENDERER": "VULKAN"
+        "NIJIEXPOSE_RENDERER": "AUTO"
       }
     },
     {
@@ -24,7 +24,8 @@
       "name": "native-vulkan-release",
       "displayName": "Native C++ / SDL3 / Vulkan (Release)",
       "inherits": "native-release",
-      "binaryDir": "${sourceDir}/build/native-vulkan-release"
+      "binaryDir": "${sourceDir}/build/native-vulkan-release",
+      "cacheVariables": { "NIJIEXPOSE_RENDERER": "VULKAN" }
     },
     {
       "name": "native-metal-release",

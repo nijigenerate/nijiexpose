@@ -65,8 +65,10 @@ extension and an alpha-capable compositor; Wayland click-through is unsupported.
 
 The quick start guide [BUILD.md](BUILD.md) contains instructions for building,
 testing and packaging nijiexpose on Windows, macOS and Linux.
-The default [Vulkan model and ImGui renderer](BUILD.md#vulkan-renderer) is based on nijimi.
-Use the `native-opengl-release` and `native-vulkan-release` CMake presets for separate builds with renderer-specific dependencies.
+The default renderer is [Metal](BUILD.md#metal-on-macos) on macOS and
+[Vulkan](BUILD.md#vulkan-renderer) on Windows and Linux.
+Use the `native-opengl-release`, `native-vulkan-release`, or macOS-only
+`native-metal-release` CMake preset to select a renderer explicitly.
 
 Translations use GNU gettext; see [translation maintenance](tl/README.md).
 Active distribution assets are in `build-aux`, translations in `tl`, and

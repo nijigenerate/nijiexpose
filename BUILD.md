@@ -12,8 +12,8 @@ The model shaders originate from nijimi, with the part-opacity correction docume
 Dear ImGui Vulkan backend renders the existing UI. No nicxlive API extension is
 required.
 
-`native-release` and the official Windows, macOS and Linux builds use Vulkan.
-Install the Vulkan development tools for your platform, including `glslc`.
+`native-release` and official packages use Metal on macOS and Vulkan on Windows
+and Linux. Vulkan builds require the Vulkan development tools, including `glslc`.
 The `native-opengl-release` preset selects the OpenGL renderer.
 
 Use `native-opengl-release` or `native-vulkan-release` in place of
@@ -128,33 +128,12 @@ their notices, fixes library paths and ad-hoc signs the app. Developer ID signin
 and notarization are not configured. The pinned tracker recipe targets arm64;
 these commands do not produce an Intel or universal package.
 
-Install the macOS Vulkan SDK and set `VULKAN_SDK` to its `macOS` directory
-before configuring the default preset. The installed app bundles
-the Vulkan loader, MoltenVK, its driver manifest and component license notices.
-The manifest uses a bundle-relative library path, so the installed app does not
-require the SDK environment variables to locate MoltenVK.
-
-The macOS CI job uses Vulkan SDK **1.4.328.1**, with the official archive SHA-256
-checked before installation. It caches the SDK separately by version, digest,
-OS, architecture and installer-script revision. Installation uses `copy_only=1`
-and the core component, without copying runtime libraries to system directories.
-CI supplies explicit SDK paths to the default preset and retains the existing
-`build/native-release` and MediaPipe cache paths.
-
-macOS ZIP and DMG verification passes `--require-macos-vulkan` to
-`native/tools/verify-package.py`. This checks the loader, MoltenVK, the relative
-ICD manifest, bundled library dependencies, runtime search paths, license hashes
-and app signature. The `--version` launch clears Vulkan and dyld environment
-overrides. This is packaging verification, not a GPU rendering test.
-When updating the SDK, update its workflow version/digest and review the pinned
-component notices in `native/res/licenses/vulkan-sdk/provenance.json` together.
-
 ### Metal on macOS
 
-Select the Metal renderer with `cmake --preset native-metal-release`, then
-run `cmake --build --preset native-metal-release --parallel 3`. Install it with
-`cmake --install build/native-metal-release --prefix out`. To reuse an existing
-macOS build directory, configure it with `-DNIJIEXPOSE_RENDERER=METAL`.
+Metal is the default for fresh CMake configurations and `native-release`.
+Use `native-metal-release` for a separate build directory. To switch a CMake
+cache with a renderer already selected back to the platform default, configure
+with `-DNIJIEXPOSE_RENDERER=AUTO`.
 Metal compiles the bundled MSL at startup using the system Metal framework,
 so the build and app do not need the Vulkan SDK or MoltenVK.
 
@@ -162,6 +141,18 @@ The Metal backend ports the scene renderer and shaders from nijigenerate under
 the BSD 2-Clause license. It uses SDL's Metal view and composites the scene and
 ImGui into a CAMetalLayer. It supports masks, DynamicComposites, mipmapped model
 textures, ambient lighting, and per-pixel mouse passthrough in transparent mode.
+
+macOS CI uses the default preset. Its ZIP and DMG checks run
+`native/tools/verify-package.py --require-macos-metal` to verify Metal linkage,
+the bundled libraries and app signature, and the absence of the Vulkan runtime.
+
+### Optional Vulkan on macOS
+
+Install the macOS Vulkan SDK, set `VULKAN_SDK` to its `macOS` directory and
+configure with `cmake --preset native-vulkan-release -DBUILD_TESTING=OFF`.
+Install or package from `build/native-vulkan-release`. The app bundles the
+Vulkan loader, MoltenVK, its driver manifest and component licenses. Use
+`native/tools/verify-package.py --require-macos-vulkan` to check the package.
 
 ## Linux x86_64 (Ubuntu 24.04 / WSL2)
 

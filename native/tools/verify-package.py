@@ -36,20 +36,45 @@ def verify_macos_vulkan(bundle, executable, licenses):
         if hashlib.sha256(path.read_bytes()).hexdigest() != notice["sha256"]:
             raise RuntimeError(f"Incorrect Vulkan license: {path}")
 
-    # Inspect every bundled dylib, including the ICD loaded via JSON rather than
-    # linked to the application. System libraries may live in the dyld cache.
+    verify_macos_libraries(bundle, executable, "Vulkan")
+
+
+def is_vulkan_library(path):
+    name = Path(path).name.lower()
+    return name.startswith(("libvulkan", "libmoltenvk"))
+
+
+def verify_macos_metal(bundle, executable):
+    for path in (bundle / "Frameworks").rglob("*.dylib"):
+        if is_vulkan_library(path):
+            raise RuntimeError(f"Unexpected Vulkan library in Metal package: {path}")
+    manifest = bundle / "Resources/vulkan/icd.d/MoltenVK_icd.json"
+    if manifest.exists() or manifest.is_symlink():
+        raise RuntimeError(f"Unexpected Vulkan driver manifest in Metal package: {manifest}")
+    verify_macos_libraries(bundle, executable, "Metal")
+
+
+def verify_macos_libraries(bundle, executable, renderer):
+    frameworks = bundle / "Frameworks"
+    # Inspect every bundled dylib, including any ICD loaded via JSON.
+    # System libraries may live in the dyld cache.
     images = {executable, *(p.resolve() for p in frameworks.rglob("*.dylib"))}
     for image in sorted(images):
         if not image.is_relative_to(bundle):
             raise RuntimeError(f"Library points outside the bundle: {image}")
         dependencies = subprocess.run(["otool", "-L", str(image)], text=True,
                                       capture_output=True, check=True).stdout
-        if image == executable and "libvulkan." not in dependencies:
-            raise RuntimeError("macOS executable is not linked to the Vulkan loader")
-        for line in dependencies.splitlines():
-            if not line.startswith("\t"):
-                continue
-            dependency = line.strip().split(" (", 1)[0]
+        libraries = [line.strip().split(" (", 1)[0]
+                     for line in dependencies.splitlines() if line.startswith("\t")]
+        if image == executable:
+            if renderer == "Vulkan" and not any(Path(lib).name.startswith("libvulkan.") for lib in libraries):
+                raise RuntimeError("macOS executable is not linked to the Vulkan loader")
+            if renderer == "Metal" and not any(
+                    lib.startswith("/System/Library/Frameworks/Metal.framework/") for lib in libraries):
+                raise RuntimeError("macOS executable is not linked to Metal")
+        for dependency in libraries:
+            if renderer == "Metal" and is_vulkan_library(dependency):
+                raise RuntimeError(f"Unexpected Vulkan dependency in {image}: {dependency}")
             if dependency.startswith(("/System/Library/", "/usr/lib/")):
                 continue
             if dependency.startswith("@executable_path/"):
@@ -77,8 +102,11 @@ def verify_macos_vulkan(bundle, executable, licenses):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
-    parser.add_argument("--require-macos-vulkan", action="store_true",
-                        help="Require a self-contained macOS Vulkan package and component licenses")
+    macos_renderer = parser.add_mutually_exclusive_group()
+    macos_renderer.add_argument("--require-macos-metal", action="store_true",
+                                help="Require a self-contained macOS Metal package without a Vulkan runtime")
+    macos_renderer.add_argument("--require-macos-vulkan", action="store_true",
+                                help="Require a self-contained macOS Vulkan package and component licenses")
     parser.add_argument("--windows-opengl", action="store_true",
                         help="Verify an OpenGL Windows package instead of the default Vulkan package")
     args = parser.parse_args()
@@ -86,6 +114,8 @@ def main():
     system = platform.system()
     if args.require_macos_vulkan and system != "Darwin":
         parser.error("--require-macos-vulkan requires macOS")
+    if args.require_macos_metal and system != "Darwin":
+        parser.error("--require-macos-metal requires macOS")
     if args.windows_opengl and system != "Windows":
         parser.error("--windows-opengl requires Windows")
     binary_dir = root / "bin"
@@ -114,6 +144,8 @@ def main():
         subprocess.run(["codesign", "--verify", "--deep", "--strict", str(bundle.parent)], check=True)
         if args.require_macos_vulkan:
             verify_macos_vulkan(bundle, executable, licenses)
+        elif args.require_macos_metal:
+            verify_macos_metal(bundle, executable)
     else:
         required += [root / "lib/libnijiexpose_embedded_tracker.so",
                      root / "share/applications/nijiexpose.desktop",
@@ -149,7 +181,7 @@ def main():
             for source, target in (("Roll", "ロール"), ("Pitch", "ピッチ"), ("Yaw", "ヨー"), ("Key", "キー")):
                 assert translations.gettext(f"%s ({source})") == f"%s ({target})"
     runtime_env = os.environ.copy()
-    if args.require_macos_vulkan:
+    if args.require_macos_vulkan or args.require_macos_metal:
         runtime_env = {key: value for key, value in runtime_env.items()
                        if not key.startswith(("VK_", "VULKAN_", "DYLD_"))}
     version = (resources / "version.txt").read_text().strip()
