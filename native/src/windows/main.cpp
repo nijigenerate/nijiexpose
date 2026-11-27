@@ -26,6 +26,7 @@
 #include <core/runtime_state.hpp>
 #include <core/timing.hpp>
 #include <imgui_internal.h>
+#include <cfloat>
 #include <cmath>
 #include <filesystem>
 #include <functional>
@@ -86,6 +87,11 @@ namespace { struct ScopeExit {std::function<void()> fn;~ScopeExit(){fn();}};
     constexpr float NAV_ICON_SCALE = 1.18f;
     constexpr float NAV_LABEL_SCALE = 1.08f;
     constexpr float NAV_CLOSE_SCALE = 1.10f;
+
+    float navFontSize(float scale) {
+        // Draw at the atlas's size so AddText doesn't resample the glyphs.
+        return ImGui::GetRoundedFontSize(ImGui::GetFontSize()*scale);
+    }
 
     struct InochiWindowSettings {
         int width;
@@ -621,24 +627,17 @@ private:
         vec4 iconColor = selected ? ACCENT : vec4(0.70f, 0.25f, 0.00f, 0.90f);
         iconColor = withAlpha(iconColor, visualAlpha);
         auto font = ImGui::GetFont();
-        float baseFontSize = ImGui::GetFontSize();
-        float iconFontSize = baseFontSize * NAV_ICON_SCALE;
-        ImVec2 iconSize;
-        iconSize = ImGui::CalcTextSize(icon.c_str());
-        iconSize.x *= NAV_ICON_SCALE;
-        iconSize.y *= NAV_ICON_SCALE;
+        const float iconFontSize=navFontSize(NAV_ICON_SCALE);
+        const ImVec2 iconSize=font->CalcTextSizeA(iconFontSize,FLT_MAX,0.0f,icon.c_str());
         ImVec2 iconPos = ImVec2(minPos.x + 22.0f*scale - (iconSize.x * 0.5f), minPos.y + ((height - iconSize.y) * 0.5f));
         drawList->AddText(font, iconFontSize, iconPos, ImGui::ColorConvertFloat4ToU32(ImVec4(iconColor.x, iconColor.y, iconColor.z, iconColor.w)), icon.c_str());
 
         if (!compact && navExpanded) {
             vec4 labelColor = selected ? vec4(0.45f, 0.18f, 0.00f, 1.00f) : vec4(0.12f, 0.16f, 0.23f, 0.90f);
             labelColor = withAlpha(labelColor, visualAlpha);
-            float labelFontSize = baseFontSize * NAV_LABEL_SCALE;
-            ImVec2 labelSize;
+            const float labelFontSize=navFontSize(NAV_LABEL_SCALE);
             auto translated = _(label);
-            labelSize = ImGui::CalcTextSize(translated.c_str());
-            labelSize.x *= NAV_LABEL_SCALE;
-            labelSize.y *= NAV_LABEL_SCALE;
+            const ImVec2 labelSize=font->CalcTextSizeA(labelFontSize,FLT_MAX,0.0f,translated.c_str());
             ImVec2 labelPos = ImVec2(minPos.x + 48.0f*scale, minPos.y + ((height - labelSize.y) * 0.5f));
             drawList->AddText(font, labelFontSize, labelPos, ImGui::ColorConvertFloat4ToU32(ImVec4(labelColor.x, labelColor.y, labelColor.z, labelColor.w)), translated.c_str());
         }
@@ -665,11 +664,8 @@ private:
         }
         iconColor = withAlpha(iconColor, visualAlpha);
         auto font = ImGui::GetFont();
-        float iconFontSize = ImGui::GetFontSize() * NAV_ICON_SCALE;
-        ImVec2 iconSize;
-        iconSize = ImGui::CalcTextSize(icon.c_str());
-        iconSize.x *= NAV_ICON_SCALE;
-        iconSize.y *= NAV_ICON_SCALE;
+        const float iconFontSize=navFontSize(NAV_ICON_SCALE);
+        const ImVec2 iconSize=font->CalcTextSizeA(iconFontSize,FLT_MAX,0.0f,icon.c_str());
         ImVec2 iconPos = ImVec2(pos.x + ((size - iconSize.x) * 0.5f), pos.y + ((size - iconSize.y) * 0.5f));
         drawList->AddText(font, iconFontSize, iconPos, ImGui::ColorConvertFloat4ToU32(ImVec4(iconColor.x, iconColor.y, iconColor.z, iconColor.w)), icon.c_str());
         return clicked;
@@ -875,12 +871,9 @@ private:
             headerStart = ImGui::GetCursorScreenPos();
             auto drawList = ImGui::GetWindowDrawList();
             auto font = ImGui::GetFont();
-            float headerIconSize = ImGui::GetFontSize() * NAV_ICON_SCALE;
+            const float headerIconSize=navFontSize(NAV_ICON_SCALE);
             std::string headerIcon = iconFor(activePanel);
-            ImVec2 iconSize;
-            iconSize = ImGui::CalcTextSize(headerIcon.c_str());
-            iconSize.x *= NAV_ICON_SCALE;
-            iconSize.y *= NAV_ICON_SCALE;
+            const ImVec2 iconSize=font->CalcTextSizeA(headerIconSize,FLT_MAX,0.0f,headerIcon.c_str());
             ImVec2 iconPos = ImVec2(headerStart.x, headerStart.y + std::max(0.0f, (20.0f*scale - iconSize.y) * 0.5f));
             drawList->AddText(font, headerIconSize, iconPos, ImGui::ColorConvertFloat4ToU32(ImVec4(ACCENT.x, ACCENT.y, ACCENT.z, ACCENT.w)), headerIcon.c_str());
             ImGui::SetCursorScreenPos(ImVec2(headerStart.x + 30.0f*scale, headerStart.y));
