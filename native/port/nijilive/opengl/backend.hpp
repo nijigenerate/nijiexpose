@@ -6,10 +6,16 @@
 #include <unordered_map>
 namespace nijiexpose::ogl {
 class Backend final : public nicxlive::core::RenderBackend {
-    struct TextureInfo { int width, height, channels; bool stencil, mipmaps; };
+    struct TextureInfo {
+        int width, height, channels;
+        bool stencil;
+        bool mipmaps = false;
+        nicxlive::core::Filtering filtering = nicxlive::core::Filtering::Linear;
+    };
     std::unordered_map<uint32_t, TextureInfo> textures;
     std::vector<DynamicCompositePass> composites;
     UnityResourceCallbacks resourceCallbacks{};
+    float maxTextureAnisotropy = 1.f;
 public:
     void initializeRenderer() override;
     void initializeDrawableResources() override;
@@ -33,6 +39,7 @@ public:
     uint32_t createTexture(const std::vector<uint8_t>&, int, int, int, bool) override;
     void updateTexture(uint32_t, const std::vector<uint8_t>&, int, int, int) override;
     void setTextureParams(uint32_t, nicxlive::core::Filtering, nicxlive::core::Wrapping, float) override;
+    void refreshTextureMipmaps(uint32_t);
     void disposeTexture(uint32_t) override;
     std::vector<uint8_t> readTexture(uint32_t);
     void drawPuppet(nicxlive::core::Puppet&);
@@ -65,4 +72,5 @@ public:
     void drawTextureAtPosition(const nicxlive::core::Texture&, const vec2&, float, const vec3&, const vec3&) override;
     void drawTextureAtRect(const nicxlive::core::Texture&, const nicxlive::core::Rect&, const nicxlive::core::Rect&, float, const vec3&, const vec3&, void*, void*) override;
 };
+void enableTextureMipmaps(const nicxlive::core::Texture&);
 }

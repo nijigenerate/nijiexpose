@@ -22,10 +22,13 @@ struct Image {
   VkImage handle{};
   VkDeviceMemory memory{};
   VkImageView view{};
+  VkImageView mipView{};
   VkDescriptorSet ui{};
   VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED;
+  VkImageLayout mipLayout = VK_IMAGE_LAYOUT_UNDEFINED;
   VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
   uint32_t width{}, height{};
+  uint32_t mipLevels = 1;
   // Keeps an imported platform allocation alive until its Vulkan image is
   // freed.
   std::shared_ptr<void> externalOwner;
@@ -50,6 +53,7 @@ class Context {
   int throttle_ = 1;
   VkPipeline opaqueAlphaPipeline_{};
   VkPipelineLayout opaqueAlphaLayout_{};
+  float maxSamplerAnisotropy_ = 1.f;
   void makePresentationOpaque();
   void release();
 
@@ -81,10 +85,13 @@ public:
   void ensureBuffer(Buffer &, VkDeviceSize, VkBufferUsageFlags);
   void destroy(Buffer &);
   Image createImage(uint32_t, uint32_t, VkFormat, VkImageUsageFlags,
-                    VkImageAspectFlags = VK_IMAGE_ASPECT_COLOR_BIT);
+                    VkImageAspectFlags = VK_IMAGE_ASPECT_COLOR_BIT,
+                    uint32_t mipLevels = 1);
   void destroy(Image &);
+  VkSampler createSampler(VkFilter, VkSamplerAddressMode, float anisotropy = 1.f);
   void transition(VkCommandBuffer, Image &, VkImageLayout,
                   VkImageAspectFlags = VK_IMAGE_ASPECT_COLOR_BIT);
+  void finishTexture(VkCommandBuffer, Image &);
   void immediate(const std::function<void(VkCommandBuffer)> &);
   void upload(Image &, const std::vector<uint8_t> &);
   std::vector<uint8_t> read(Image &);

@@ -110,6 +110,14 @@ Context::Context(SDL_Window *window) : window_(window) {
     }
 #endif
     VkPhysicalDeviceFeatures features{};
+    VkPhysicalDeviceFeatures availableFeatures{};
+    vkGetPhysicalDeviceFeatures(physical, &availableFeatures);
+    features.samplerAnisotropy = availableFeatures.samplerAnisotropy;
+    if (features.samplerAnisotropy) {
+      VkPhysicalDeviceProperties properties{};
+      vkGetPhysicalDeviceProperties(physical, &properties);
+      maxSamplerAnisotropy_ = properties.limits.maxSamplerAnisotropy;
+    }
     VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT blendFeatures{
         VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BLEND_OPERATION_ADVANCED_FEATURES_EXT};
     if (advancedBlendSupported) {
@@ -138,18 +146,9 @@ Context::Context(SDL_Window *window) : window_(window) {
     dp.poolSizeCount = 3;
     dp.pPoolSizes = sizes;
     check(vkCreateDescriptorPool(device, &dp, nullptr, &descriptors));
-    VkSamplerCreateInfo sc{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
-    sc.magFilter = sc.minFilter = VK_FILTER_LINEAR;
-    sc.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    sc.addressModeU = sc.addressModeV = sc.addressModeW =
-        VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-    sc.maxLod = VK_LOD_CLAMP_NONE;
-    check(vkCreateSampler(device, &sc, nullptr, &sampler));
+    sampler = createSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
     // Match the OpenGL renderer's default wrapping for part textures.
-    sc.addressModeU = sc.addressModeV = sc.addressModeW =
-        VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-    sc.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
-    check(vkCreateSampler(device, &sc, nullptr, &textureSampler));
+    textureSampler = createSampler(VK_FILTER_LINEAR, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER);
     VkCommandPoolCreateInfo pc{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
     pc.queueFamilyIndex = family;
     pc.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
@@ -494,40 +493,71 @@ void Context::ensureBuffer(Buffer &b, VkDeviceSize bytes,
   check(vkBindBufferMemory(device, b.handle, b.memory, 0));
   check(vkMapMemory(device, b.memory, 0, VK_WHOLE_SIZE, 0, &b.mapped));
 }
+VkSampler Context::createSampler(VkFilter filter, VkSamplerAddressMode address,
+                                 float anisotropy) {
+  VkSamplerCreateInfo s{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+  s.magFilter = s.minFilter = filter;
+  s.addressModeU = s.addressModeV = s.addressModeW = address;
+  s.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+  s.maxAnisotropy = 1.f;
+  if (filter == VK_FILTER_LINEAR) {
+    s.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    s.maxLod = VK_LOD_CLAMP_NONE;
+    s.maxAnisotropy = std::clamp(anisotropy, 1.f, maxSamplerAnisotropy_);
+    s.anisotropyEnable = s.maxAnisotropy > 1.f;
+  }
+  VkSampler result{};
+  check(vkCreateSampler(device, &s, nullptr, &result));
+  return result;
+}
 Image Context::createImage(uint32_t w, uint32_t h, VkFormat format,
-                           VkImageUsageFlags usage, VkImageAspectFlags aspect) {
+                           VkImageUsageFlags usage, VkImageAspectFlags aspect,
+                           uint32_t mipLevels) {
   Image t;
   t.width = w;
   t.height = h;
   t.format = format;
+  t.mipLevels = mipLevels;
   VkImageCreateInfo i{VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO};
   i.imageType = VK_IMAGE_TYPE_2D;
   i.format = format;
   i.extent = {w, h, 1};
-  i.mipLevels = i.arrayLayers = 1;
+  i.mipLevels = mipLevels;
+  i.arrayLayers = 1;
   i.samples = VK_SAMPLE_COUNT_1_BIT;
   i.tiling = VK_IMAGE_TILING_OPTIMAL;
   i.usage = usage;
   check(vkCreateImage(device, &i, nullptr, &t.handle));
-  VkMemoryRequirements req;
-  vkGetImageMemoryRequirements(device, t.handle, &req);
-  VkMemoryAllocateInfo a{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
-  a.allocationSize = req.size;
-  a.memoryTypeIndex =
-      memoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-  check(vkAllocateMemory(device, &a, nullptr, &t.memory));
-  check(vkBindImageMemory(device, t.handle, t.memory, 0));
-  VkImageViewCreateInfo v{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
-  v.image = t.handle;
-  v.viewType = VK_IMAGE_VIEW_TYPE_2D;
-  v.format = format;
-  v.subresourceRange = {aspect, 0, 1, 0, 1};
-  check(vkCreateImageView(device, &v, nullptr, &t.view));
+  try {
+    VkMemoryRequirements req;
+    vkGetImageMemoryRequirements(device, t.handle, &req);
+    VkMemoryAllocateInfo a{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
+    a.allocationSize = req.size;
+    a.memoryTypeIndex =
+        memoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    check(vkAllocateMemory(device, &a, nullptr, &t.memory));
+    check(vkBindImageMemory(device, t.handle, t.memory, 0));
+    VkImageViewCreateInfo v{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
+    v.image = t.handle;
+    v.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    v.format = format;
+    v.subresourceRange = {aspect, 0, 1, 0, 1};
+    check(vkCreateImageView(device, &v, nullptr, &t.view));
+    if (mipLevels > 1) {
+      v.subresourceRange.levelCount = mipLevels;
+      check(vkCreateImageView(device, &v, nullptr, &t.mipView));
+    }
+  } catch (...) {
+    destroy(t);
+    throw;
+  }
   return t;
 }
 void Context::destroy(Image &t) {
   if (t.ui && imgui_)
     ImGui_ImplVulkan_RemoveTexture(t.ui);
+  if (t.mipView)
+    vkDestroyImageView(device, t.mipView, nullptr);
   if (t.view)
     vkDestroyImageView(device, t.view, nullptr);
   if (t.handle)
@@ -558,6 +588,61 @@ void Context::transition(VkCommandBuffer cmd, Image &t, VkImageLayout layout,
                        nullptr, 1, &b);
   t.layout = layout;
   t.externalOwned = false;
+}
+void Context::finishTexture(VkCommandBuffer cmd, Image &t) {
+  if (t.mipLevels == 1) {
+    transition(cmd, t, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    return;
+  }
+
+  auto barrier = [&](uint32_t first, uint32_t count, VkImageLayout oldLayout,
+                     VkImageLayout newLayout, VkPipelineStageFlags srcStage,
+                     VkAccessFlags srcAccess, VkPipelineStageFlags dstStage,
+                     VkAccessFlags dstAccess) {
+    VkImageMemoryBarrier b{VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER};
+    b.oldLayout = oldLayout;
+    b.newLayout = newLayout;
+    b.srcAccessMask = srcAccess;
+    b.dstAccessMask = dstAccess;
+    b.srcQueueFamilyIndex = b.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    b.image = t.handle;
+    b.subresourceRange = {VK_IMAGE_ASPECT_COLOR_BIT, first, count, 0, 1};
+    vkCmdPipelineBarrier(cmd, srcStage, dstStage, 0, 0, nullptr, 0, nullptr, 1, &b);
+  };
+
+  constexpr auto transfer = VK_PIPELINE_STAGE_TRANSFER_BIT;
+  constexpr auto sample = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+  constexpr auto src = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+  constexpr auto dst = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+  constexpr auto sampled = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  transition(cmd, t, src);
+  const bool firstUpload = t.mipLayout == VK_IMAGE_LAYOUT_UNDEFINED;
+  barrier(1, t.mipLevels - 1, t.mipLayout, dst,
+          firstUpload ? VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT : sample,
+          firstUpload ? 0 : VK_ACCESS_SHADER_READ_BIT,
+          transfer, VK_ACCESS_TRANSFER_WRITE_BIT);
+
+  int32_t width = int32_t(t.width), height = int32_t(t.height);
+  for (uint32_t level = 1; level < t.mipLevels; ++level) {
+    if (level > 1)
+      barrier(level - 1, 1, dst, src, transfer, VK_ACCESS_TRANSFER_WRITE_BIT,
+              transfer, VK_ACCESS_TRANSFER_READ_BIT);
+    const int32_t nextWidth = std::max(1, width / 2);
+    const int32_t nextHeight = std::max(1, height / 2);
+    VkImageBlit blit{};
+    blit.srcSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, level - 1, 0, 1};
+    blit.srcOffsets[1] = {width, height, 1};
+    blit.dstSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, level, 0, 1};
+    blit.dstOffsets[1] = {nextWidth, nextHeight, 1};
+    vkCmdBlitImage(cmd, t.handle, src, t.handle, dst, 1, &blit, VK_FILTER_LINEAR);
+    width = nextWidth;
+    height = nextHeight;
+  }
+  barrier(0, t.mipLevels - 1, src, sampled, transfer, VK_ACCESS_TRANSFER_READ_BIT,
+          sample, VK_ACCESS_SHADER_READ_BIT);
+  barrier(t.mipLevels - 1, 1, dst, sampled, transfer, VK_ACCESS_TRANSFER_WRITE_BIT,
+          sample, VK_ACCESS_SHADER_READ_BIT);
+  t.layout = t.mipLayout = sampled;
 }
 void Context::immediate(const std::function<void(VkCommandBuffer)> &fn) {
   VkCommandBufferAllocateInfo a{VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO};
@@ -590,7 +675,7 @@ void Context::upload(Image &t, const std::vector<uint8_t> &pixels) {
     c.imageSubresource = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1};
     c.imageExtent = {t.width, t.height, 1};
     vkCmdCopyBufferToImage(cmd, staging.handle, t.handle, t.layout, 1, &c);
-    transition(cmd, t, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    finishTexture(cmd, t);
   });
   destroy(staging);
 }

@@ -10,6 +10,7 @@ namespace nijiexpose::vulkan {
 class Backend final : public nicxlive::core::RenderBackend {
   struct Impl;
   std::unique_ptr<Impl> p;
+  uint32_t createTexture(const std::vector<uint8_t> &, int, int, int, bool, bool);
 
 public:
   Backend();

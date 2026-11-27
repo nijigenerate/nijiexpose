@@ -73,7 +73,7 @@ void oglBeginDynamicComposite(DynamicCompositePass& pass) {
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 }
 void oglEndDynamicComposite(DynamicCompositePass& pass) {
-    if (!pass.surface) return;
+    if (!pass.surface || pass.surface->textureCount == 0 || !pass.surface->textures[0]) return;
     oglRebindActiveTargets();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, pass.origBuffer);
     glBindFramebuffer(GL_READ_FRAMEBUFFER, pass.origBuffer);

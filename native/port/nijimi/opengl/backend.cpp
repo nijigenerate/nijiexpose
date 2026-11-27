@@ -19,9 +19,10 @@ void Backend::initializeRenderer() {
     resourceCallbacks.createTexture=[](int w,int h,int channels,int,int,bool,bool stencil,void* user)->size_t {
         auto& self=*static_cast<Backend*>(user);
         GLuint id{}; oglCreateTextureHandle(id);
-        self.textures.emplace(id,TextureInfo{w,h,channels,stencil,false});
+        self.textures.emplace(id,TextureInfo{w,h,channels,stencil});
         oglUploadTextureData(id,w,h,channels,channels,stencil,{});
-        self.setTextureParams(id,nicxlive::core::Filtering::Linear,nicxlive::core::Wrapping::Clamp,oglMaxTextureAnisotropy()/2.0f);
+        self.setTextureParams(id,nicxlive::core::Filtering::Linear,nicxlive::core::Wrapping::Clamp,
+                              self.maxTextureAnisotropy/2.0f);
         return id;
     };
     resourceCallbacks.updateTexture=[](size_t handle,const uint8_t* data,size_t length,int w,int h,int channels,void* user) {
@@ -33,6 +34,7 @@ void Backend::initializeRenderer() {
         std::vector<uint8_t> pixels(data,data+expected);
         const auto& info=it->second;
         oglUploadTextureData(static_cast<uint32_t>(handle),w,h,channels,info.channels,info.stencil,pixels);
+        if(info.mipmaps) oglGenerateTextureMipmap(static_cast<uint32_t>(handle));
         oglRecordCpuTexture(static_cast<uint32_t>(handle),w,h,channels,pixels);
     };
     resourceCallbacks.releaseTexture=[](size_t handle,void* user) {
@@ -41,6 +43,9 @@ void Backend::initializeRenderer() {
         if(self.textures.erase(id)) { oglReleaseCpuTexture(id); oglDeleteTextureHandle(id); }
     };
     loadApi();
+    if(SDL_GL_ExtensionSupported("GL_ARB_texture_filter_anisotropic") ||
+       SDL_GL_ExtensionSupported("GL_EXT_texture_filter_anisotropic"))
+        maxTextureAnisotropy=oglMaxTextureAnisotropy();
     oglInitRenderer();
     oglInitDrawableBackend();
     oglInitPartBackendResources();
@@ -74,9 +79,30 @@ void Backend::updateTexture(uint32_t id,const std::vector<uint8_t>& data,int w,i
 }
 
 void Backend::setTextureParams(uint32_t id,nicxlive::core::Filtering filter,nicxlive::core::Wrapping wrap,float anisotropy) {
-    oglApplyTextureFiltering(id,filter==nicxlive::core::Filtering::Linear ? Filtering::Linear : Filtering::Nearest,false);
+    auto& info=textures.at(id);
+    info.filtering=filter;
+    const bool linear=filter==nicxlive::core::Filtering::Linear;
+    oglApplyTextureFiltering(id,linear ? Filtering::Linear : Filtering::Nearest,linear && info.mipmaps);
     oglApplyTextureWrapping(id,static_cast<Wrapping>(wrap));
-    oglApplyTextureAnisotropy(id,std::clamp(anisotropy,1.f,oglMaxTextureAnisotropy()));
+    if(maxTextureAnisotropy>1.f)
+        oglApplyTextureAnisotropy(id,linear ? std::clamp(anisotropy,1.f,maxTextureAnisotropy) : 1.f);
+}
+void Backend::refreshTextureMipmaps(uint32_t id) {
+    auto found=textures.find(id);
+    if(found==textures.end()) return;
+    auto& info=found->second;
+    if(info.stencil || info.width<=0 || info.height<=0 || std::max(info.width,info.height)==1) return;
+    GLint previous{};
+    glGetIntegerv(GL_TEXTURE_BINDING_2D,&previous);
+    oglGenerateTextureMipmap(id);
+    if(!info.mipmaps && info.filtering==nicxlive::core::Filtering::Linear)
+        oglApplyTextureFiltering(id,Filtering::Linear,true);
+    info.mipmaps=true;
+    glBindTexture(GL_TEXTURE_2D,static_cast<GLuint>(previous));
+}
+void enableTextureMipmaps(const nicxlive::core::Texture& texture) {
+    if(auto backend=std::dynamic_pointer_cast<Backend>(nicxlive::core::getCurrentRenderBackend()))
+        backend->refreshTextureMipmaps(texture.backendId());
 }
 std::vector<uint8_t> Backend::readTexture(uint32_t id) {
     const auto& info=textures.at(id);
@@ -121,6 +147,12 @@ void Backend::endDynamicComposite(const DynamicCompositePass& pass) {
         throw std::logic_error("Unbalanced dynamic composite pass");
     oglEndDynamicComposite(composites.back());
     composites.pop_back();
+    // GL commands are ordered, so parent draws see the regenerated levels.
+    if(pass.surface && pass.surface->textureCount && pass.surface->textures[0]) {
+        for(size_t i=0;i<pass.surface->textureCount;++i)
+            if(const auto& texture=pass.surface->textures.at(i))
+                refreshTextureMipmaps(texture->backendId());
+    }
 }
 void Backend::destroyDynamicComposite(const std::shared_ptr<DynamicCompositeSurface>& surface) { oglDestroyDynamicComposite(surface); }
 void Backend::drawPartPacket(const PartDrawPacket& packet) { oglDrawPartPacket(packet); }

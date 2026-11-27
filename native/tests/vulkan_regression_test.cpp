@@ -201,6 +201,73 @@ int main() {
     }
     std::cout<<"Emission orientation, empty-frame clearing, nested composite opacity and masks passed\n";
     backend->destroyDynamicComposite(composite.surface);
+    {
+     constexpr int size=256;
+     std::vector<uint8_t> stripes(size*size*4);
+     auto writeStripes=[&](uint8_t intensity) {
+      for(int y=0;y<size;++y)for(int x=0;x<size;++x) {
+       const size_t i=(y*size+x)*4;
+       stripes[i]=(x%2)*intensity;
+       stripes[i+2]=stripes[i];
+       stripes[i+3]=255;
+      }
+     };
+     writeStripes(255);
+     auto stripedTexture=std::make_shared<core::Texture>(stripes,size,size,4,4,false,true);
+     auto minified=packet;
+     minified.node.reset();
+     minified.textureBackendIds[0]=stripedTexture->backendId();
+     auto checkStripeAverage=[&](const std::vector<uint8_t>& image,
+                                 int red,int blue,const char* message) {
+      for(int x=16;x<48;++x) {
+       const size_t i=(32*64+x)*4;
+       check(abs(int(image[i])-red)<=1 && abs(int(image[i+2])-blue)<=1 &&
+             image[i+3]==255,message);
+      }
+     };
+     auto drawMinified=[&]{return frame([&]{backend->drawPartPacket(minified);});};
+     checkStripeAverage(drawMinified(),128,128,"Minified texture aliases with the default sampler");
+     stripedTexture->setFiltering(core::Filtering::Nearest);
+     auto nearest=drawMinified();
+     for(int x=16;x<48;++x) {
+      const uint8_t value=nearest[(32*64+x)*4];
+      check(value==0 || value==255,"Nearest filtering did not preserve base texels");
+     }
+     writeStripes(128);
+     stripedTexture->setData(stripes,4);
+     stripedTexture->setFiltering(core::Filtering::Linear);
+     checkStripeAverage(drawMinified(),64,64,"Updated texture sampled stale mip levels");
+
+     core::DynamicCompositePass dynamic;
+     dynamic.surface=std::make_shared<core::DynamicCompositeSurface>();
+     dynamic.surface->textureCount=2;
+     for(int plane=0;plane<2;++plane)
+      dynamic.surface->textures[plane]=std::make_shared<core::Texture>(size,size);
+     auto source=minified;
+     source.renderMatrix=core::nodes::Mat4::scale({.125f,.125f,1});
+     source.textureBackendIds[1]=stripedTexture->backendId();
+     source.emissionStrength=1;
+     stripedTexture->setFiltering(core::Filtering::Nearest);
+     for(int plane=0;plane<2;++plane)
+      minified.textureBackendIds[plane]=dynamic.surface->textures[plane]->backendId();
+     minified.emissionStrength=1;
+     auto redraw=[&](float tint) {
+      source.clampedTint={tint,1,tint};
+      return frame([&]{
+       backend->beginDynamicComposite(dynamic);
+       backend->drawPartPacket(source);
+       backend->endDynamicComposite(dynamic);
+       backend->drawPartPacket(minified);
+      });
+     };
+     checkStripeAverage(redraw(1),128,128,"Composite mip levels unavailable within the frame");
+     checkStripeAverage(backend->readTexture(backend->mainEmissiveHandle()),64,64,
+                        "Composite emission plane was not downsampled");
+     checkStripeAverage(redraw(.5f),64,64,"Composite sampled stale mip levels after redraw");
+     checkStripeAverage(drawMinified(),64,64,"Cached composite lost its mip levels");
+     backend->destroyDynamicComposite(dynamic.surface);
+    }
+    std::cout<<"Texture minification, nearest filtering, uploads and composite mip refresh passed\n";
    }
    core::inSetRenderBackend(nullptr);backend->shutdown();backend.reset();
    ImGui_ImplSDL3_Shutdown();

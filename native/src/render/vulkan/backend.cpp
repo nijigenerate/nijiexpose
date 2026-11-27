@@ -231,8 +231,10 @@ struct Backend::Impl {
     uint32_t reference = 1;
     int clearStencil = -1;
     bool clear = false;
+    bool finishComposite = false;
   };
   bool spoutTarget = false;
+  bool canGenerateMipmaps = false;
   std::map<uint32_t, Texture> textures;
   std::map<uint32_t, std::vector<uint16_t>> indices;
   uint32_t nextTexture = 1, nextIndex = 1;
@@ -295,6 +297,12 @@ struct Backend::Impl {
     return t;
   }
   void initialize() {
+    VkFormatProperties colorProperties{};
+    vkGetPhysicalDeviceFormatProperties(c.physical, VK_FORMAT_R8G8B8A8_UNORM,
+                                        &colorProperties);
+    constexpr VkFormatFeatureFlags mipmapFeatures = VK_FORMAT_FEATURE_BLIT_SRC_BIT |
+        VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT;
+    canGenerateMipmaps = (colorProperties.optimalTilingFeatures & mipmapFeatures) == mipmapFeatures;
     for (auto format : {VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D32_SFLOAT_S8_UINT}) {
       VkFormatProperties properties{};
       vkGetPhysicalDeviceFormatProperties(c.physical, format, &properties);
@@ -328,7 +336,10 @@ struct Backend::Impl {
     VkSubpassDependency dep{};
     dep.srcSubpass = VK_SUBPASS_EXTERNAL;
     dep.dstSubpass = 0;
-    dep.srcStageMask = dep.dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    dep.srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+    dep.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
+                       VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                       VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
     dep.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT;
     dep.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
                         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
@@ -541,9 +552,14 @@ struct Backend::Impl {
     // separating emission does not halve the supported number of part draws.
     std::vector<VkDescriptorSet> descriptorSets(batches.size());
     for (size_t first = 0; first < batches.size();) {
+      if (batches[first].finishComposite) {
+        draws.emplace_back(&batches[first++], 0);
+        continue;
+      }
       size_t last = first + 1;
       const bool sceneDraw = batches[first].kind < 9;
-      while (last < batches.size() && batches[last].target == batches[first].target &&
+      while (last < batches.size() && !batches[last].finishComposite &&
+             batches[last].target == batches[first].target &&
              (batches[last].kind < 9) == sceneDraw) ++last;
       const unsigned channels = sceneDraw && batches[first].target->framebuffer[1] ? 2 : 1;
       for (unsigned channel = 0; channel < channels; ++channel)
@@ -553,6 +569,14 @@ struct Backend::Impl {
     for (const auto &[batch, channel] : draws) {
       const auto &b = *batch;
       auto &t = *b.target;
+      if (b.finishComposite) {
+        end();
+        // Both planes are complete. A later draw can sample them in this frame.
+        for (unsigned plane = 0; plane < t.framebuffer.size(); ++plane)
+          if (t.framebuffer[plane])
+            c.finishTexture(cmd, textures.at(t.colors[plane]).image);
+        continue;
+      }
       if (active != &t || activeChannel != channel) {
         end();
         c.transition(cmd, textures.at(t.colors[channel]).image,
@@ -624,7 +648,8 @@ struct Backend::Impl {
             sampler = c.sampler;
           }
           auto &tex = textures.at(id);
-          images[i] = {tex.sampler ? tex.sampler : sampler, tex.image.view,
+          auto view = tex.image.mipView ? tex.image.mipView : tex.image.view;
+          images[i] = {tex.sampler ? tex.sampler : sampler, view,
                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
           writes[i].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
           writes[i].dstSet = set;
@@ -725,6 +750,10 @@ void Backend::uploadDrawableIndices(uint32_t id,
 }
 uint32_t Backend::createTexture(const std::vector<uint8_t> &data, int w, int h,
                                 int channels, bool stencil) {
+  return createTexture(data, w, h, channels, stencil, !stencil);
+}
+uint32_t Backend::createTexture(const std::vector<uint8_t> &data, int w, int h,
+                                int channels, bool stencil, bool mipmapped) {
   if (w == 0 && h == 0 && data.empty())
     return createTexture({0,0,0,0},1,1,4,false);
   if (w <= 0 || h <= 0 || channels < 1 || channels > 4)
@@ -733,9 +762,17 @@ uint32_t Backend::createTexture(const std::vector<uint8_t> &data, int w, int h,
   Impl::Texture t;
   t.channels = channels;
   t.stencil = stencil;
-  t.image = p->c.createImage(w, h, VK_FORMAT_R8G8B8A8_UNORM, colorUsage);
+  const uint32_t levels = mipmapped && p->canGenerateMipmaps
+      ? std::bit_width(uint32_t(std::max(w, h))) : 1;
+  t.image = p->c.createImage(w, h, VK_FORMAT_R8G8B8A8_UNORM, colorUsage,
+                             VK_IMAGE_ASPECT_COLOR_BIT, levels);
   p->textures.emplace(id, std::move(t));
-  updateTexture(id, data, w, h, channels);
+  try {
+    updateTexture(id, data, w, h, channels);
+  } catch (...) {
+    disposeTexture(id);
+    throw;
+  }
   return id;
 }
 void Backend::updateTexture(uint32_t id, const std::vector<uint8_t> &data,
@@ -757,21 +794,17 @@ void Backend::updateTexture(uint32_t id, const std::vector<uint8_t> &data,
   p->c.upload(t.image, rgba);
 }
 void Backend::setTextureParams(uint32_t id, core::Filtering filtering,
-                               core::Wrapping wrapping, float) {
+                               core::Wrapping wrapping, float anisotropy) {
   auto &t = p->textures.at(id);
   p->c.idle();
+  auto sampler = p->c.createSampler(
+      filtering == core::Filtering::Linear ? VK_FILTER_LINEAR : VK_FILTER_NEAREST,
+      wrapping == core::Wrapping::Clamp ? VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
+                                        : VK_SAMPLER_ADDRESS_MODE_REPEAT,
+      anisotropy);
   if (t.sampler)
     vkDestroySampler(p->c.device, t.sampler, nullptr);
-  VkSamplerCreateInfo s{VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
-  s.magFilter = s.minFilter = filtering == core::Filtering::Linear
-                                  ? VK_FILTER_LINEAR
-                                  : VK_FILTER_NEAREST;
-  s.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-  s.addressModeU = s.addressModeV = s.addressModeW =
-      wrapping == core::Wrapping::Clamp ? VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER
-                                        : VK_SAMPLER_ADDRESS_MODE_REPEAT;
-  s.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
-  check(vkCreateSampler(p->c.device, &s, nullptr, &t.sampler));
+  t.sampler = sampler;
 }
 void Backend::disposeTexture(uint32_t id) {
   if (!p)
@@ -828,7 +861,7 @@ void Backend::resizeViewportTargets(int w, int h) {
       continue;
     }
 #endif
-    id = createTexture({}, w, h, 4, false);
+    id = createTexture({}, w, h, 4, false, false);
   }
   p->spoutTarget = sharedOutput;
   p->root = p->makeTarget(ids, true);
@@ -927,7 +960,7 @@ ImTextureID Backend::overlayBlurTexture() {
         ptr->reset();
         disposeTexture(id);
       }
-      auto id = createTexture({}, w, h, 4, false);
+      auto id = createTexture({}, w, h, 4, false, false);
       *ptr = p->makeTarget({id, id, id});
     }
   }
@@ -1117,6 +1150,10 @@ void Backend::beginDynamicComposite(const core::DynamicCompositePass &pass) {
 void Backend::endDynamicComposite(const core::DynamicCompositePass &) {
   if (p->stack.empty())
     throw std::runtime_error("Unbalanced dynamic composite");
+  Impl::Batch finish;
+  finish.target = p->target;
+  finish.finishComposite = true;
+  p->batches.push_back(finish);
   p->target = p->stack.back();
   p->stack.pop_back();
 }
