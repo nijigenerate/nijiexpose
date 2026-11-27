@@ -149,6 +149,20 @@ overrides. This is packaging verification, not a GPU rendering test.
 When updating the SDK, update its workflow version/digest and review the pinned
 component notices in `native/res/licenses/vulkan-sdk/provenance.json` together.
 
+### Metal on macOS
+
+Select the Metal renderer with `cmake --preset native-metal-release`, then
+run `cmake --build --preset native-metal-release --parallel 3`. Install it with
+`cmake --install build/native-metal-release --prefix out`. To reuse an existing
+macOS build directory, configure it with `-DNIJIEXPOSE_RENDERER=METAL`.
+Metal compiles the bundled MSL at startup using the system Metal framework,
+so the build and app do not need the Vulkan SDK or MoltenVK.
+
+The Metal backend ports the scene renderer and shaders from nijigenerate under
+the BSD 2-Clause license. It uses SDL's Metal view and composites the scene and
+ImGui into a CAMetalLayer. It supports masks, DynamicComposites, mipmapped model
+textures, ambient lighting, and per-pixel mouse passthrough in transparent mode.
+
 ## Linux x86_64 (Ubuntu 24.04 / WSL2)
 
 Install binary development dependencies:

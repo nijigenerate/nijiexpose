@@ -1,6 +1,6 @@
 // Windows rendering branch of nijilive/fmt/package.d. JSON uses Boost.JSON.
 #include "model_io.hpp"
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
 #include "nijilive/opengl/backend.hpp"
 #endif
 #include "animation/animation.hpp"
@@ -132,7 +132,7 @@ std::shared_ptr<Puppet> inLoadINPPuppet(std::span<const uint8_t> buffer) {
             textureBindings.push_back(std::make_shared<nicxlive::core::Texture>(shallow));
             // The backend clamps this to the device limit and honors preservePixels.
             textureBindings.back()->setAnisotropy(8.f);
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
             ogl::enableTextureMipmaps(*textureBindings.back());
 #endif
         }

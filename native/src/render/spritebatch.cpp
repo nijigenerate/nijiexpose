@@ -1,18 +1,18 @@
 // Port of legacy D: nijiexpose/render/spritebatch.d.
 #include "spritebatch.hpp"
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
 #include "spritebatch_assets.hpp"
 #endif
 #include <core/runtime_state.hpp>
 #include <algorithm>
 #include <cmath>
-#ifdef NIJIEXPOSE_VULKAN
-#include "vulkan/backend.hpp"
+#ifndef NIJIEXPOSE_OPENGL
+#include "render/renderer.hpp"
 #endif
 namespace nijiexpose {
 thread_local std::shared_ptr<SpriteBatch> AppBatch;
 namespace {
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
 thread_local ogl::Shader spriteBatchShader;
 #endif
 vec2 transformVerts(vec2 position,mat4 matrix) {
@@ -32,7 +32,7 @@ void SpriteBatch::updateVP() {
     viewProjection=mat4::orthographic(0,float(w),float(h),0,0,float(largest))*mat4::translation(0,0,-10);
 }
 SpriteBatch::SpriteBatch() : data(DataSize*EntryCount,std::numeric_limits<float>::quiet_NaN()) {
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
     ogl::glGenVertexArrays(1,&vao);
     ogl::glBindVertexArray(vao);
     ogl::glGenBuffers(1,&buffer);
@@ -71,8 +71,8 @@ void SpriteBatch::draw(const std::shared_ptr<nicxlive::core::Texture>& texture,S
 void SpriteBatch::flush() {
     updateVP();
     if(!currentTexture) return;
-#ifdef NIJIEXPOSE_VULKAN
-    vulkan::backend().drawSprites(currentTexture->backendId(),data.data(),tris*3,viewProjection);
+#ifndef NIJIEXPOSE_OPENGL
+    applicationRenderBackend().drawSprites(currentTexture->backendId(),data.data(),tris*3,viewProjection);
 #else
     ogl::glBindVertexArray(vao);
     ogl::glBindBuffer(GL_ARRAY_BUFFER,buffer);

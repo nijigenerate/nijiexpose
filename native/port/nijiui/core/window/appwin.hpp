@@ -5,6 +5,7 @@
 #include <string>
 namespace nicxlive::core { class ShallowTexture; }
 namespace nijiexpose::vulkan { class Context; }
+namespace nijiexpose::metal { class Context; }
 namespace nijiui {
 // Windows win32-full configuration of nijiui.core.window.appwin.
 // Windows nijiui enables SafeThrottling; UIViewports remains disabled.
@@ -14,7 +15,9 @@ class InApplicationWindow : public InWindow {
     ImGuiIO* io=nullptr;
     SDL_GLContext glctx=nullptr;
 #ifdef NIJIEXPOSE_VULKAN
-    std::unique_ptr<nijiexpose::vulkan::Context> vulkanContext;
+    std::unique_ptr<nijiexpose::vulkan::Context> gpuContext;
+#elif defined(NIJIEXPOSE_METAL)
+    std::unique_ptr<nijiexpose::metal::Context> gpuContext;
 #endif
     bool done=false,show=true;
     int width_=0,height_=0;

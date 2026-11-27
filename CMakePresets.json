@@ -25,12 +25,21 @@
       "displayName": "Native C++ / SDL3 / Vulkan (Release)",
       "inherits": "native-release",
       "binaryDir": "${sourceDir}/build/native-vulkan-release"
+    },
+    {
+      "name": "native-metal-release",
+      "displayName": "Native C++ / SDL3 / Metal (Release)",
+      "inherits": "native-release",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Darwin" },
+      "binaryDir": "${sourceDir}/build/native-metal-release",
+      "cacheVariables": { "NIJIEXPOSE_RENDERER": "METAL", "BUILD_TESTING": "OFF" }
     }
   ],
   "buildPresets": [
     { "name": "native-release", "configurePreset": "native-release" },
     { "name": "native-opengl-release", "configurePreset": "native-opengl-release" },
-    { "name": "native-vulkan-release", "configurePreset": "native-vulkan-release" }
+    { "name": "native-vulkan-release", "configurePreset": "native-vulkan-release" },
+    { "name": "native-metal-release", "configurePreset": "native-metal-release" }
   ],
   "testPresets": [
     { "name": "native-release", "configurePreset": "native-release", "output": { "outputOnFailure": true } },

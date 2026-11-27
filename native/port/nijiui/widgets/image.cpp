@@ -1,7 +1,7 @@
 // Port of nijiui/widgets/image.d.
 #include "image.hpp"
-#if defined(NIJIEXPOSE_VULKAN) && IMGUI_VERSION_NUM >= 19200
-#include "render/vulkan/backend.hpp"
+#if !defined(NIJIEXPOSE_OPENGL) && IMGUI_VERSION_NUM >= 19200
+#include "render/renderer.hpp"
 #endif
 namespace nijiui {
 void uiImImage(uint32_t id,vec2 size,ImageRect cut,vec4 tint,vec4 border) {
@@ -11,6 +11,8 @@ void uiImImage(uint32_t id,vec2 size,ImageRect cut,vec4 tint,vec4 border) {
     ImGui::ImageWithBg(
 #ifdef NIJIEXPOSE_VULKAN
         nijiexpose::vulkan::uiTexture(id),
+#elif defined(NIJIEXPOSE_METAL)
+        nijiexpose::metal::uiTexture(id),
 #else
         static_cast<ImTextureID>(id),
 #endif

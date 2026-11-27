@@ -1,7 +1,7 @@
 #include "settings.hpp"
 #include "i18n.hpp"
 #include "scene/package.hpp"
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
 #include "nijilive/opengl/blending.hpp"
 #endif
 #include "nijiui/core/settings.hpp"
@@ -16,7 +16,7 @@ namespace nijiexpose::windows {
 using namespace nijiui;
 using namespace tracking;
 using namespace scene;
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
 using namespace ogl;
 #endif
 using i18n::_; using i18n::__;
@@ -44,7 +44,7 @@ void SettingWindow::ensureDraftLoaded() {
         }
         copyTrackerState(trackerDraft, tracker);
         throttlingDraft = inSettingsGet<int>("throttlingRate", 1);
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
         tripleFallbackDraft = inSettingsGet<bool>("TripleBufferFallback", false);
 #else
         tripleFallbackDraft = inSettingsGet<bool>("TripleBufferFallback", nlIsTripleBufferFallbackEnabled());
@@ -82,7 +82,7 @@ void SettingWindow::applyRenderingSettings() {
         inSettingsSet("throttlingRate", throttlingDraft);
         setThrottling(throttlingDraft);
         inSettingsSet("TripleBufferFallback", tripleFallbackDraft);
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
         nlSetTripleBufferFallback(tripleFallbackDraft);
 #endif
         inSettingsSave();

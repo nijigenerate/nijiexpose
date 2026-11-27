@@ -1,0 +1,2 @@
+#pragma once
+inline constexpr char render_source[] = R"NIJI_METAL(@metal_source@)NIJI_METAL";

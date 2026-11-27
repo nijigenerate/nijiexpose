@@ -86,6 +86,16 @@ install(DIRECTORY "${PROJECT_SOURCE_DIR}/native/licenses/" DESTINATION "${NIJIEX
 # Fix paths and sign only after the tracker subdirectory has installed its dylibs.
 if(APPLE)
     install(CODE "set(nijiexpose_library_dirs \"${brew_library_dirs}\")")
+    if(NOT NIJIEXPOSE_RENDERER STREQUAL "VULKAN")
+        install(CODE [[
+            # Remove the Vulkan runtime left by a previous install to this prefix.
+            set(bundle "${CMAKE_INSTALL_PREFIX}/nijiexpose.app/Contents")
+            file(GLOB old_loaders "${bundle}/Frameworks/libvulkan*.dylib")
+            file(REMOVE ${old_loaders} "${bundle}/Frameworks/libMoltenVK.dylib"
+                "${bundle}/Resources/vulkan/icd.d/MoltenVK_icd.json")
+            file(REMOVE_RECURSE "${bundle}/Resources/licenses/vulkan-sdk")
+        ]])
+    endif()
     install(CODE [[
         include(BundleUtilities)
         get_filename_component(nijiexpose_bundle

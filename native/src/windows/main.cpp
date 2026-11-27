@@ -271,7 +271,7 @@ private:
         }
     }
 
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
     void destroyOverlayBlurResources() {
         if (overlayBlurProgram != 0) {
             ogl::glDeleteProgram(overlayBlurProgram);
@@ -522,7 +522,7 @@ private:
 #endif
 
     void drawBlurBackdrop(float x, float y, float w, float h, float rounding) {
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
         auto textureId=backend->overlayBlurTexture();
 #else
         if (overlayBlurTextureA == 0 || overlayBlurWidth <= 0 || overlayBlurHeight <= 0) return;
@@ -533,7 +533,7 @@ private:
         float v0 = 1.0f - (y / static_cast<float>(height()));
         float u1 = (x + w) / static_cast<float>(width());
         float v1 = 1.0f - ((y + h) / static_cast<float>(height()));
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
         v0=1-v0;v1=1-v1;
 #endif
 
@@ -967,7 +967,7 @@ protected:
     void onEarlyUpdate() {
         nijiexpose::control::poll();
         insScene()->update();
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
         insSendFrame();
         ogl::glBindFramebuffer(GL_FRAMEBUFFER, 0);
         auto mode=ogl::PresentationMode::Opaque;
@@ -980,7 +980,7 @@ protected:
         }
         ogl::oglPresentSceneToBackbuffer(width(),height(),mode);
 #endif
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
         updateOverlayBlurTexture();
 #endif
     }
@@ -1028,7 +1028,7 @@ protected:
     }
 
     void onClosed() {
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
         destroyOverlayBlurResources();
 #endif
     }

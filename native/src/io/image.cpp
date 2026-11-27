@@ -1,7 +1,7 @@
 // Direct port of legacy D: nijiexpose/io/image.d.
 #include "image.hpp"
 #include "nijilive/texture_utils.hpp"
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
 #include "nijilive/opengl/backend.hpp"
 #endif
 #include <algorithm>
@@ -29,7 +29,7 @@ std::shared_ptr<nicxlive::core::Puppet> neLoadModelFromImage(const std::string& 
     }
     ShallowTexture tex2(data,maxX-minX+1,maxY-minY+1,tex.channels);
     auto texture=std::make_shared<Texture>(tex2);
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
     ogl::enableTextureMipmaps(*texture);
 #endif
     auto part=nodes::Part::createSimple(texture,filename);

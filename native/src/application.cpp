@@ -35,7 +35,7 @@ std::shared_ptr<nijiui::InApplicationWindow> initializeApplication(const std::ve
     tracking::neInitTracker();
     insInitFrameSending();
     nicxlive::core::getCurrentRenderBackend()->addBasicLightingPostProcess();
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
     bool fallback=nijiui::inSettingsGet<bool>("TripleBufferFallback",ogl::nlIsTripleBufferFallbackEnabled());
     ogl::nlSetTripleBufferFallback(fallback);
 #endif
@@ -47,7 +47,7 @@ void shutdownApplication(){
     plugins::insLuaUnload();
     insCleanupFrameSending();
     scene::insScene()->cleanup();
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
     nicxlive::core::inSetRenderBackend(nullptr);
 #else
     if(SDL_GL_GetCurrentContext()) {

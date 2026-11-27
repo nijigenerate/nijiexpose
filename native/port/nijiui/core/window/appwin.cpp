@@ -8,7 +8,7 @@
 #include "nijiui/toolwindow.hpp"
 #include "nijiui/widgets/dialog.hpp"
 #include "nijiui/input.hpp"
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
 #include "nijilive/opengl/api.hpp"
 #include <imgui_impl_opengl3.h>
 #endif
@@ -18,13 +18,15 @@
 #include <algorithm>
 #include <stdexcept>
 #include "render/window_mode.hpp"
+#ifndef NIJIEXPOSE_OPENGL
+#include "render/renderer.hpp"
 #ifdef NIJIEXPOSE_VULKAN
-#include "render/vulkan/backend.hpp"
+#include <imgui_impl_vulkan.h>
+#endif
 #include "framesend.hpp"
 #endif
 namespace nijiui {
 namespace {
-bool isGLLoaded=false;
 void fitDecoratedWindowToDisplay(SDL_Window* window) {
     if (SDL_GetWindowFlags(window) & (SDL_WINDOW_MAXIMIZED | SDL_WINDOW_FULLSCREEN)) return;
     SDL_Rect area{};
@@ -44,16 +46,29 @@ void fitDecoratedWindowToDisplay(SDL_Window* window) {
 }
 InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsigned height,int rate)
     : width_(static_cast<int>(width)),height_(static_cast<int>(height)) {
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
     SDL_SetHint(SDL_HINT_APP_NAME,inGetApplication().humanName.c_str());
-    window=SDL_CreateWindow(title.c_str(),width_,height_,SDL_WINDOW_VULKAN|SDL_WINDOW_RESIZABLE
+    #ifdef NIJIEXPOSE_METAL
+    constexpr auto rendererFlag=SDL_WINDOW_METAL;
+    using GpuContext=nijiexpose::metal::Context;
+#else
+    constexpr auto rendererFlag=SDL_WINDOW_VULKAN;
+    using GpuContext=nijiexpose::vulkan::Context;
+#endif
+    window=SDL_CreateWindow(title.c_str(),width_,height_,rendererFlag|SDL_WINDOW_RESIZABLE
 #ifndef _WIN32
         |SDL_WINDOW_TRANSPARENT
 #endif
     );
     if(!window)throw std::runtime_error(SDL_GetError());
     fitDecoratedWindowToDisplay(window);
-    vulkanContext=std::make_unique<nijiexpose::vulkan::Context>(window);
+    try {
+        gpuContext=std::make_unique<GpuContext>(window);
+    } catch(...) {
+        SDL_DestroyWindow(window);
+        window=nullptr;
+        throw;
+    }
     setThrottlingRate(rate);
 #else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,SDL_GL_CONTEXT_PROFILE_CORE);
@@ -74,10 +89,8 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     glctx=SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window,glctx);
     setThrottlingRate(rate);
-    if(!isGLLoaded) {
-        if(!glctx) throw std::runtime_error("No valid OpenGL context was found!");
-        nijiexpose::ogl::loadApi();
-    }
+    if(!glctx) throw std::runtime_error("No valid OpenGL context was found!");
+    nijiexpose::ogl::loadApi();
 #endif
     ctx=ImGui::CreateContext();
     io=&ImGui::GetIO();
@@ -85,9 +98,13 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     io->ConfigWindowsResizeFromEdges=true;
     iniPath=(std::filesystem::path(inGetAppConfigPath())/"imgui.ini").string();
     io->IniFilename=iniPath.c_str();
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
+#ifdef NIJIEXPOSE_METAL
+    ImGui_ImplSDL3_InitForMetal(window);
+#else
     ImGui_ImplSDL3_InitForVulkan(window);
-    vulkanContext->initializeImGui();
+#endif
+    gpuContext->initializeImGui();
 #else
     ImGui_ImplSDL3_InitForOpenGL(window,glctx);
     ImGui_ImplOpenGL3_Init("#version 330");
@@ -103,16 +120,16 @@ void InApplicationWindow::cleanup() {
     // Restore SDL's application-wide drop policy before destroying its window.
     nijiexpose::render::restoreWindowDropEvents(window);
 #endif
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
     nijiexpose::insCleanupFrameSending();
-    vulkanContext->shutdownImGui();
+    gpuContext->shutdownImGui();
 #else
     ImGui_ImplOpenGL3_Shutdown();
 #endif
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext(ctx);
-#ifdef NIJIEXPOSE_VULKAN
-    vulkanContext.reset();
+#ifndef NIJIEXPOSE_OPENGL
+    gpuContext.reset();
 #else
     if(fboTexture)nijiexpose::ogl::glDeleteTextures(1,&fboTexture);
     if(fbo)nijiexpose::ogl::glDeleteFramebuffers(1,&fbo);
@@ -163,8 +180,8 @@ void InApplicationWindow::setBorderlessTransparency(bool enabled) {
     SDL_SyncWindow(window);
     nijiexpose::render::transparentWindow=enabled;
     transparencyRetryPending=enabled;
-#ifdef NIJIEXPOSE_VULKAN
-    vulkanContext->resize();
+#ifndef NIJIEXPOSE_OPENGL
+    gpuContext->resize();
 #endif
     nijiexpose::render::configureWindowTransparency(window,enabled);
     if (!enabled) fitDecoratedWindowToDisplay(window);
@@ -173,16 +190,16 @@ void InApplicationWindow::setBorderlessTransparency(bool enabled) {
 void InApplicationWindow::setThrottlingRate(int rate) {
     throttlingRate=rate;
     if(rate>1 && ctx && io)onResized(static_cast<int>(io->DisplaySize.x),static_cast<int>(io->DisplaySize.y));
-#ifdef NIJIEXPOSE_VULKAN
-    vulkanContext->setThrottle(rate);
+#ifndef NIJIEXPOSE_OPENGL
+    gpuContext->setThrottle(rate);
 #else
     SDL_GL_SetSwapInterval(rate>0?1:0);
 #endif
 }
 void InApplicationWindow::onResized(int width,int height) {
     transparencyRetryPending=nijiexpose::render::transparentWindow;
-#ifdef NIJIEXPOSE_VULKAN
-    vulkanContext->resize();
+#ifndef NIJIEXPOSE_OPENGL
+    gpuContext->resize();
 #else
     using namespace nijiexpose::ogl;
     if(fboTexture){nijiexpose::ogl::glDeleteTextures(1,&fboTexture);fboTexture=0;}
@@ -210,7 +227,7 @@ void InApplicationWindow::close() {
 void InApplicationWindow::update() {
     // Same SafeThrottling path as the Windows D nijiui configuration.
     if(throttlingRate>0 && renderThrottlingCount++ % static_cast<unsigned>(throttlingRate)!=0) {
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
         // The compositor retains the last presented image. Skip simulation/UI
         // exactly as SafeThrottling does, without rerendering the same scene.
         SDL_DisplayMode const* mode=SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window));
@@ -249,18 +266,20 @@ void InApplicationWindow::update() {
         }
     }
     onPlatformUpdate();
+#ifndef NIJIEXPOSE_OPENGL
+    if(!gpuContext->beginFrame())return;
 #ifdef NIJIEXPOSE_VULKAN
-    if(!vulkanContext->beginFrame())return;
     ImGui_ImplVulkan_NewFrame();
+#endif
 #else
     SDL_GL_MakeCurrent(window,glctx);
     ImGui_ImplOpenGL3_NewFrame();
 #endif
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
-#ifdef NIJIEXPOSE_VULKAN
-    auto& renderer=nijiexpose::vulkan::backend();
-    renderer.resizeViewportTargets(vulkanContext->width(),vulkanContext->height());
+#ifndef NIJIEXPOSE_OPENGL
+    auto& renderer=nijiexpose::applicationRenderBackend();
+    renderer.resizeViewportTargets(gpuContext->width(),gpuContext->height());
 #endif
     inInputUpdate();
     if(!draggedFiles.empty() && ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceExtern)) {
@@ -281,10 +300,10 @@ void InApplicationWindow::update() {
         for(auto& win:inWindowListGet()) { win->onEarlyUpdate(); win->onUpdate(); }
     }
     ImGui::Render();
-#ifdef NIJIEXPOSE_VULKAN
+#ifndef NIJIEXPOSE_OPENGL
     onEarlyUpdate();
     renderer.render();
-    vulkanContext->present(ImGui::GetDrawData(),renderer.sceneImage());
+    gpuContext->present(ImGui::GetDrawData(),renderer.sceneImage());
     nijiexpose::insSendFrame();
 #else
     // Settings can create/destroy a tracker preview renderer during this frame.

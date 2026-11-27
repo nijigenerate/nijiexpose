@@ -16,13 +16,17 @@ struct LayerState {
     __strong id background;
 };
 struct ViewState { __strong NSView* view; bool wantsLayer; };
+#ifdef NIJIEXPOSE_OPENGL
 struct GLState { __strong NSOpenGLContext* context; GLint opacity; };
+#endif
 struct State {
     bool opaque, shadow;
     __strong NSColor* background;
     std::vector<LayerState> layers;
     std::vector<ViewState> views;
-    std::vector<GLState> contexts;
+#ifdef NIJIEXPOSE_OPENGL
+    std::vector<GLState> contexts{};
+#endif
 };
 void applyLayer(CALayer* layer,State& state) {
     if (!layer) return;
@@ -40,7 +44,7 @@ void applyView(NSView* view,State& state) {
     if (!known) state.views.push_back({view,bool(view.wantsLayer)});
     view.wantsLayer=YES;
     applyLayer(view.layer,state);
-#ifndef NIJIEXPOSE_VULKAN
+#ifdef NIJIEXPOSE_OPENGL
     if ([view isKindOfClass:NSOpenGLView.class]) {
         NSOpenGLContext* context=((NSOpenGLView*)view).openGLContext;
         if (context) {
@@ -71,7 +75,7 @@ void configureWindowTransparency(SDL_Window* window,bool enabled) {
         auto* state=static_cast<State*>(SDL_GetPointerProperty(props,stateKey,nullptr));
         if (enabled) {
             if (!state) {
-                state=new State{bool(native.opaque),bool(native.hasShadow),native.backgroundColor,{},{},{}};
+                state=new State{bool(native.opaque),bool(native.hasShadow),native.backgroundColor,{},{}};
                 if (!SDL_SetPointerPropertyWithCleanup(props,stateKey,state,
                     [](void*,void* value){delete static_cast<State*>(value);},nullptr)) {
                     // SDL invokes the cleanup callback if setting the property fails.
@@ -95,10 +99,12 @@ void configureWindowTransparency(SDL_Window* window,bool enabled) {
             // Restore the same types SDL's Cocoa_AcceptDragAndDrop registers.
             if (SDL_EventEnabled(SDL_EVENT_DROP_FILE) || SDL_EventEnabled(SDL_EVENT_DROP_TEXT))
                 [native registerForDraggedTypes:@[NSPasteboardTypeFileURL,NSPasteboardTypeString]];
+#ifdef NIJIEXPOSE_OPENGL
             for (const auto& saved:state->contexts) {
                 GLint opacity=saved.opacity;
                 [saved.context setValues:&opacity forParameter:NSOpenGLCPSurfaceOpacity];
             }
+#endif
             for (const auto& saved:state->layers) {
                 saved.layer.opaque=saved.opaque;
                 saved.layer.backgroundColor=(__bridge CGColorRef)saved.background;
