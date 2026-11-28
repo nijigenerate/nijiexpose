@@ -121,6 +121,20 @@ private:
         tray=nullptr;trayActions.clear();pendingTrayCommands.clear();
     }
     void createTray() {
+#ifdef __linux__
+        // SDL 3.4's AppIndicator backend gets its title from GLib. AppImage
+        // starts with AppRun as the program name, so set the display name once.
+        static const auto glib=[] {
+            std::unique_ptr<SDL_SharedObject,decltype(&SDL_UnloadObject)> library(
+                SDL_LoadObject("libglib-2.0.so.0"),SDL_UnloadObject);
+            if (library) {
+                auto setApplicationName=reinterpret_cast<void (*)(const char*)>(
+                    SDL_LoadFunction(library.get(),"g_set_application_name"));
+                if (setApplicationName) setApplicationName("nijiexpose");
+            }
+            return library;
+        }();
+#endif
         tray=SDL_CreateTray(nativeIcon(),"nijiexpose");
         if(!tray)throw std::runtime_error(SDL_GetError());
         auto* menu=SDL_CreateTrayMenu(tray);
@@ -997,7 +1011,18 @@ protected:
         }
         tracking::neTracker()->update();
     }
-    bool onPlatformEvent(const SDL_Event& event) override { return tracking::neTracker()->handleEvent(event); }
+    bool onPlatformEvent(const SDL_Event& event) override {
+#ifdef __linux__
+        // The desktop can hide the tray icon or have no tray host at all.
+        if (transparentMode && !overlayOpen && event.type==SDL_EVENT_KEY_DOWN &&
+            event.key.windowID==SDL_GetWindowID(nativeWindow()) &&
+            event.key.key==SDLK_ESCAPE && !event.key.repeat) {
+            setTransparentMode(false);
+            return true;
+        }
+#endif
+        return tracking::neTracker()->handleEvent(event);
+    }
     void onUpdate() {
         while(!pendingTrayCommands.empty()) {
             int command=pendingTrayCommands.front();pendingTrayCommands.pop_front();

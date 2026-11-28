@@ -58,8 +58,11 @@ Select **Transparent window** in the navigation bar, or launch with
 `--transparent-window`, to hide the window border, background and navigation bar.
 The system tray icon provides the navigation commands and **Exit transparent mode**
 to restore the normal window. Platform transparency follows nijimi's Windows,
-macOS and Linux/X11 paths. Linux click-through requires X11 with the Shape
-extension and an alpha-capable compositor; Wayland click-through is unsupported.
+macOS and Linux/X11 paths. On X11, background transparency requires an
+alpha-capable compositor and click-through requires the Shape extension.
+Wayland click-through is unsupported. The Linux tray icon requires a desktop
+tray host and, with SDL 3.4, GTK 3 and AppIndicator. If the icon is hidden, focus
+nijiexpose with **Alt+Tab** and press **Esc** to restore the normal window.
 
 ## Building
 

@@ -2,6 +2,9 @@
 #include <SDL3/SDL.h>
 namespace nijiexpose::render {
 inline thread_local bool transparentWindow=false;
+#if defined(__linux__) && defined(NIJIEXPOSE_VULKAN)
+SDL_Window* createLinuxVulkanWindow(const char* title,int width,int height,SDL_WindowFlags flags);
+#endif
 void configureWindowTransparency(SDL_Window* window,bool enabled);
 #ifdef _WIN32
 void restoreWindowDropEvents(SDL_Window* window);

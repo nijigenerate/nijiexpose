@@ -11,6 +11,8 @@
 #ifdef NIJIEXPOSE_VULKAN
 #include "render/vulkan/backend.hpp"
 #endif
+#elif defined(__linux__) && defined(NIJIEXPOSE_VULKAN)
+#include <X11/extensions/Xrender.h>
 #endif
 
 namespace {
@@ -48,6 +50,18 @@ int main(int argc, char** argv) {
         require(windows && count > 0, "No application window");
         auto native = windows[0];
         SDL_free(windows);
+#if defined(__linux__) && defined(NIJIEXPOSE_VULKAN)
+        const auto properties=SDL_GetWindowProperties(native);
+        auto* display=static_cast<Display*>(SDL_GetPointerProperty(properties,SDL_PROP_WINDOW_X11_DISPLAY_POINTER,nullptr));
+        if (display) {
+            const auto xid=static_cast<Window>(SDL_GetNumberProperty(properties,SDL_PROP_WINDOW_X11_WINDOW_NUMBER,0));
+            XWindowAttributes attributes{};
+            require(XGetWindowAttributes(display,xid,&attributes), "Cannot query the X11 window visual");
+            const auto* format=XRenderFindVisualFormat(display,attributes.visual);
+            require(format && format->type==PictTypeDirect && format->direct.alphaMask==0xff,
+                    "Vulkan window visual has no 8-bit alpha channel for X11 compositing");
+        }
+#endif
         auto requireDropRegistration=[&](bool expected) {
 #ifdef _WIN32
             auto hwnd=static_cast<HWND>(SDL_GetPointerProperty(SDL_GetWindowProperties(native),SDL_PROP_WINDOW_WIN32_HWND_POINTER,nullptr));
@@ -173,7 +187,18 @@ int main(int argc, char** argv) {
             // must make room for the caption instead of placing it offscreen.
             require(SDL_SetWindowPosition(native, area.x, area.y), SDL_GetError());
             frames();
-            window->setTransparentMode(false);
+#ifdef __linux__
+            if (cycle==0) {
+                SDL_Event escape{};
+                escape.type=SDL_EVENT_KEY_DOWN;
+                escape.key.windowID=SDL_GetWindowID(native);
+                escape.key.key=SDLK_ESCAPE;
+                require(SDL_PushEvent(&escape), SDL_GetError());
+            } else
+#endif
+            {
+                window->setTransparentMode(false);
+            }
             frames();
             require(!nijiexpose::render::transparentWindow, "Normal mode was not restored");
             require(!(SDL_GetWindowFlags(native) & SDL_WINDOW_BORDERLESS),

@@ -60,11 +60,15 @@ InApplicationWindow::InApplicationWindow(std::string title,unsigned width,unsign
     constexpr auto rendererFlag=SDL_WINDOW_VULKAN;
     using GpuContext=nijiexpose::vulkan::Context;
 #endif
-    window=SDL_CreateWindow(title.c_str(),width_,height_,rendererFlag|SDL_WINDOW_RESIZABLE|SDL_WINDOW_HIGH_PIXEL_DENSITY
+    auto flags=rendererFlag|SDL_WINDOW_RESIZABLE|SDL_WINDOW_HIGH_PIXEL_DENSITY;
 #ifndef _WIN32
-        |SDL_WINDOW_TRANSPARENT
+    flags|=SDL_WINDOW_TRANSPARENT;
 #endif
-    );
+#if defined(__linux__) && defined(NIJIEXPOSE_VULKAN)
+    window=nijiexpose::render::createLinuxVulkanWindow(title.c_str(),width_,height_,flags);
+#else
+    window=SDL_CreateWindow(title.c_str(),width_,height_,flags);
+#endif
     if(!window)throw std::runtime_error(SDL_GetError());
     initializeWindowSize();
     try {
